@@ -1,8 +1,7 @@
-# Modul 1 (tahap 1.1–1.3): Crawling → Preprocessing → Deduplikasi
+# Modul 1 (tahap 1.1–1.4): Crawling → Preprocessing → Deduplikasi → Filter informatif
 
-Pipeline tweet bencana berbahasa Indonesia untuk skripsi. Lingkup berhenti di **1.3**; tahap 1.4
-(filter informatif dengan LLM) dan Modul 2 **tidak** ada di sini. Keluaran 1.3 sudah siap dipakai
-1.4 (`data/processed/input_1_4.parquet`).
+Pipeline tweet bencana berbahasa Indonesia untuk skripsi. Tahap 1.4 (filter informatif dengan
+LLM) menghasilkan `data/processed/informatif.parquet` untuk Modul 2 (Modul 2 tidak ada di sini).
 
 Prinsip: **tidak ada baris yang dihapus**. Setiap tweet yang tidak lanjut diberi `drop_reason`,
 setiap tahap mencatat jumlah masuk/keluar/dibuang ke `reports/alur_data.csv`, dan semua proses
@@ -30,7 +29,15 @@ python -m modul1 run-all [--events ...]       # 1.1 -> 1.2 -> 1.3
 python -m modul1 calib-sample                 # sekali: sampel pasangan -> reports/kalibrasi_dedup.csv
 #   isi kolom label_duplikat (1 = duplikat, 0 = bukan), lalu:
 python -m modul1 calib-report                 # presisi per ambang + saran ambang
+
+python -m modul1 filter --limit 50            # 1.4 uji coba: 50 tweet acak
+python -m modul1 filter                       # 1.4 sisanya; bila kuota harian habis, jalankan lagi besok
+python -m modul1 filter-finalize              # 1.4 tulis ulang keluaran dari label yang ada (tanpa API)
 ```
+
+Tahap 1.4 memakai API OpenAI-compatible. Default: Groq (gratis, `openai/gpt-oss-120b`), butuh
+`GROQ_API_KEY` di `.env`. Alternatif tanpa kuota: Ollama lokal (ubah `base_url`/`model` di
+`config.yaml`, contoh ada di komentar).
 
 Opsi global: `--config path/config.yaml`, `--workdir DIR` (folder dasar `data/`, `logs/`, `reports/`).
 
@@ -132,6 +139,35 @@ berbeda. *Lolos verifikasi* = skor ≥ ambang dan angka sama.
 lalu diambil ±20 per bin. Karena sampelnya sama banyak per bin (bertingkat), `calib-report` menghitung
 **presisi berbobot** (menurut jumlah populasi pasangan di tiap bin) di samping presisi mentah.
 Saran ambang = ambang terendah dengan presisi berbobot ≥ 0,95.
+
+**1.4 Filter informatif** (keputusan peneliti: LLM open-weight gratis, label biner)
+- Masukan: `input_1_4.parquet` (wakil cluster). Keluaran: `hasil_1_4.parquet` (semua wakil +
+  `label`, `label_sumber`, `llm_status`, `llm_model`, `prompt_hash`) dan `informatif.parquet`
+  (hanya `label == informatif`, untuk Modul 2). Tidak ada baris yang dihapus.
+- **Hibrida: aturan regex dulu, LLM untuk sisanya.** Aturan di `config.yaml` (`filter_llm.aturan`)
+  dievaluasi berurutan; aturan pertama yang cocok menentukan label (`label_sumber = aturan:<nama>`).
+  Prinsipnya presisi tinggi — hanya kasus yang jelas; yang ragu diserahkan ke LLM:
+  - `bmkg` → informatif: laporan otomatis BMKG (`#Gempa Mag:… Lok:…`) yang menyebut salah satu
+    `alias_wilayah` kejadian (I6). BMKG untuk wilayah lain tetap dinilai LLM (bisa N4).
+  - `topik_lain` → noninformatif: MBG, karnaval, 17 Agustus/HUT RI, dll. (N3), **kecuali** tweet
+    memuat petunjuk fakta (angka, korban, kerusakan, kebutuhan, pengungsian, bahaya, BNPB/BMKG).
+  - `doa_tanpa_fakta` → noninformatif: semoga/doa/berduka/pray… (N1), dengan pengecualian yang sama.
+  Log dan `alur_data.csv` mencatat jumlah per sumber label. `pakai_llm: false` + `label_default`
+  = mode regex saja.
+- **LLM:** API OpenAI-compatible (`/chat/completions`), default Groq `openai/gpt-oss-120b`
+  (open-weight, Apache 2.0). Prompt di `config/prompt_informatif.md` (definisi + indikator
+  I1–I8 / N1–N8 + aturan keputusan). Satu permintaan berisi deskripsi kejadian acuan dari
+  `kejadian.csv` + `tweet_per_permintaan` (20) tweet bernomor lokal 1..n yang berbagi kejadian
+  yang sama; jawaban JSON `{"hasil": [{"id", "label"}]}`, `temperature = 0`. Pengelompokan dipilih
+  karena kuota token harian free tier (±200 ribu token/hari di Groq); prompt meminta setiap tweet
+  dinilai terpisah.
+- **Jejak:** setiap hasil disimpan di `data/interim/llm_labels_1_4.jsonl` (model, provider,
+  prompt_hash, chunk, finish_reason, token). `prompt_hash` = sidik jari prompt + provider + model +
+  parameter; bila salah satunya diubah, semua tweet dilabeli ulang dengan versi baru. Gagal
+  (`hilang_dari_jawaban`, `invalid_output`, `errored:…`) → `label` kosong, dikirim ulang pada run
+  berikutnya. HTTP 429 dengan jeda panjang (kuota harian) → proses berhenti rapi.
+- **Privasi:** layanan gratis dapat memakai prompt untuk pelatihan model. Tweet sudah publik &
+  teranonimkan; untuk menghindarinya sama sekali gunakan Ollama lokal.
 
 ## Catatan untuk dibahas (tidak diubah diam-diam)
 

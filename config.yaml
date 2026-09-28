@@ -1,5 +1,5 @@
 # Konfigurasi Modul 1 tahap 1.1–1.3.
-# Semua path relatif: `kejadian` relatif terhadap folder file ini,
+# Semua path relatif: `kejadian` dan `prompt_informatif` relatif terhadap folder file ini,
 # sisanya relatif terhadap --workdir (default: folder file ini).
 
 seed: 42 # seed tunggal untuk semua proses acak (MinHash, sampling)
@@ -21,6 +21,11 @@ paths:
   dedup_ringkasan: reports/dedup_ringkasan.json
   kalibrasi: reports/kalibrasi_dedup.csv
   kalibrasi_laporan: reports/kalibrasi_laporan.csv
+  # 1.4 filter informatif
+  prompt_informatif: config/prompt_informatif.md
+  llm_labels: data/interim/llm_labels_1_4.jsonl
+  hasil_1_4: data/processed/hasil_1_4.parquet
+  informatif: data/processed/informatif.parquet
 
 crawl:
   only_pilot: true # false = semua 29 kejadian
@@ -72,3 +77,55 @@ calibration:
   bin_width: 5
   per_bin: 20
   target_precision: 0.95
+
+filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API OpenAI-compatible)
+  # Groq (gratis, model open-weight gpt-oss). Kunci di .env: GROQ_API_KEY
+  base_url: https://api.groq.com/openai/v1
+  model: openai/gpt-oss-120b
+  api_key_env: GROQ_API_KEY
+  # Alternatif lokal tanpa kuota (install Ollama, lalu `ollama pull qwen2.5:7b`):
+  #   base_url: http://localhost:11434/v1
+  #   model: qwen2.5:7b
+  #   api_key_env: null
+  extra_body: # parameter tambahan khusus penyedia (ikut prompt_hash)
+    response_format: {type: json_object}
+    reasoning_effort: low # gpt-oss: hemat token; hapus untuk model lain (mis. Ollama/Qwen)
+  tweet_per_permintaan: 20
+  max_tokens: 2048 # cukup untuk reasoning + JSON 20 label
+  temperature: 0 # deterministik semampunya
+  timeout_s: 120
+  max_retry: 3 # untuk galat sementara (5xx, timeout, 429 singkat)
+  jeda_antar_permintaan_s: 8 # menjaga batas token per menit (Groq gratis: 8K TPM)
+  tunggu_429_maks_s: 120 # 429 dengan jeda lebih lama (kuota harian) -> berhenti rapi
+  # Tweet yang tidak cocok aturan mana pun dikirim ke LLM. false = tanpa LLM (regex saja):
+  # tweet yang tidak cocok diberi label_default.
+  pakai_llm: true
+  label_default: null # dipakai hanya bila pakai_llm: false (mis. noninformatif)
+
+  # Aturan regex (case-insensitive), dievaluasi berurutan; aturan pertama yang cocok menentukan
+  # label (label_sumber = "aturan:<nama>"). Setiap aturan:
+  #   semua: semua pola harus cocok | salah_satu: minimal satu pola cocok
+  #   kecuali: tidak boleh ada yang cocok | wilayah_kejadian: harus menyebut alias_wilayah kejadian
+  # Prinsip: presisi tinggi. Aturan noninformatif batal bila ada petunjuk fakta (angka, korban,
+  # kerusakan, kebutuhan, pengungsian, bahaya) -> diserahkan ke LLM.
+  aturan:
+    - nama: bmkg # laporan otomatis BMKG untuk wilayah kejadian (I6)
+      label: informatif
+      semua: ['gempa\s+mag\s*:\s*\d', '\blok\s*:']
+      wilayah_kejadian: true
+    - nama: topik_lain # MBG, perayaan/karnaval tanpa fakta bencana (N3)
+      label: noninformatif
+      salah_satu: ['\bmbg\b', 'makan\s+bergizi', '\bkarnaval\b', '\b17\s+agustus(an)?\b', '\bhut\s+(ri|ke)',
+                   '\bkemerdekaan\b', '\bpesta\b', '\bkonser\b']
+      kecuali: &fakta
+        - '\d'
+        - '\b(meninggal|tewas|wafat|korban\s+jiwa|luka|hilang|tertimbun)'
+        - '\b(mengungsi|pengungsi|pengungsian|posko|tenda)'
+        - '\b(rusak|roboh|ambruk|runtuh|retak|hancur|putus)'
+        - '\b(butuh|kebutuhan|kekurangan|minim|logistik|air\s+bersih|selimut|obat|sembako)'
+        - '\b(susulan|tsunami|evakuasi|dievakuasi|sar\b|basarnas|bnpb|bpbd|bmkg)'
+    - nama: doa_tanpa_fakta # hanya doa/empati (N1)
+      label: noninformatif
+      salah_satu: ['\bsemoga\b', '\bdoa\b', '\bmendoakan\b', '\bpray', 'turut\s+berduka', '\bberduka\b',
+                   'ya\s*allah', 'innalillahi', '\baa?mii?n\b', '\btuhan\b', '\bstay\s+safe\b', '\bget\s+well\b']
+      kecuali: *fakta

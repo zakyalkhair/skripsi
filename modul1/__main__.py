@@ -1,4 +1,5 @@
-"""CLI Modul 1: python -m modul1 {crawl|preprocess|dedup|calib-sample|calib-report|run-all}."""
+"""CLI Modul 1: python -m modul1 {crawl|preprocess|dedup|calib-sample|calib-report|run-all|
+filter|filter-finalize}."""
 
 from __future__ import annotations
 
@@ -34,6 +35,10 @@ def main(argv: list[str] | None = None) -> int:
     p_rep.add_argument("--file", default=None, help="file kalibrasi terisi (default: path di config)")
     add_crawl_args(sub.add_parser("run-all", help="1.1 -> 1.2 -> 1.3"))
 
+    p_f = sub.add_parser("filter", help="1.4 filter informatif (lanjut dari yang belum berlabel)")
+    p_f.add_argument("--limit", type=int, default=None, help="kirim sampel acak N tweet saja (uji coba)")
+    sub.add_parser("filter-finalize", help="1.4 tulis ulang keluaran dari label yang ada (tanpa API)")
+
     args = ap.parse_args(argv)
     try:
         return _dispatch(args)
@@ -59,6 +64,16 @@ def _dispatch(args) -> int:
         crawl.run(cfg, _events(args.events), args.skip_fetch, args.pause)
         preprocess.run(cfg)
         dedup.run(cfg)
+    elif args.cmd == "filter":
+        from . import filter_llm
+        from .io_utils import setup_logger
+
+        log = setup_logger("filter", cfg.paths.logs_dir)
+        filter_llm.run(cfg, filter_llm.make_client(cfg, log), args.limit, log)
+    elif args.cmd == "filter-finalize":
+        from . import filter_llm
+
+        filter_llm.finalize(cfg)
     return 0
 
 

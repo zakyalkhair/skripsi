@@ -21,13 +21,16 @@ from .schemas import Config, arrow_schema
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Urutan baku baris reports/alur_data.csv
-ALUR_TAHAP = ["hasil crawl", "saring dasar", "preprocessing", "dedup", "Siap ke 1.4"]
+ALUR_TAHAP = ["hasil crawl", "saring dasar", "preprocessing", "dedup", "Siap ke 1.4",
+              "filter informatif", "Siap ke Modul 2"]
+# Path yang merupakan bagian konfigurasi (relatif ke folder config.yaml, bukan --workdir)
+CONFIG_RELATIVE_PATHS = {"kejadian", "prompt_informatif"}
 ALUR_KOLOM = ["tahap", "masuk", "keluar", "dibuang", "alasan"]
 
 
 # --------------------------------------------------------------------------- config
 def load_config(config_path: str | Path | None = None, workdir: str | Path | None = None) -> Config:
-    """Baca config.yaml; resolve `kejadian` relatif ke folder config, sisanya ke workdir."""
+    """Baca config.yaml; resolve CONFIG_RELATIVE_PATHS relatif ke folder config, sisanya ke workdir."""
     config_path = Path(config_path) if config_path else PROJECT_ROOT / "config.yaml"
     config_path = config_path.resolve()
     with open(config_path, encoding="utf-8") as fh:
@@ -37,7 +40,7 @@ def load_config(config_path: str | Path | None = None, workdir: str | Path | Non
     for name in type(cfg.paths).model_fields:
         p = getattr(cfg.paths, name)
         if not p.is_absolute():
-            root = config_path.parent if name == "kejadian" else base
+            root = config_path.parent if name in CONFIG_RELATIVE_PATHS else base
             setattr(cfg.paths, name, (root / p).resolve())
     return cfg
 

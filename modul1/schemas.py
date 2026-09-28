@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from pathlib import Path
+from typing import Literal
 
 import pyarrow as pa
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 # --------------------------------------------------------------------------- config
@@ -29,6 +31,10 @@ class PathsCfg(BaseModel):
     dedup_ringkasan: Path
     kalibrasi: Path
     kalibrasi_laporan: Path
+    prompt_informatif: Path
+    llm_labels: Path
+    hasil_1_4: Path
+    informatif: Path
 
 
 class CrawlCfg(BaseModel):
@@ -84,6 +90,55 @@ class CalibCfg(BaseModel):
     target_precision: float = Field(gt=0, le=1)
 
 
+class AturanCfg(BaseModel):
+    """Satu aturan regex tahap 1.4."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nama: str = Field(pattern=r"^[a-z0-9_]+$")
+    label: Literal["informatif", "noninformatif"]
+    semua: list[str] = Field(default_factory=list)
+    salah_satu: list[str] = Field(default_factory=list)
+    kecuali: list[str] = Field(default_factory=list)
+    wilayah_kejadian: bool = False
+
+    @model_validator(mode="after")
+    def _cek(self):
+        if not self.semua and not self.salah_satu:
+            raise ValueError(f"aturan '{self.nama}': isi `semua` atau `salah_satu`")
+        for p in self.semua + self.salah_satu + self.kecuali:
+            try:
+                re.compile(p)  # galat regex terdeteksi saat memuat config
+            except re.error as e:
+                raise ValueError(f"aturan '{self.nama}': regex tidak valid {p!r}: {e}") from e
+        return self
+
+
+class FilterLlmCfg(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: str
+    model: str
+    api_key_env: str | None
+    extra_body: dict = Field(default_factory=dict)
+    tweet_per_permintaan: int = Field(ge=1)
+    max_tokens: int = Field(gt=0)
+    temperature: float = Field(ge=0, le=2)
+    timeout_s: float = Field(gt=0)
+    max_retry: int = Field(ge=0)
+    jeda_antar_permintaan_s: float = Field(ge=0)
+    tunggu_429_maks_s: float = Field(ge=0)
+    pakai_llm: bool = True
+    label_default: Literal["informatif", "noninformatif"] | None = None
+    aturan: list[AturanCfg] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _cek_default(self):
+        if not self.pakai_llm and self.label_default is None:
+            raise ValueError("filter_llm.label_default wajib diisi bila pakai_llm: false")
+        return self
+
+
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -94,6 +149,7 @@ class Config(BaseModel):
     preprocess: PreprocessCfg
     dedup: DedupCfg
     calibration: CalibCfg
+    filter_llm: FilterLlmCfg
 
 
 # --------------------------------------------------------------------------- kejadian
@@ -194,6 +250,12 @@ FIELDS: dict[str, pa.DataType] = {
     "member_tweet_ids": _LIST_STR,
     "cluster_size": pa.int64(),
     "drop_reason": pa.string(),
+    # 1.4
+    "label": pa.string(),
+    "label_sumber": pa.string(),
+    "llm_status": pa.string(),
+    "llm_model": pa.string(),
+    "prompt_hash": pa.string(),
 }
 
 CRAWLED_COLS = [
@@ -210,6 +272,7 @@ FINAL_COLS = [
 ]
 DEDUP_COLS = FINAL_COLS
 INPUT_1_4_COLS = ["tweet_id", "created_at", "text_raw", "member_tweet_ids", "cluster_size", "event_id"]
+HASIL_1_4_COLS = INPUT_1_4_COLS + ["label", "label_sumber", "llm_status", "llm_model", "prompt_hash"]
 
 
 def arrow_schema(cols: list[str]) -> pa.Schema:
