@@ -22,6 +22,7 @@ import pandas as pd
 from .io_utils import (
     dumps_jsonl,
     iter_jsonl,
+    none_if_na,
     setup_logger,
     update_alur_data,
     utc_now_iso,
@@ -30,6 +31,7 @@ from .io_utils import (
 from .schemas import (
     CRAWLED_COLS,
     DROP_BUKAN_ID,
+    DROP_DI_LUAR_JENDELA,
     DROP_RETWEET,
     Config,
     CrawledTweet,
@@ -79,7 +81,7 @@ def query_id_of(text: str) -> str:
 
 
 def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
-    """Satu kueri per (kejadian, kata kunci): `kw (alias1 OR alias2 ...) lang:id -filter:retweets
+    """Satu kueri per (kejadian, kata kunci): `kw (alias1 OR alias2 ...) [lang:id] -filter:retweets
     -neg since:mulai until:selesai+1`. Bila melebihi max_query_chars, alias dipecah ke beberapa kueri.
     Kueri dengan teks identik dari kejadian berbeda digabung (event_ids jadi list)."""
     c = cfg.crawl
@@ -95,7 +97,7 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
         since = k.tanggal_mulai - timedelta(days=c.padding_hari_sebelum)
         until = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
         suffix_parts += [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
-        suffix = " ".join(suffix_parts)
+        suffix = " ".join(p for p in suffix_parts if p)
         for kw in _dedupe_ci(c.keywords[k.jenis]):
             for chunk in _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars):
                 text = f"{_quote(kw)} ({' OR '.join(_quote(a) for a in chunk)}) {suffix}"
@@ -104,7 +106,7 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
                         by_text[text].event_ids.append(k.event_id)
                 else:
                     by_text[text] = Kueri(query_id=query_id_of(text), text=text, event_ids=[k.event_id],
-                                          keyword=kw, aliases=chunk)
+                                          keyword=kw, aliases=chunk, since=since, until=until)
     return list(by_text.values())
 
 
@@ -246,6 +248,7 @@ async def fetch(cfg: Config, queries: list[Kueri], kejadian: list[Kejadian], api
                         d = tw.dict() if hasattr(tw, "dict") else dict(tw)
                         d["query_id"] = q.query_id
                         d["event_ids"] = q.event_ids
+                        d["query_window"] = [q.since.isoformat(), q.until.isoformat()]
                         d["crawled_at"] = utc_now_iso()
                         fh.write(dumps_jsonl(d))
                         n += 1
@@ -336,7 +339,17 @@ def parse_raw_record(d: dict, salt: str | None, lang_id: str) -> dict:
         "event_id": list(d.get("event_ids") or []),
         "user_hash": _user_hash(d.get("user"), salt),
         "drop_reason": drop,
+        "_windows": [tuple(d["query_window"])] if d.get("query_window") else [],
     }
+
+
+def in_any_window(created_at: str | None, windows: list[tuple[str, str]]) -> bool:
+    """True bila created_at (UTC) jatuh di salah satu jendela [since, until) kueri asal."""
+    if not windows or not created_at:
+        return True  # raw lama tanpa info jendela: tidak ditandai
+    ts = pd.Timestamp(created_at)
+    ts = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+    return any(pd.Timestamp(s, tz="UTC") <= ts < pd.Timestamp(u, tz="UTC") for s, u in windows)
 
 
 def parse_raw(raw_path: str | Path, salt: str | None, lang_id: str) -> tuple[pd.DataFrame, dict]:
@@ -350,22 +363,29 @@ def parse_raw(raw_path: str | Path, salt: str | None, lang_id: str) -> tuple[pd.
         if cur is None:
             merged[rec["tweet_id"]] = rec
         else:
-            for col in ("query_id", "event_id"):
+            for col in ("query_id", "event_id", "_windows"):
                 for v in rec[col]:
                     if v not in cur[col]:
                         cur[col].append(v)
     for rec in merged.values():
+        # twscrape juga mengembalikan tweet yang dikutip/dibalas sebagai hasil tersendiri walau
+        # tidak cocok dengan kueri; yang di luar jendela tanggal kueri ditandai (tidak dihapus)
+        if rec["drop_reason"] is None and not in_any_window(rec["created_at"], rec["_windows"]):
+            rec["drop_reason"] = DROP_DI_LUAR_JENDELA
+        del rec["_windows"]
         CrawledTweet.model_validate(rec)  # validasi skema (tweet_id string, dsb.)
         rec["query_id"] = sorted(rec["query_id"])
         rec["event_id"] = sorted(rec["event_id"])
     df = pd.DataFrame(list(merged.values()), columns=CRAWLED_COLS)
     df["created_at"] = pd.to_datetime(df["created_at"], utc=True)
+    df["drop_reason"] = none_if_na(df["drop_reason"])
     stats = {
         "baris_raw": n_lines,
         "tweet_unik": len(df),
         "duplikat_id": n_lines - len(df),
         "retweet": int((df["drop_reason"] == DROP_RETWEET).sum()),
         "bukan_id": int((df["drop_reason"] == DROP_BUKAN_ID).sum()),
+        "di_luar_jendela": int((df["drop_reason"] == DROP_DI_LUAR_JENDELA).sum()),
         "lolos": int(df["drop_reason"].isna().sum()),
         "balasan": int(df.loc[df["drop_reason"].isna(), "is_reply"].sum()),
     }
@@ -425,8 +445,8 @@ def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, 
         log.warning("USER_HASH_SALT kosong: user_hash diisi null")
     df, st = parse_raw(cfg.paths.raw_jsonl, salt, cfg.saring_dasar.lang)
     log.info("raw.jsonl: %d baris -> %d tweet unik (duplikat ID digabung: %d)", st["baris_raw"], st["tweet_unik"], st["duplikat_id"])
-    log.info("Saring dasar: retweet=%d, bukan_id=%d, lolos=%d (termasuk %d balasan, is_reply=True)",
-             st["retweet"], st["bukan_id"], st["lolos"], st["balasan"])
+    log.info("Saring dasar: retweet=%d, bukan_id=%d, di_luar_jendela=%d, lolos=%d (termasuk %d balasan, is_reply=True)",
+             st["retweet"], st["bukan_id"], st["di_luar_jendela"], st["lolos"], st["balasan"])
     write_parquet(df, cfg.paths.crawled, CRAWLED_COLS)
     n_sample = export_sample(df, cfg.paths.crawl_log, cfg.paths.sampel_kueri, cfg.crawl.sample_per_query, cfg.seed)
     log.info("Ditulis: %s; sampel cek manual %d baris -> %s", cfg.paths.crawled, n_sample, cfg.paths.sampel_kueri)
@@ -435,5 +455,6 @@ def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, 
     update_alur_data(cfg.paths.alur_data, "saring dasar", st["baris_raw"], st["lolos"],
                      st["baris_raw"] - st["lolos"],
                      f"{DROP_BUKAN_ID}={st['bukan_id']}; {DROP_RETWEET}={st['retweet']}; "
+                     f"{DROP_DI_LUAR_JENDELA}={st['di_luar_jendela']}; "
                      f"duplikat_id={st['duplikat_id']} (digabung, query_id jadi list)")
     return df

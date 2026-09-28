@@ -82,13 +82,17 @@ python -m modul1 --workdir demo run-all --skip-fetch
 | `is_representatif` | wakil cluster (paling awal; seri → `tweet_id` numerik terkecil) |
 | `member_tweet_ids` | list tweet_id seluruh anggota cluster |
 | `cluster_size` | jumlah anggota cluster |
-| `drop_reason` | null = lolos ke 1.4; `bukan_id`, `retweet` (1.1), `terlalu_pendek` (1.2), `bukan_wakil` (1.3) |
+| `drop_reason` | null = lolos ke 1.4; `bukan_id`, `retweet`, `di_luar_jendela` (1.1), `terlalu_pendek` (1.2), `bukan_wakil` (1.3) |
 
 ## Keputusan metodologi (ringkas)
 
 **1.1 Crawling**
 - Kueri disusun otomatis **per (kejadian, kata kunci)**, dengan alias wilayah digabung OR:
-  `"gempa bumi" (NTT OR Flores OR Ende OR …) lang:id -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30`.
+  `"gempa bumi" (NTT OR Flores OR Ende OR …) -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30`.
+  **Tanpa `lang:id`**: uji `scripts/cek_twscrape.py` (28-09-2026) menunjukkan operator itu merusak
+  hasil pencarian lewat twscrape (0 tweet atau tweet 2014), sedangkan kueri yang sama tanpa `lang:id`
+  normal. Bahasa disaring sesudah crawl (`lang == "in"`); `lang_operator` di config bisa diisi lagi
+  bila twscrape/X sudah normal.
   `until:` di X eksklusif, jadi diisi `tanggal_selesai + 1 hari`. Jendela bisa diperlebar dengan
   `padding_hari_sebelum` / `padding_hari_sesudah` di `config.yaml` tanpa mengubah `kejadian.csv`;
   teks kueri lengkap (dengan tanggal sebenarnya) tercatat di `crawl_log.csv`. Kueri yang melebihi `max_query_chars`
@@ -96,7 +100,10 @@ python -m modul1 --workdir demo run-all --skip-fetch
 - Kata kunci multi-kata diapit tanda kutip (frasa persis).
 - Crawl mengikuti `urutan_crawl`. Setelah tiap kejadian dicetak ringkasan (jumlah, % bahasa Indonesia, 5 contoh).
   Kueri yang gagal dicatat di `crawl_log.csv` dan diulang pada run berikutnya. Kueri yang selesai dilewati.
-- Saring dasar tidak menghapus baris. Retweet dan non-`in` diberi `drop_reason`. Tweet dengan ID sama
+- Saring dasar tidak menghapus baris. Retweet dan non-`in` diberi `drop_reason`. twscrape juga
+  mengembalikan tweet yang dikutip/dibalas sebagai hasil tersendiri walau tidak cocok dengan kueri;
+  tweet yang `created_at`-nya di luar jendela `[since, until)` semua kueri asalnya ditandai
+  `di_luar_jendela` (jendela disimpan per baris sebagai `query_window` di `raw.jsonl`). Tweet dengan ID sama
   digabung menjadi satu baris, dengan `query_id`/`event_id` jadi list. Quote tweet: hanya `rawContent`
   tweet itu sendiri.
 

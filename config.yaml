@@ -34,7 +34,10 @@ crawl:
   use_system_certs: true
   sleep_between_queries_s: 5 # jeda antar kueri (batas laju tambahan di luar twscrape)
   max_query_chars: 500 # kueri lebih panjang dipecah menjadi beberapa kueri (alias dibagi)
-  lang_operator: "lang:id"
+  # Kosong: operator lang:id merusak hasil pencarian lewat twscrape (uji scripts/cek_twscrape.py,
+  # 28-09-2026: dengan lang:id hasil 0 / tweet 2014; tanpa lang:id normal). Bahasa disaring
+  # sesudah crawl di saring dasar (lang == "in", selain itu drop_reason=bukan_id).
+  lang_operator: ""
   retweet_operator: "-filter:retweets"
   negative_keywords: [kecelakaan]
   summary_sample_n: 5 # contoh tweet yang dicetak setelah satu kejadian selesai

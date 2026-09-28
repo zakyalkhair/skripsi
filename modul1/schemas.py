@@ -136,6 +136,8 @@ class Kueri(BaseModel):
     event_ids: list[str]
     keyword: str
     aliases: list[str]
+    since: date  # inklusif
+    until: date  # eksklusif (seperti operator until: di X)
 
 
 # --------------------------------------------------------------------------- tweet
@@ -215,5 +217,6 @@ def arrow_schema(cols: list[str]) -> pa.Schema:
 # Nilai drop_reason yang dipakai di seluruh pipeline
 DROP_BUKAN_ID = "bukan_id"
 DROP_RETWEET = "retweet"
+DROP_DI_LUAR_JENDELA = "di_luar_jendela"  # created_at di luar since/until kueri asal (mis. tweet yang dikutip)
 DROP_TERLALU_PENDEK = "terlalu_pendek"
 DROP_BUKAN_WAKIL = "bukan_wakil"

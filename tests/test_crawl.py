@@ -29,10 +29,15 @@ def test_build_queries_or_per_kata_kunci(cfg):
     assert [q.keyword for q in qs] == ["gempa", "gempa bumi", "gempa susulan", "pengungsi"]
     q = qs[1]
     assert q.text.startswith('"gempa bumi" (NTT OR Flores OR Ende OR Manggarai OR "Manggarai Timur"')
-    assert q.text.endswith("lang:id -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30")
+    assert q.text.endswith(") -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30")
+    assert "lang:id" not in q.text and "  " not in q.text
+    assert (q.since.isoformat(), q.until.isoformat()) == ("2026-08-14", "2026-08-30")
     assert q.query_id == query_id_of(q.text) and q.event_ids == ["GP07"]
     # stabil antar pemanggilan
     assert [x.query_id for x in build_queries(ks, cfg)] == [x.query_id for x in qs]
+    # operator bahasa masih bisa diaktifkan lagi lewat config
+    cfg.crawl.lang_operator = "lang:id"
+    assert "lang:id -filter:retweets" in build_queries(ks, cfg)[1].text
 
 
 def test_padding_tanggal_memperlebar_jendela(cfg):
@@ -91,7 +96,8 @@ def test_parse_raw_anonim_gabung_id_dan_saring(tmp_path):
     p = tmp_path / "raw.jsonl"
     write_jsonl(p, rows)
     df, st = parse_raw(p, salt="garam", lang_id="in")
-    assert st == {"baris_raw": 6, "tweet_unik": 5, "duplikat_id": 1, "retweet": 1, "bukan_id": 1, "lolos": 3, "balasan": 1}
+    assert st == {"baris_raw": 6, "tweet_unik": 5, "duplikat_id": 1, "retweet": 1, "bukan_id": 1,
+                  "di_luar_jendela": 0, "lolos": 3, "balasan": 1}
     by = df.set_index("tweet_id")
     assert by.index.map(type).unique().tolist() == [str]
     assert by.loc["1969307187192924196", "query_id"] == ["qA", "qB"]
@@ -107,6 +113,31 @@ def test_parse_raw_anonim_gabung_id_dan_saring(tmp_path):
 
     df2, _ = parse_raw(p, salt=None, lang_id="in")
     assert df2["user_hash"].isna().all()
+
+
+def test_tweet_di_luar_jendela_kueri_ditandai(tmp_path):
+    w = ["2026-08-14", "2026-08-30"]  # [since, until)
+    rows = [
+        _raw("1969307187192924301", "gempa Flores hari ini", query_window=w),
+        # tweet lama yang ikut terbawa karena dikutip (twscrape mengembalikannya juga)
+        _raw("1969307187192924302", "gempa Maret", date="2026-03-22T05:00:00+00:00", query_window=w),
+        # batas: until eksklusif (tepat 30 Agt 00:00 UTC -> di luar)
+        _raw("1969307187192924303", "gempa batas", date="2026-08-30T00:00:00+00:00", query_window=w),
+        # di luar jendela kueri A tapi di dalam jendela kueri B -> lolos
+        _raw("1969307187192924304", "gempa sept", date="2026-09-05T00:00:00+00:00", query_window=w),
+        _raw("1969307187192924304", "gempa sept", date="2026-09-05T00:00:00+00:00", query_id="qB",
+             query_window=["2026-09-01", "2026-09-10"]),
+        # raw lama tanpa query_window -> tidak ditandai
+        _raw("1969307187192924305", "gempa lama", date="2020-01-01T00:00:00+00:00"),
+    ]
+    p = tmp_path / "raw.jsonl"
+    write_jsonl(p, rows)
+    df, st = parse_raw(p, salt=None, lang_id="in")
+    by = df.set_index("tweet_id")["drop_reason"].to_dict()
+    assert by == {"1969307187192924301": None, "1969307187192924302": "di_luar_jendela",
+                  "1969307187192924303": "di_luar_jendela", "1969307187192924304": None,
+                  "1969307187192924305": None}
+    assert st["di_luar_jendela"] == 2 and len(df) == 5
 
 
 class _Tw:
@@ -140,6 +171,7 @@ def test_fetch_menulis_raw_log_dan_bisa_dilanjutkan(cfg):
     assert len(api.calls) == 3
     lines = [json.loads(l) for l in cfg.paths.raw_jsonl.read_text(encoding="utf-8").splitlines()]
     assert len(lines) == 6 and all(l["query_id"] and l["crawled_at"] and l["event_ids"] == ["LS01"] for l in lines)
+    assert all(l["query_window"] == ["2026-01-23", "2026-02-08"] for l in lines)
     log_df = pd.read_csv(cfg.paths.crawl_log, dtype=str)
     assert list(log_df.columns) == crawl.CRAWL_LOG_COLS
     assert (log_df["status"] == "selesai").sum() == 2 and log_df["status"].str.startswith("gagal").sum() == 1
