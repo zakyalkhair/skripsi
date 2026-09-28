@@ -12,7 +12,8 @@ acak memakai `seed` di `config.yaml`.
 ```bash
 uv venv -p 3.11 && uv pip install -r requirements.txt     # atau: python -m venv .venv && pip install -r requirements.txt
 cp .env.example .env                                        # isi akun X + USER_HASH_SALT (jangan di-commit)
-python -m pytest                                            # 28 test
+python -m pytest                                            # 60 test
+# Panduan langkah demi langkah (PowerShell): PANDUAN.md
 ```
 
 ## Menjalankan
