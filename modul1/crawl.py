@@ -179,6 +179,21 @@ def twscrape_version() -> str:
 
 
 # --------------------------------------------------------------------------- fetch
+def use_system_certs(log) -> None:
+    """Verifikasi HTTPS memakai sertifikat bawaan OS (Windows/macOS), bukan bundel certifi.
+
+    Diperlukan di jaringan yang memeriksa HTTPS dengan sertifikat root sendiri (kantor/kampus):
+    browser percaya sertifikat itu, Python tidak. Verifikasi TLS tetap aktif.
+    """
+    try:
+        import truststore
+    except ImportError:
+        log.warning("truststore belum terpasang (pip install -r requirements.txt); memakai sertifikat certifi")
+        return
+    truststore.inject_into_ssl()
+    log.info("Verifikasi HTTPS memakai sertifikat sistem operasi (truststore)")
+
+
 async def make_twscrape_api(cfg: Config, log):
     """Siapkan twscrape.API dengan akun dari .env (cookies lebih diutamakan)."""
     from twscrape import API
@@ -378,6 +393,8 @@ def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, 
     load_dotenv()
     log = setup_logger("crawl", cfg.paths.logs_dir)
     if not skip_fetch:
+        if cfg.crawl.use_system_certs:
+            use_system_certs(log)
         kejadian = load_kejadian(cfg.paths.kejadian, cfg.crawl.only_pilot, events)
         queries = build_queries(kejadian, cfg)
         log.info("%d kejadian (%s), %d kueri", len(kejadian), ",".join(k.event_id for k in kejadian), len(queries))

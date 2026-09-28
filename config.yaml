@@ -25,6 +25,9 @@ paths:
 crawl:
   only_pilot: true # false = semua 29 kejadian
   max_tweets_per_query: 2000
+  # true = pakai sertifikat bawaan sistem operasi (truststore). Perlu di jaringan kantor/kampus
+  # yang memeriksa HTTPS (error "CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate").
+  use_system_certs: true
   sleep_between_queries_s: 5 # jeda antar kueri (batas laju tambahan di luar twscrape)
   max_query_chars: 500 # kueri lebih panjang dipecah menjadi beberapa kueri (alias dibagi)
   lang_operator: "lang:id"
