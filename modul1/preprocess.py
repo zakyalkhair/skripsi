@@ -14,6 +14,7 @@ from .schemas import DROP_TERLALU_PENDEK, PREPROCESSED_COLS, Config
 
 URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
 MENTION_RE = re.compile(r"(?<!\w)@\w+")
+HASHTAG_RE = re.compile(r"(?<!\w)#\w+")
 WS_RE = re.compile(r"\s+")
 
 
@@ -35,11 +36,17 @@ def _strip_non_word(segment: str) -> str:
     )
 
 
-def clean_text(text_raw: str, url_token: str = "<URL>", user_token: str = "<USER>") -> str:
-    """Langkah 5–9 atas `text_raw`. Placeholder dilindungi dari penghapusan tanda baca & lowercase."""
-    s = URL_RE.sub(f" {url_token} ", text_raw)          # 5
-    s = MENTION_RE.sub(f" {user_token} ", s)            # 6
-    s = s.replace("#", "")                              # 7 (kata hashtag tetap, tidak dipecah)
+def clean_text(text_raw: str, url_token: str = "<URL>", user_token: str = "<USER>",
+               hapus_mention: bool = True, hapus_hashtag: bool = True) -> str:
+    """Langkah 5–9 atas `text_raw`. Placeholder dilindungi dari penghapusan tanda baca & lowercase.
+
+    hapus_mention: True = mention `@x` dihapus seluruhnya; False = diganti `<USER>`.
+    hapus_hashtag: True = hashtag `#Kata` dihapus seluruhnya; False = hanya tanda `#` dibuang.
+    URL diproses lebih dulu agar `#`/`@` di dalam URL tidak ikut terbaca sebagai hashtag/mention.
+    """
+    s = URL_RE.sub(f" {url_token} ", text_raw)                              # 5
+    s = MENTION_RE.sub(" " if hapus_mention else f" {user_token} ", s)      # 6
+    s = HASHTAG_RE.sub(" ", s) if hapus_hashtag else s.replace("#", "")     # 7
     placeholder_re = re.compile(f"({re.escape(url_token)}|{re.escape(user_token)})")
     parts = placeholder_re.split(s)
     out = []
@@ -62,7 +69,9 @@ def preprocess_df(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     p = cfg.preprocess
     df = df.copy()
     df["text_raw"] = df["text"].map(lambda t: fix_text(t or ""))
-    df["text_clean"] = df["text_raw"].map(lambda t: clean_text(t, p.url_token, p.user_token))
+    df["text_clean"] = df["text_raw"].map(
+        lambda t: clean_text(t, p.url_token, p.user_token, p.hapus_mention, p.hapus_hashtag)
+    )
     df["too_short"] = df["text_clean"].map(
         lambda t: is_too_short(t, p.min_words, p.url_token, p.user_token)
     )

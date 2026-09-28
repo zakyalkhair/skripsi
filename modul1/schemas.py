@@ -61,6 +61,8 @@ class PreprocessCfg(BaseModel):
     url_token: str
     user_token: str
     min_words: int = Field(ge=1)
+    hapus_mention: bool = True
+    hapus_hashtag: bool = True
 
 
 class DedupCfg(BaseModel):

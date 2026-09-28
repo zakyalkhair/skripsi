@@ -69,7 +69,7 @@ python -m modul1 --workdir demo run-all --skip-fetch
 | `created_at` | waktu tweet (UTC) |
 | `text` | teks asli dari X (tidak diubah) |
 | `text_raw` | `text` setelah ftfy → `html.unescape` → NFKC → rapikan spasi. Tidak ada kata yang dihapus/diganti. **Dipakai 1.4 dan Modul 2** (offset karakter) |
-| `text_clean` | `text_raw` + URL→`<URL>`, mention→`<USER>`, buang `#`, emoji/tanda baca→spasi, lowercase. **Hanya untuk dedup** |
+| `text_clean` | `text_raw` + URL→`<URL>`, **mention `@x` dihapus seluruhnya**, **hashtag `#Kata` dihapus seluruhnya**, emoji/tanda baca→spasi, lowercase. **Hanya untuk dedup**. (Mode spesifikasi awal — mention→`<USER>`, hanya buang `#` — tersedia lewat `hapus_mention: false` / `hapus_hashtag: false`) |
 | `lang` | kode bahasa dari X (`in` = Indonesia) |
 | `hashtags`, `urls` | list hashtag dan URL (URL tujuan, bukan t.co) |
 | `is_reply` | balasan (disimpan, tidak dibuang) |
@@ -110,6 +110,11 @@ python -m modul1 --workdir demo run-all --skip-fetch
 **1.2 Preprocessing**: sesuai tabel spesifikasi. Emoji dan tanda baca diganti **spasi** (bukan dihapus
 rapat) supaya `laki-laki` → `laki laki` dan `M5.2` → `m5 2`. Tidak ada normalisasi slang, pemecahan
 hashtag, stemming, atau stopword removal.
+Perubahan dari spesifikasi awal (keputusan peneliti): di `text_clean`, **hashtag dan mention dihapus
+seluruhnya** agar tweet yang isinya sama tetapi berbeda tagar/mention (mis. `#PrayForNTT` vs
+`#GempaFlores`, atau salinan dengan `@akun` berbeda) tergabung di dedup. Konsekuensi: tweet yang
+isinya hampir hanya tagar/mention menjadi pendek dan lebih sering ditandai `terlalu_pendek`.
+`text_raw` tidak berubah.
 
 **1.3 Deduplikasi**
 1. Exact: `sha1(text_clean)`.

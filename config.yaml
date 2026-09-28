@@ -56,6 +56,9 @@ preprocess:
   url_token: "<URL>"
   user_token: "<USER>"
   min_words: 3 # < min_words kata (tanpa placeholder) -> too_short
+  # Hanya untuk text_clean (dedup); text_raw tidak berubah.
+  hapus_mention: true # true = @x dihapus seluruhnya; false = diganti <USER>
+  hapus_hashtag: true # true = #Kata dihapus seluruhnya; false = hanya tanda # dibuang
 
 dedup:
   shingle_size: 5 # shingle karakter
