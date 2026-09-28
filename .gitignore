@@ -1,0 +1,18 @@
+# Rahasia
+.env
+
+# Data & keluaran (tidak di-commit; isi bisa memuat data pengguna X)
+data/**/*
+!data/**/
+!data/**/.gitkeep
+logs/*
+!logs/.gitkeep
+reports/*
+!reports/.gitkeep
+demo/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
