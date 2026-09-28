@@ -134,3 +134,11 @@ Saran ambang = ambang terendah dengan presisi berbobot ≥ 0,95.
    penghapusan kata.
 5. **Regression check** terhadap data legacy (16.808 tweet) tidak dijalankan karena data legacy tidak
    dipakai. Importer `import-legacy` (opsional) juga tidak dibuat.
+
+## Pemecahan masalah crawl
+
+| Gejala | Penyebab & solusi |
+|---|---|
+| `Cookies must include auth_token and ct0` | format `.env` salah; pakai `X_ACCOUNT_1_COOKIES="auth_token=...; ct0=..."` |
+| `ConnectError ... cooling account for 60s` berulang | Python tidak tersambung ke X. Cek `CERTIFICATE_VERIFY_FAILED` → `use_system_certs: true` (default); atau jaringan memblokir X → ganti jaringan / `TWS_PROXY=` di `.env` |
+| Semua kueri `0 tweet` | jalankan `python scripts/cek_twscrape.py` (status akun + uji kueri bertahap). Kueri 0 hasil berstatus `kosong` dan otomatis diulang pada run berikutnya |

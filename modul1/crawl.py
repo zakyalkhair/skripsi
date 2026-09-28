@@ -252,6 +252,12 @@ async def fetch(cfg: Config, queries: list[Kueri], kejadian: list[Kejadian], api
             except Exception as e:  # kueri gagal dicatat, crawl lanjut; kueri diulang di run berikutnya
                 status = f"gagal: {type(e).__name__}: {e}"[:300]
                 log.error("[%s] %s gagal setelah %d tweet: %s", k.event_id, q.query_id, n, status)
+            if status == "selesai" and n == 0:
+                # 0 hasil sering berarti akun/pencarian bermasalah, bukan kueri kosong: jangan
+                # tandai selesai agar diulang pada run berikutnya
+                status = "kosong"
+                log.warning("[%s] %s: 0 tweet — tidak ditandai selesai, akan diulang (cek: python scripts/cek_twscrape.py)",
+                            k.event_id, q.query_id)
             append_crawl_log(cfg.paths.crawl_log, {
                 "query_id": q.query_id, "event_ids": ";".join(q.event_ids), "query": q.text,
                 "crawled_at": crawled_at, "twscrape_version": version, "n_hasil": n, "status": status,

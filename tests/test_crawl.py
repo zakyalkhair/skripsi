@@ -142,6 +142,30 @@ def test_fetch_menulis_raw_log_dan_bisa_dilanjutkan(cfg):
     assert len(api2.calls) == 1 and "tertimbun" in api2.calls[0]
 
 
+class EmptyAPI:
+    def __init__(self):
+        self.calls = []
+
+    async def search(self, q, limit=-1):
+        self.calls.append(q)
+        return
+        yield
+
+
+def test_kueri_nol_hasil_tidak_ditandai_selesai(cfg):
+    cfg.crawl.sleep_between_queries_s = 0
+    ks = load_kejadian(cfg.paths.kejadian, True, ["LS01"])
+    qs = build_queries(ks, cfg)
+    log = logging.getLogger("test")
+    asyncio.run(fetch(cfg, qs, ks, EmptyAPI(), log))
+    assert (pd.read_csv(cfg.paths.crawl_log)["status"] == "kosong").all()
+    api2 = EmptyAPI()
+    asyncio.run(fetch(cfg, qs, ks, api2, log))
+    assert len(api2.calls) == 3  # semua diulang
+
+
+
+
 def test_run_skip_fetch_menulis_parquet_sampel_dan_alur(cfg):
     write_jsonl(cfg.paths.raw_jsonl, [_raw(str(1969307187192924100 + i), f"gempa di ende nomor {i}") for i in range(60)]
                 + [_raw("1969307187192924300", "quake", lang="en")])
