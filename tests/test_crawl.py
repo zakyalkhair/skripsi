@@ -52,6 +52,15 @@ def test_akun_dari_env_tanpa_bocor():
     assert [a["username"] for a in accs] == ["a", "b"]
 
 
+def test_cookies_tanpa_nama_auth_token_ditolak_tanpa_mencetak_nilai():
+    import pytest
+
+    env = {"X_ACCOUNT_1_USERNAME": "a", "X_ACCOUNT_1_COOKIES": "abc123rahasia; ct0=def456"}
+    with pytest.raises(ValueError) as e:
+        load_accounts_from_env(env)
+    assert "auth_token" in str(e.value) and "abc123rahasia" not in str(e.value)
+
+
 def _raw(tid, text, lang="in", **kw):
     d = {"id": int(tid), "id_str": tid, "date": "2026-08-15T01:02:03+00:00", "lang": lang, "rawContent": text,
          "user": {"id": 42, "id_str": "42", "username": "rahasia", "displayname": "Nama Asli", "location": "Ende"},

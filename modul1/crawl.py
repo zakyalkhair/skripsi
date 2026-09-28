@@ -131,6 +131,15 @@ def load_accounts_from_env(env: dict[str, str] | None = None) -> list[dict[str, 
     for i in idx:
         p = f"X_ACCOUNT_{i}_"
         acc = {f: env.get(p + f.upper(), "").strip() for f in ("username", "password", "email", "email_password", "cookies")}
+        if acc["cookies"]:
+            names = {part.split("=", 1)[0].strip() for part in acc["cookies"].split(";") if "=" in part}
+            missing = {"auth_token", "ct0"} - names
+            if missing:
+                # nilai cookie tidak pernah dicetak, hanya nama yang kurang
+                raise ValueError(
+                    f"X_ACCOUNT_{i}_COOKIES tidak memuat {sorted(missing)}. Format yang benar: "
+                    'X_ACCOUNT_{i}_COOKIES="auth_token=NILAI; ct0=NILAI"'.replace("{i}", str(i))
+                )
         if acc["username"] and (acc["cookies"] or acc["password"]):
             accounts.append(acc)
     return accounts
