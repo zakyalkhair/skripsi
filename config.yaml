@@ -154,6 +154,6 @@ profil_llm:
     api_key_env: null
     extra_body: {response_format: {type: json_object}}
     tweet_per_permintaan: 10
-    max_tokens: 1024
+    max_tokens: 2048
     timeout_s: 600
     jeda_antar_permintaan_s: 0
