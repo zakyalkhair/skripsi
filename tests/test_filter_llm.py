@@ -242,3 +242,54 @@ def test_make_client_tanpa_kunci_memberi_pesan_jelas(cfg, monkeypatch):
         fl.make_client(cfg, logging.getLogger("t"))
     cfg.filter_llm.api_key_env = None  # Ollama lokal: tanpa kunci
     assert fl.make_client(cfg, logging.getLogger("t")) is not None
+
+
+# --------------------------------------------------------------------------- profil & perbandingan
+def test_profil_menimpa_filter_llm_dan_akhiran_keluaran(cfg):
+    from modul1.io_utils import apply_profil
+
+    phash = fl.prompt_hash("p", cfg)
+    labels, informatif = cfg.paths.llm_labels, cfg.paths.informatif
+    apply_profil(cfg, "ollama")
+    assert cfg.filter_llm.base_url == "http://localhost:11434/v1" and cfg.filter_llm.api_key_env is None
+    assert cfg.filter_llm.aturan  # aturan regex tidak ikut hilang
+    assert fl.prompt_hash("p", cfg) != phash
+    assert cfg.paths.informatif.name == "informatif_ollama.parquet" and cfg.paths.informatif.parent == informatif.parent
+    assert cfg.paths.hasil_1_4.name == "hasil_1_4_ollama.parquet" and cfg.paths.alur_data.name == "alur_data_ollama.csv"
+    assert cfg.paths.llm_labels == labels  # label bersama agar bisa dibandingkan
+
+
+def test_profil_tidak_dikenal_dan_kolom_salah(cfg):
+    from modul1.io_utils import apply_profil
+    from modul1.schemas import Config
+
+    with pytest.raises(ValueError, match="tidak ada di profil_llm"):
+        apply_profil(cfg, "tidakada")
+    raw = cfg.model_dump()
+    raw["profil_llm"] = {"x": {"modle": "a"}}
+    with pytest.raises(ValidationError, match="kolom tidak dikenal"):
+        Config.model_validate(raw)
+
+
+def test_cohen_kappa():
+    I, N = "informatif", "noninformatif"
+    assert fl.cohen_kappa([I, I, N, N], [I, N, N, N]) == pytest.approx(0.5)
+    assert fl.cohen_kappa([I, N], [I, N]) == 1
+    assert fl.cohen_kappa([I, I], [I, I]) is None and fl.cohen_kappa([], []) is None
+
+
+def test_bandingkan_dua_model(ready):
+    cfg = ready
+    fl.run(cfg, FakeClient(by_text))  # model config -> 102 informatif, 104 noninformatif
+    base = {"status": "ok", "model": "manual", "prompt_hash": "pmanual"}
+    fl.write_jsonl(cfg.paths.llm_labels, [base | {"tweet_id": "102", "label": "informatif"},
+                                          base | {"tweet_id": "104", "label": "informatif"}], append=True)
+    lap = fl.compare(cfg, "manual", cfg.filter_llm.model)
+    assert (lap["n_bersama"], lap["setuju"], lap["persen_setuju"]) == (2, 1, 50.0)
+    assert lap["matriks"]["informatif"] == {"informatif": 1, "noninformatif": 1}
+    assert json.loads(cfg.paths.bandingkan_laporan.read_text())["cohen_kappa"] == lap["cohen_kappa"]
+    beda = list(fl.iter_jsonl(cfg.paths.bandingkan_beda))
+    assert [(r["tweet_id"], r["label_a"], r["label_b"], r["label_final"]) for r in beda] == [
+        ("104", "informatif", "noninformatif", None)]
+    with pytest.raises(ValueError, match="model tersedia"):
+        fl.compare(cfg, "tidakada", "manual")

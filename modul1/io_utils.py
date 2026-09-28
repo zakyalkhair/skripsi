@@ -16,7 +16,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 
-from .schemas import Config, arrow_schema
+from .schemas import Config, FilterLlmCfg, arrow_schema
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -42,6 +42,23 @@ def load_config(config_path: str | Path | None = None, workdir: str | Path | Non
         if not p.is_absolute():
             root = config_path.parent if name in CONFIG_RELATIVE_PATHS else base
             setattr(cfg.paths, name, (root / p).resolve())
+    return cfg
+
+
+# Keluaran 1.4 yang diberi akhiran _<profil> agar tidak menimpa hasil utama
+PROFIL_PATHS = ("hasil_1_4", "informatif", "alur_data")
+
+
+def apply_profil(cfg: Config, nama: str | None) -> Config:
+    """Timpa filter_llm dengan profil_llm[nama]; keluaran 1.4 -> *_<nama>.* (llm_labels tetap bersama)."""
+    if not nama:
+        return cfg
+    if nama not in cfg.profil_llm:
+        raise ValueError(f"profil '{nama}' tidak ada di profil_llm (tersedia: {sorted(cfg.profil_llm) or '-'})")
+    cfg.filter_llm = FilterLlmCfg.model_validate(cfg.filter_llm.model_dump() | (cfg.profil_llm[nama] or {}))
+    for name in PROFIL_PATHS:
+        p = getattr(cfg.paths, name)
+        setattr(cfg.paths, name, p.with_name(f"{p.stem}_{nama}{p.suffix}"))
     return cfg
 
 

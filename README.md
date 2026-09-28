@@ -36,8 +36,38 @@ python -m modul1 filter-finalize              # 1.4 tulis ulang keluaran dari la
 ```
 
 Tahap 1.4 memakai API OpenAI-compatible. Default: Groq (gratis, `openai/gpt-oss-120b`), butuh
-`GROQ_API_KEY` di `.env`. Alternatif tanpa kuota: Ollama lokal (ubah `base_url`/`model` di
-`config.yaml`, contoh ada di komentar).
+`GROQ_API_KEY` di `.env`. Penyedia lain dipilih dengan `--profil` (daftar di `profil_llm`,
+`config.yaml`) tanpa mengubah config utama.
+
+### 1.4 dengan Ollama dan membandingkan dua model
+
+Pakai pipeline ini (`python -m modul1 filter --profil ollama`), **bukan** `ollama launch claude`.
+`ollama launch claude` menjalankan aplikasi Claude Code dengan model Ollama sebagai agen: agen itu
+membaca tweet lalu menulis label sendiri, sehingga hasilnya sulit direproduksi. Pipeline memakai
+prompt, suhu, dan ukuran batch yang sama untuk semua tweet, dan setiap label tercatat beserta
+`prompt_hash`-nya.
+
+```bash
+# 1. Ollama: https://ollama.com/download, lalu jalankan server dengan konteks lebih besar
+#    (bawaan terlalu kecil untuk prompt + 10 tweet + penalaran gpt-oss)
+OLLAMA_CONTEXT_LENGTH=16384 ollama serve        # Windows PowerShell: $env:OLLAMA_CONTEXT_LENGTH=16384; ollama serve
+ollama pull gpt-oss:20b                          # terminal lain; atau: ollama signin (profil ollama_cloud)
+
+# 2. Uji coba, lalu semua. Label disimpan di llm_labels_1_4.jsonl yang sama (model/prompt_hash beda)
+python -m modul1 filter --profil ollama --limit 20
+python -m modul1 filter --profil ollama
+#    -> data/processed/informatif_ollama.parquet, hasil_1_4_ollama.parquet, reports/alur_data_ollama.csv
+#       (informatif.parquet milik hasil utama tidak tertimpa)
+
+# 3. Kesepakatan dua penilai (mis. label manual Claude vs Ollama)
+python -m modul1 filter-bandingkan --a manual-claude-code --b gpt-oss:20b
+#    -> reports/bandingkan_1_4.json  : n bersama, persen setuju, Cohen's kappa, matriks 2x2
+#    -> data/interim/beda_1_4.jsonl  : tweet yang labelnya berbeda; isi label_final saat adjudikasi
+```
+
+Nilai `--a`/`--b` adalah isi kolom `model` di `llm_labels_1_4.jsonl`. Bila model lokal lambat atau
+jawabannya sering `invalid_output` / `hilang_dari_jawaban`, kecilkan `tweet_per_permintaan` di
+profil. Menjalankan ulang perintah yang sama hanya mengirim tweet yang belum berlabel.
 
 Opsi global: `--config path/config.yaml`, `--workdir DIR` (folder dasar `data/`, `logs/`, `reports/`).
 
@@ -66,6 +96,7 @@ python -m modul1 --workdir demo run-all --skip-fetch
 | `reports/sampel_cek_kueri.csv` | 50 tweet acak per kueri untuk dicek manusia (satu-satunya CSV berisi teks) |
 | `reports/dedup_ringkasan.json` | statistik 1.3 + parameter |
 | `reports/kalibrasi_dedup.csv`, `kalibrasi_laporan.csv` | kalibrasi ambang |
+| `reports/bandingkan_1_4.json`, `data/interim/beda_1_4.jsonl` | kesepakatan label dua model + daftar beda (1.4) |
 | `logs/<tahap>_<waktu>.log` | log setiap tahap |
 
 ## Arti kolom keluaran akhir

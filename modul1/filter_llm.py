@@ -405,3 +405,60 @@ def finalize(cfg: Config, log=None) -> pd.DataFrame:
     update_alur_data(cfg.paths.alur_data, "Siap ke Modul 2", n_inf, None, None, "")
     log.info("Ditulis: %s, %s", cfg.paths.hasil_1_4, cfg.paths.informatif)
     return out
+
+
+# --------------------------------------------------------------------------- perbandingan
+def labels_by_model(labels: list[dict], model: str) -> dict[str, str]:
+    """Label ok terakhir per tweet dari satu model (lintas prompt_hash; urutan file = urutan waktu)."""
+    return {r["tweet_id"]: r["label"] for r in labels if r.get("model") == model and r["status"] == STATUS_OK}
+
+
+def cohen_kappa(a: list[str], b: list[str]) -> float | None:
+    """Kappa Cohen dua penilai; None bila tidak terdefinisi (kosong, atau keduanya satu kelas yang sama)."""
+    n = len(a)
+    if n == 0:
+        return None
+    po = sum(x == y for x, y in zip(a, b)) / n
+    kelas = set(a) | set(b)
+    pe = sum((a.count(k) / n) * (b.count(k) / n) for k in kelas)
+    return None if pe == 1 else (po - pe) / (1 - pe)
+
+
+def compare(cfg: Config, model_a: str, model_b: str, log=None) -> dict:
+    """Bandingkan label dua model atas tweet yang sama -> laporan JSON + daftar beda (JSONL) untuk adjudikasi."""
+    log = log or setup_logger("filter_bandingkan", cfg.paths.logs_dir)
+    labels = load_labels(cfg.paths.llm_labels)
+    a, b = labels_by_model(labels, model_a), labels_by_model(labels, model_b)
+    for m, d in ((model_a, a), (model_b, b)):
+        if not d:
+            tersedia = sorted({r.get("model") for r in labels if r["status"] == STATUS_OK} - {None})
+            raise ValueError(f"tidak ada label ok untuk model '{m}' di {cfg.paths.llm_labels} "
+                             f"(model tersedia: {tersedia or '-'})")
+
+    df = read_parquet(cfg.paths.input_1_4)
+    df = df[df["tweet_id"].isin(a.keys() & b.keys())].copy()
+    df["label_a"], df["label_b"] = df["tweet_id"].map(a), df["tweet_id"].map(b)
+    la, lb = df["label_a"].tolist(), df["label_b"].tolist()
+    setuju = int((df["label_a"] == df["label_b"]).sum())
+    kappa = cohen_kappa(la, lb)
+    laporan = {
+        "model_a": model_a, "model_b": model_b, "dibuat": utc_now_iso(),
+        "n_label_a": len(a), "n_label_b": len(b), "n_bersama": len(df), "setuju": setuju,
+        "persen_setuju": round(100 * setuju / len(df), 2) if len(df) else None,
+        "cohen_kappa": round(kappa, 4) if kappa is not None else None,
+        # matriks[label_a][label_b] = jumlah tweet
+        "matriks": {x: {y: int(((df["label_a"] == x) & (df["label_b"] == y)).sum()) for y in LABELS} for x in LABELS},
+    }
+    cfg.paths.bandingkan_laporan.parent.mkdir(parents=True, exist_ok=True)
+    cfg.paths.bandingkan_laporan.write_text(json.dumps(laporan, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    beda = df[df["label_a"] != df["label_b"]].sort_values("tweet_id", key=lambda s: s.str.zfill(20))
+    write_jsonl(cfg.paths.bandingkan_beda, (
+        {"tweet_id": r.tweet_id, "event_id": list(r.event_id), "text_raw": r.text_raw,
+         "model_a": model_a, "label_a": r.label_a, "model_b": model_b, "label_b": r.label_b,
+         "label_final": None}  # diisi manual saat adjudikasi
+        for r in beda.itertuples()))
+    log.info("Bandingkan %s vs %s: %d tweet bersama, setuju %d (%s%%), kappa %s; %d beda -> %s",
+             model_a, model_b, len(df), setuju, laporan["persen_setuju"], laporan["cohen_kappa"], len(beda),
+             cfg.paths.bandingkan_beda)
+    return laporan

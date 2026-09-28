@@ -26,6 +26,8 @@ paths:
   llm_labels: data/interim/llm_labels_1_4.jsonl
   hasil_1_4: data/processed/hasil_1_4.parquet
   informatif: data/processed/informatif.parquet
+  bandingkan_laporan: reports/bandingkan_1_4.json # filter-bandingkan: persen setuju, kappa, matriks
+  bandingkan_beda: data/interim/beda_1_4.jsonl # tweet yang labelnya berbeda (untuk adjudikasi manual)
 
 crawl:
   only_pilot: true # false = semua 29 kejadian
@@ -83,10 +85,7 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
   base_url: https://api.groq.com/openai/v1
   model: openai/gpt-oss-120b
   api_key_env: GROQ_API_KEY
-  # Alternatif lokal tanpa kuota (install Ollama, lalu `ollama pull qwen2.5:7b`):
-  #   base_url: http://localhost:11434/v1
-  #   model: qwen2.5:7b
-  #   api_key_env: null
+  # Penyedia lain (mis. Ollama) -> lihat profil_llm di bawah; jalankan dengan --profil.
   extra_body: # parameter tambahan khusus penyedia (ikut prompt_hash)
     response_format: {type: json_object}
     reasoning_effort: low # gpt-oss: hemat token; hapus untuk model lain (mis. Ollama/Qwen)
@@ -129,3 +128,32 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
       salah_satu: ['\bsemoga\b', '\bdoa\b', '\bmendoakan\b', '\bpray', 'turut\s+berduka', '\bberduka\b',
                    'ya\s*allah', 'innalillahi', '\baa?mii?n\b', '\btuhan\b', '\bstay\s+safe\b', '\bget\s+well\b']
       kecuali: *fakta
+
+# Profil penyedia LLM alternatif untuk tahap 1.4: python -m modul1 filter --profil <nama>
+# Isinya menimpa kolom filter_llm di atas (aturan regex tetap sama). Keluaran ditulis ke
+# hasil_1_4_<nama>.parquet, informatif_<nama>.parquet, alur_data_<nama>.csv sehingga hasil utama
+# tidak tertimpa. Label semua model disimpan bersama di llm_labels_1_4.jsonl (dibedakan prompt_hash
+# dan kolom model) -> bandingkan dengan: python -m modul1 filter-bandingkan --a <model> --b <model>
+profil_llm:
+  ollama: # lokal, tanpa kuota & tanpa kunci. `ollama pull gpt-oss:20b` (butuh RAM/VRAM ±16 GB)
+    base_url: http://localhost:11434/v1
+    model: gpt-oss:20b
+    api_key_env: null
+    tweet_per_permintaan: 10 # konteks bawaan Ollama kecil; lihat OLLAMA_CONTEXT_LENGTH di README
+    max_tokens: 4096
+    timeout_s: 600 # CPU/GPU lokal bisa lambat
+    jeda_antar_permintaan_s: 0
+  ollama_cloud: # model besar di cloud Ollama lewat server lokal; perlu `ollama signin` (kuota gratis terbatas)
+    base_url: http://localhost:11434/v1
+    model: gpt-oss:120b-cloud
+    api_key_env: null
+    jeda_antar_permintaan_s: 2
+  ollama_qwen: # model non-gpt-oss: tanpa reasoning_effort. `ollama pull qwen2.5:7b`
+    base_url: http://localhost:11434/v1
+    model: qwen2.5:7b
+    api_key_env: null
+    extra_body: {response_format: {type: json_object}}
+    tweet_per_permintaan: 10
+    max_tokens: 1024
+    timeout_s: 600
+    jeda_antar_permintaan_s: 0

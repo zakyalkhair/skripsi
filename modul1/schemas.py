@@ -35,6 +35,8 @@ class PathsCfg(BaseModel):
     llm_labels: Path
     hasil_1_4: Path
     informatif: Path
+    bandingkan_laporan: Path
+    bandingkan_beda: Path
 
 
 class CrawlCfg(BaseModel):
@@ -150,6 +152,18 @@ class Config(BaseModel):
     dedup: DedupCfg
     calibration: CalibCfg
     filter_llm: FilterLlmCfg
+    # Profil penyedia LLM alternatif: {nama: {kolom filter_llm: nilai pengganti}}
+    profil_llm: dict[str, dict] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _cek_profil(self):
+        for nama, isi in self.profil_llm.items():
+            if not re.fullmatch(r"[a-z0-9_]+", nama):
+                raise ValueError(f"profil_llm: nama '{nama}' hanya boleh huruf kecil, angka, _")
+            asing = set(isi or {}) - set(FilterLlmCfg.model_fields)
+            if asing:
+                raise ValueError(f"profil_llm.{nama}: kolom tidak dikenal {sorted(asing)}")
+        return self
 
 
 # --------------------------------------------------------------------------- kejadian
