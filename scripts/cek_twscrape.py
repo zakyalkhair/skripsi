@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
@@ -30,7 +31,7 @@ async def main() -> None:
 
     from twscrape import API, set_log_level
 
-    set_log_level("DEBUG")
+    set_log_level("INFO")
     api = API(str(cfg.paths.twscrape_db))
     for acc in load_accounts_from_env():
         if acc["cookies"]:
@@ -42,22 +43,31 @@ async def main() -> None:
               f"total_req={a['total_req']} error={a['error_msg']}")
 
     full = build_queries(load_kejadian(cfg.paths.kejadian, True, ["GP07"]), cfg)[0].text
-    tests = [
-        "gempa",
-        "gempa lang:id",
-        "gempa Flores lang:id",
-        "gempa Flores lang:id since:2026-08-14 until:2026-08-30",
-        full,
+    rng = "since:2026-08-14 until:2026-08-30"
+    t0 = int(datetime(2026, 8, 14, tzinfo=timezone.utc).timestamp())
+    t1 = int(datetime(2026, 8, 30, tzinfo=timezone.utc).timestamp())
+    epoch = f"since_time:{t0} until_time:{t1}"  # rentang sama, format detik-epoch
+    tests = [  # (kueri, product) — product "Latest" = mode yang dipakai crawl
+        ("gempa", "Latest"),
+        ("gempa lang:id", "Latest"),
+        (f"gempa {rng}", "Latest"),
+        (f"gempa Flores {rng}", "Latest"),
+        (f"gempa lang:id {rng}", "Latest"),
+        (f"gempa {epoch}", "Latest"),
+        ("gempa lang:id", "Top"),
+        (f"gempa Flores {rng}", "Top"),
+        (full, "Latest"),
     ]
     print("\n=== Uji kueri (maks 20 tweet) ===")
     results = []
-    for q in tests:
-        n, contoh = 0, ""
-        async for tw in api.search(q, limit=20):
-            n += 1
-            contoh = contoh or f"{tw.date:%Y-%m-%d} {tw.rawContent[:80]!r}"
-        results.append((n, q))
-        print(f"\n[{n:>2} tweet] {q}\n          contoh: {contoh or '-'}")
+    for q, product in tests:
+        dates, contoh = [], ""
+        async for tw in api.search(q, limit=20, kv={"product": product}):
+            dates.append(tw.date)
+            contoh = contoh or tw.rawContent[:70].replace("\n", " ")
+        results.append((len(dates), q))
+        rentang = f"{min(dates):%Y-%m-%d} s.d. {max(dates):%Y-%m-%d}" if dates else "-"
+        print(f"\n[{len(dates):>2} tweet | {product:<6}] {q}\n    tanggal: {rentang}\n    contoh : {contoh or '-'}")
 
     if results[0][0] == 0:
         print("\n=== Respons mentah kueri 'gempa' (halaman pertama) ===")
