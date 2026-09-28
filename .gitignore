@@ -1,10 +1,9 @@
 # Rahasia
 .env
 
-# Data & keluaran (tidak di-commit; isi bisa memuat data pengguna X)
-data/**/*
-!data/**/
-!data/**/.gitkeep
+# Data ikut di-commit (keputusan peneliti, 28-09-2026) agar bisa dijalankan di laptop lain.
+# Catatan: data/raw/raw.jsonl memuat data akun X yang belum dianonimkan; repo ini publik.
+data/raw/twscrape_accounts.db
 logs/*
 !logs/.gitkeep
 reports/*
