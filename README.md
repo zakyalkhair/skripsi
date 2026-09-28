@@ -89,7 +89,9 @@ python -m modul1 --workdir demo run-all --skip-fetch
 **1.1 Crawling**
 - Kueri disusun otomatis **per (kejadian, kata kunci)**, dengan alias wilayah digabung OR:
   `"gempa bumi" (NTT OR Flores OR Ende OR …) lang:id -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30`.
-  `until:` di X eksklusif, jadi diisi `tanggal_selesai + 1 hari`. Kueri yang melebihi `max_query_chars`
+  `until:` di X eksklusif, jadi diisi `tanggal_selesai + 1 hari`. Jendela bisa diperlebar dengan
+  `padding_hari_sebelum` / `padding_hari_sesudah` di `config.yaml` tanpa mengubah `kejadian.csv`;
+  teks kueri lengkap (dengan tanggal sebenarnya) tercatat di `crawl_log.csv`. Kueri yang melebihi `max_query_chars`
   dipecah dengan membagi alias. `query_id` = `q` + 12 karakter awal sha1(teks kueri), stabil.
 - Kata kunci multi-kata diapit tanda kutip (frasa persis).
 - Crawl mengikuti `urutan_crawl`. Setelah tiap kejadian dicetak ringkasan (jumlah, % bahasa Indonesia, 5 contoh).

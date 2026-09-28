@@ -25,6 +25,10 @@ paths:
 crawl:
   only_pilot: true # false = semua 29 kejadian
   max_tweets_per_query: 2000
+  # Perpanjangan jendela waktu kueri di luar tanggal_mulai/tanggal_selesai di kejadian.csv
+  # (kejadian.csv tetap mencatat tanggal kejadian apa adanya). 0 = tanpa perpanjangan.
+  padding_hari_sebelum: 0
+  padding_hari_sesudah: 0
   # true = pakai sertifikat bawaan sistem operasi (truststore). Perlu di jaringan kantor/kampus
   # yang memeriksa HTTPS (error "CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate").
   use_system_certs: true

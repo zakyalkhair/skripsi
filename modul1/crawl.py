@@ -88,11 +88,13 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
         if k.jenis not in c.keywords:
             raise ValueError(f"Tidak ada kata kunci untuk jenis '{k.jenis}' ({k.event_id}) di config")
         aliases = _dedupe_ci(k.alias_wilayah)
-        # until: di X bersifat eksklusif -> tambah 1 hari agar tanggal_selesai ikut
+        # until: di X bersifat eksklusif -> tambah 1 hari agar hari terakhir ikut
         suffix_parts = [c.lang_operator, c.retweet_operator]
         suffix_parts += [f"-{_quote(n)}" for n in c.negative_keywords]
-        suffix_parts += [f"since:{k.tanggal_mulai.isoformat()}",
-                         f"until:{(k.tanggal_selesai + timedelta(days=1)).isoformat()}"]
+        # jendela crawl = [tanggal_mulai - padding_sebelum, tanggal_selesai + padding_sesudah]
+        since = k.tanggal_mulai - timedelta(days=c.padding_hari_sebelum)
+        until = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
+        suffix_parts += [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
         suffix = " ".join(suffix_parts)
         for kw in _dedupe_ci(c.keywords[k.jenis]):
             for chunk in _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars):

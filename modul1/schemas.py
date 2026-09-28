@@ -37,6 +37,8 @@ class CrawlCfg(BaseModel):
     only_pilot: bool
     max_tweets_per_query: int = Field(gt=0)
     use_system_certs: bool = True
+    padding_hari_sebelum: int = Field(default=0, ge=0)
+    padding_hari_sesudah: int = Field(default=0, ge=0)
     sleep_between_queries_s: float = Field(ge=0)
     max_query_chars: int = Field(gt=50)
     lang_operator: str

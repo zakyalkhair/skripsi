@@ -35,6 +35,14 @@ def test_build_queries_or_per_kata_kunci(cfg):
     assert [x.query_id for x in build_queries(ks, cfg)] == [x.query_id for x in qs]
 
 
+def test_padding_tanggal_memperlebar_jendela(cfg):
+    cfg.crawl.padding_hari_sebelum = 3
+    cfg.crawl.padding_hari_sesudah = 14
+    q = build_queries(load_kejadian(cfg.paths.kejadian, True, ["GP07"]), cfg)[0]
+    # kejadian.csv: mulai 2026-08-14, selesai 2026-08-29
+    assert q.text.endswith("since:2026-08-11 until:2026-09-13")
+
+
 def test_build_queries_dipecah_bila_terlalu_panjang(cfg):
     cfg.crawl.max_query_chars = 120
     qs = build_queries(load_kejadian(cfg.paths.kejadian, True, ["GP07"]), cfg)
