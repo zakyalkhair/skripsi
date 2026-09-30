@@ -112,7 +112,7 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
       label: informatif
       semua: ['gempa\s+mag\s*:\s*\d', '\blok\s*:']
       wilayah_kejadian: true
-    - nama: topik_lain # MBG, perayaan/karnaval tanpa fakta bencana (N3)
+    - nama: topik_lain # MBG, perayaan/karnaval tanpa fakta bencana (T3)
       label: noninformatif
       salah_satu: ['\bmbg\b', 'makan\s+bergizi', '\bkarnaval\b', '\b17\s+agustus(an)?\b', '\bhut\s+(ri|ke)',
                    '\bkemerdekaan\b', '\bpesta\b', '\bkonser\b']
@@ -123,7 +123,7 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
         - '\b(rusak|roboh|ambruk|runtuh|retak|hancur|putus)'
         - '\b(butuh|kebutuhan|kekurangan|minim|logistik|air\s+bersih|selimut|obat|sembako)'
         - '\b(susulan|tsunami|evakuasi|dievakuasi|sar\b|basarnas|bnpb|bpbd|bmkg)'
-    - nama: doa_tanpa_fakta # hanya doa/empati (N1)
+    - nama: doa_tanpa_fakta # hanya doa/empati (T1)
       label: noninformatif
       salah_satu: ['\bsemoga\b', '\bdoa\b', '\bmendoakan\b', '\bpray', 'turut\s+berduka', '\bberduka\b',
                    'ya\s*allah', 'innalillahi', '\baa?mii?n\b', '\btuhan\b', '\bstay\s+safe\b', '\bget\s+well\b']

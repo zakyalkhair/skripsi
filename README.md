@@ -180,15 +180,15 @@ Saran ambang = ambang terendah dengan presisi berbobot ≥ 0,95.
   dievaluasi berurutan; aturan pertama yang cocok menentukan label (`label_sumber = aturan:<nama>`).
   Prinsipnya presisi tinggi — hanya kasus yang jelas; yang ragu diserahkan ke LLM:
   - `bmkg` → informatif: laporan otomatis BMKG (`#Gempa Mag:… Lok:…`) yang menyebut salah satu
-    `alias_wilayah` kejadian (I6). BMKG untuk wilayah lain tetap dinilai LLM (bisa N4).
-  - `topik_lain` → noninformatif: MBG, karnaval, 17 Agustus/HUT RI, dll. (N3), **kecuali** tweet
+    `alias_wilayah` kejadian (I6). BMKG untuk wilayah lain tetap dinilai LLM (R5: faktual → informatif).
+  - `topik_lain` → noninformatif: MBG, karnaval, 17 Agustus/HUT RI, dll. (T3), **kecuali** tweet
     memuat petunjuk fakta (angka, korban, kerusakan, kebutuhan, pengungsian, bahaya, BNPB/BMKG).
-  - `doa_tanpa_fakta` → noninformatif: semoga/doa/berduka/pray… (N1), dengan pengecualian yang sama.
+  - `doa_tanpa_fakta` → noninformatif: semoga/doa/berduka/pray… (T1), dengan pengecualian yang sama.
   Log dan `alur_data.csv` mencatat jumlah per sumber label. `pakai_llm: false` + `label_default`
   = mode regex saja.
 - **LLM:** API OpenAI-compatible (`/chat/completions`), default Groq `openai/gpt-oss-120b`
-  (open-weight, Apache 2.0). Prompt di `config/prompt_informatif.md` (definisi + indikator
-  I1–I8 / N1–N8 + aturan keputusan). Satu permintaan berisi deskripsi kejadian acuan dari
+  (open-weight, Apache 2.0). Prompt di `config/prompt_informatif.md` (pedoman B40, `PEDOMAN-INFORMATIF-1.4.md`:
+  pertanyaan kunci + I1–I7 / T1–T6 + kasus sulit R1–R7 termasuk "ragu → informatif" + few-shot sintetis). Satu permintaan berisi deskripsi kejadian acuan dari
   `kejadian.csv` + `tweet_per_permintaan` (20) tweet bernomor lokal 1..n yang berbagi kejadian
   yang sama; jawaban JSON `{"hasil": [{"id", "label"}]}`, `temperature = 0`. Pengelompokan dipilih
   karena kuota token harian free tier (±200 ribu token/hari di Groq); prompt meminta setiap tweet
