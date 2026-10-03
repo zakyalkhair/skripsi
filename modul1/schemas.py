@@ -52,6 +52,7 @@ class CrawlCfg(BaseModel):
     lang_operator: str
     retweet_operator: str
     negative_keywords: list[str]
+    jenis_tanpa_wilayah: list[str] = []  # jenis yang dikueri tanpa filter alias wilayah
     summary_sample_n: int = Field(ge=0)
     sample_per_query: int = Field(ge=0)
     keywords: dict[str, list[str]]

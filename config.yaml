@@ -47,6 +47,9 @@ crawl:
   lang_operator: ""
   retweet_operator: "-filter:retweets"
   negative_keywords: [kecelakaan]
+  # jenis yang dikueri tanpa filter daerah: hanya kata kunci + jendela waktu (alias_wilayah tetap
+  # dipakai di tahap 1.4). Kejadian berjendela sama akan berbagi kueri (event_ids digabung).
+  jenis_tanpa_wilayah: [cuaca_ekstrem, kekeringan]
   summary_sample_n: 5 # contoh tweet yang dicetak setelah satu kejadian selesai
   sample_per_query: 50 # sampel cek manual per kueri -> reports/sampel_cek_kueri.csv
   keywords:
@@ -55,6 +58,9 @@ crawl:
     banjir: [banjir, banjir bandang, terendam, pengungsi]
     longsor: [longsor, tanah longsor, tertimbun]
     erupsi: [erupsi, letusan, awan panas, abu vulkanik, mengungsi]
+    # cuaca ekstrem: semua subtipe DIBI digabung jadi satu daftar
+    cuaca_ekstrem: [cuaca ekstrem, puting beliung, angin kencang, angin topan, hujan es, siklon tropis, suhu ekstrem]
+    kekeringan: [kekeringan, krisis air bersih, kemarau panjang, kesulitan air bersih, droping air bersih, gagal panen]
 
 saring_dasar:
   lang: "in" # kode bahasa Indonesia di X

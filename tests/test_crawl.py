@@ -18,8 +18,9 @@ from modul1.io_utils import write_jsonl
 
 def test_load_kejadian_hanya_pilot_urut_urutan_crawl(cfg):
     ks = load_kejadian(cfg.paths.kejadian, only_pilot=True)
-    assert [k.event_id for k in ks] == ["GP07", "ER03", "LS01", "GP05", "BJ03", "KH05"]
-    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 29
+    assert [k.event_id for k in ks] == ["GP07", "ER03", "LS01", "GP05", "BJ03", "KH05",
+                                          "CE01", "CE02", "CE03", "CE04", "CE05", "KK01", "KK02"]
+    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 34
     assert [k.event_id for k in load_kejadian(cfg.paths.kejadian, True, ["er03", "GP07"])] == ["GP07", "ER03"]
 
 
@@ -216,3 +217,12 @@ def test_run_skip_fetch_menulis_parquet_sampel_dan_alur(cfg):
     alur = pd.read_csv(cfg.paths.alur_data)
     assert alur["tahap"].tolist() == ["hasil crawl", "saring dasar"]
     assert alur.set_index("tahap").loc["saring dasar", "keluar"] == 60
+
+
+def test_build_queries_jenis_tanpa_wilayah(cfg):
+    ks = load_kejadian(cfg.paths.kejadian, True, ["CE01", "GP07"])
+    qs = build_queries(ks, cfg.model_copy(update={"crawl": cfg.crawl.model_copy(
+        update={"jenis_tanpa_wilayah": ["cuaca_ekstrem"]})}))
+    ce = [q for q in qs if q.event_ids == ["CE01"]]
+    assert ce and all("(" not in q.text and q.aliases == [] for q in ce)
+    assert all("(" in q.text for q in qs if q.event_ids == ["GP07"])

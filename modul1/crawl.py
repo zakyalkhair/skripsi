@@ -82,7 +82,7 @@ def query_id_of(text: str) -> str:
 
 def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
     """Satu kueri per (kejadian, kata kunci): `kw (alias1 OR alias2 ...) [lang:id] -filter:retweets
-    -neg since:mulai until:selesai+1`. Bila melebihi max_query_chars, alias dipecah ke beberapa kueri.
+    -neg since:mulai until:selesai+1` (tanpa bagian alias bila jenis ada di jenis_tanpa_wilayah). Bila melebihi max_query_chars, alias dipecah ke beberapa kueri.
     Kueri dengan teks identik dari kejadian berbeda digabung (event_ids jadi list)."""
     c = cfg.crawl
     by_text: dict[str, Kueri] = {}
@@ -98,9 +98,12 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
         until = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
         suffix_parts += [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
         suffix = " ".join(p for p in suffix_parts if p)
+        tanpa_wilayah = k.jenis in c.jenis_tanpa_wilayah
         for kw in _dedupe_ci(c.keywords[k.jenis]):
-            for chunk in _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars):
-                text = f"{_quote(kw)} ({' OR '.join(_quote(a) for a in chunk)}) {suffix}"
+            chunks = [[]] if tanpa_wilayah else _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars)
+            for chunk in chunks:
+                wilayah = f" ({' OR '.join(_quote(a) for a in chunk)})" if chunk else ""
+                text = f"{_quote(kw)}{wilayah} {suffix}"
                 if text in by_text:
                     if k.event_id not in by_text[text].event_ids:
                         by_text[text].event_ids.append(k.event_id)

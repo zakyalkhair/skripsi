@@ -1,0 +1,89 @@
+query_id,event_ids,query,crawled_at,twscrape_version,n_hasil,status
+q3bfde151841e,BJ03,banjir (Jateng OR Batang OR Pati OR Magelang OR Kudus OR Demak OR Semarang) -filter:retweets -kecelakaan since:2026-01-15 until:2026-01-31,2026-09-30T04:47:12+00:00,0.20.1,402,selesai
+qfc83a80cc508,BJ03,"""banjir bandang"" (Jateng OR Batang OR Pati OR Magelang OR Kudus OR Demak OR Semarang) -filter:retweets -kecelakaan since:2026-01-15 until:2026-01-31",2026-09-30T04:47:43+00:00,0.20.1,52,selesai
+q8ae3b5c5b3ff,BJ03,terendam (Jateng OR Batang OR Pati OR Magelang OR Kudus OR Demak OR Semarang) -filter:retweets -kecelakaan since:2026-01-15 until:2026-01-31,2026-09-30T04:47:51+00:00,0.20.1,28,selesai
+qd5c26aeeb29c,BJ03,pengungsi (Jateng OR Batang OR Pati OR Magelang OR Kudus OR Demak OR Semarang) -filter:retweets -kecelakaan since:2026-01-15 until:2026-01-31,2026-09-30T04:48:02+00:00,0.20.1,11,selesai
+q1a7dae4aba9b,KH05,"karhutla (Kalteng OR ""Palangka Raya"" OR ""Kotawaringin Barat"" OR Kobar OR ""Kotawaringin Timur"" OR Kotim OR ""Pulang Pisau"" OR Kapuas) -filter:retweets -kecelakaan since:2026-08-31 until:2026-09-15",2026-09-30T12:42:25+00:00,0.20.1,443,selesai
+q79ae010f54f9,KH05,"""kebakaran hutan"" (Kalteng OR ""Palangka Raya"" OR ""Kotawaringin Barat"" OR Kobar OR ""Kotawaringin Timur"" OR Kotim OR ""Pulang Pisau"" OR Kapuas) -filter:retweets -kecelakaan since:2026-08-31 until:2026-09-15",2026-09-30T12:43:01+00:00,0.20.1,140,selesai
+q85a2fd9575d7,KH05,"""kebakaran lahan"" (Kalteng OR ""Palangka Raya"" OR ""Kotawaringin Barat"" OR Kobar OR ""Kotawaringin Timur"" OR Kotim OR ""Pulang Pisau"" OR Kapuas) -filter:retweets -kecelakaan since:2026-08-31 until:2026-09-15",2026-09-30T12:43:16+00:00,0.20.1,18,selesai
+qcf996608a812,KH05,"""kabut asap"" (Kalteng OR ""Palangka Raya"" OR ""Kotawaringin Barat"" OR Kobar OR ""Kotawaringin Timur"" OR Kotim OR ""Pulang Pisau"" OR Kapuas) -filter:retweets -kecelakaan since:2026-08-31 until:2026-09-15",2026-09-30T12:43:23+00:00,0.20.1,110,selesai
+q837639fd237b,KH05,"""titik api"" (Kalteng OR ""Palangka Raya"" OR ""Kotawaringin Barat"" OR Kobar OR ""Kotawaringin Timur"" OR Kotim OR ""Pulang Pisau"" OR Kapuas) -filter:retweets -kecelakaan since:2026-08-31 until:2026-09-15",2026-09-30T12:43:35+00:00,0.20.1,46,selesai
+qb77e0e477e71,KH04,"karhutla (Kalbar OR Pontianak OR ""Kubu Raya"" OR Ketapang OR ""Kayong Utara"") -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T12:57:39+00:00,0.20.1,1185,selesai
+qabfac55cc52e,KH04,"""kebakaran hutan"" (Kalbar OR Pontianak OR ""Kubu Raya"" OR Ketapang OR ""Kayong Utara"") -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:12:53+00:00,0.20.1,456,selesai
+q3fc63d884171,KH04,"""kebakaran lahan"" (Kalbar OR Pontianak OR ""Kubu Raya"" OR Ketapang OR ""Kayong Utara"") -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:13:29+00:00,0.20.1,42,selesai
+qb3f4a07d7f34,KH04,"""kabut asap"" (Kalbar OR Pontianak OR ""Kubu Raya"" OR Ketapang OR ""Kayong Utara"") -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:13:39+00:00,0.20.1,375,selesai
+q2f24f30248a7,KH04,"""titik api"" (Kalbar OR Pontianak OR ""Kubu Raya"" OR Ketapang OR ""Kayong Utara"") -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:28:05+00:00,0.20.1,165,selesai
+qcfd9577e4d36,KH06,karhutla (Kalsel OR Banjarmasin OR Banjarbaru OR Banjar OR Tapin) -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01,2026-09-30T13:28:24+00:00,0.20.1,699,selesai
+q115dd68ca808,KH06,"""kebakaran hutan"" (Kalsel OR Banjarmasin OR Banjarbaru OR Banjar OR Tapin) -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:43:04+00:00,0.20.1,271,selesai
+q3c4a4d436ba0,KH06,"""kebakaran lahan"" (Kalsel OR Banjarmasin OR Banjarbaru OR Banjar OR Tapin) -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:43:25+00:00,0.20.1,57,selesai
+q9b6211b49d6e,KH06,"""kabut asap"" (Kalsel OR Banjarmasin OR Banjarbaru OR Banjar OR Tapin) -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:43:36+00:00,0.20.1,228,selesai
+q7946db82283e,KH06,"""titik api"" (Kalsel OR Banjarmasin OR Banjarbaru OR Banjar OR Tapin) -filter:retweets -kecelakaan since:2026-08-01 until:2026-10-01",2026-09-30T13:57:50+00:00,0.20.1,91,selesai
+qcdb949f8f061,CE01,"""cuaca ekstrem"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:51:49+00:00,0.20.1,4,selesai
+q60d2f11b9021,CE01,"""angin kencang"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:51:59+00:00,0.20.1,3,selesai
+q7e3d8117504c,CE01,"""puting beliung"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:52:06+00:00,0.20.1,3,selesai
+q08bd07a60c34,CE01,"""angin puting beliung"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:52:13+00:00,0.20.1,2,selesai
+q36a121fd7232,CE01,"""hujan es"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:52:20+00:00,0.20.1,0,kosong
+q91886c43d510,CE01,"""pohon tumbang"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:52:27+00:00,0.20.1,0,kosong
+qc637ec69ea6f,CE02,"""cuaca ekstrem"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:52:33+00:00,0.20.1,4,selesai
+q379c4a956212,CE02,"""angin kencang"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:52:40+00:00,0.20.1,5,selesai
+q3a769099b10b,CE02,"""puting beliung"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:52:48+00:00,0.20.1,0,kosong
+qb8cd4d9e7aac,CE02,"""angin puting beliung"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:52:54+00:00,0.20.1,0,kosong
+q91886c43d510,CE01,"""pohon tumbang"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T06:54:16+00:00,0.20.1,0,kosong
+q3a769099b10b,CE02,"""puting beliung"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:54:24+00:00,0.20.1,0,kosong
+qb8cd4d9e7aac,CE02,"""angin puting beliung"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:54:31+00:00,0.20.1,0,kosong
+qf5d0da1aad4d,CE02,"""pohon tumbang"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T06:54:37+00:00,0.20.1,2,selesai
+qb113599f65b2,CE03,"""cuaca ekstrem"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T06:54:44+00:00,0.20.1,1,selesai
+q6bc99c3c8241,CE03,"""angin kencang"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:07:00+00:00,0.20.1,1,selesai
+q1800e5433f10,CE03,"""puting beliung"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:07:08+00:00,0.20.1,0,kosong
+q19272f90bb54,CE03,"""angin puting beliung"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:07:14+00:00,0.20.1,0,kosong
+qcf1f68e1390e,CE03,"""pohon tumbang"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:07:21+00:00,0.20.1,0,kosong
+q00db0267ae99,CE04,"""cuaca ekstrem"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:07:27+00:00,0.20.1,5,selesai
+qf26a75ea65f3,CE04,"""angin kencang"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:07:35+00:00,0.20.1,15,selesai
+q69ff6bbe458c,CE04,"""puting beliung"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:07:42+00:00,0.20.1,0,kosong
+qac22043b905a,CE04,"""angin puting beliung"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:07:48+00:00,0.20.1,0,kosong
+qf48169c75029,CE04,"""pohon tumbang"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:07:54+00:00,0.20.1,0,kosong
+q1e9c59a85545,CE05,"""cuaca ekstrem"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:08:01+00:00,0.20.1,5,selesai
+q074df0b27358,CE05,"""angin kencang"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:08:08+00:00,0.20.1,7,selesai
+q0e6c35cf836f,CE05,"""puting beliung"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:08:15+00:00,0.20.1,0,kosong
+q6f5086d2b37b,CE05,"""angin puting beliung"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:08:22+00:00,0.20.1,0,kosong
+q905f77352c88,CE05,"""pohon tumbang"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:08:28+00:00,0.20.1,1,selesai
+q91886c43d510,CE01,"""pohon tumbang"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T07:46:53+00:00,0.20.1,0,kosong
+q9e15efa273c5,CE01,"""rumah rusak angin"" (Jatim OR Sumenep OR Madura) -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T07:47:01+00:00,0.20.1,0,kosong
+q62179cbc4906,CE02,"""rumah rusak angin"" (Jabar OR Subang) -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T07:47:08+00:00,0.20.1,0,kosong
+qcf1f68e1390e,CE03,"""pohon tumbang"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:47:14+00:00,0.20.1,0,kosong
+qb598f9ba3757,CE03,"""rumah rusak angin"" (Malut OR ""Halmahera Selatan"" OR Halsel) -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T07:47:20+00:00,0.20.1,0,kosong
+qf48169c75029,CE04,"""pohon tumbang"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:47:27+00:00,0.20.1,0,kosong
+q8c40acdcacbe,CE04,"""rumah rusak angin"" (Aceh OR ""Aceh Utara"" OR Lhokseumawe) -filter:retweets -kecelakaan since:2026-06-01 until:2026-06-16",2026-10-02T07:47:33+00:00,0.20.1,0,kosong
+q972223f5d1b3,CE05,"""hujan lebat"" (Sumut OR ""Serdang Bedagai"" OR Sergai) -filter:retweets -kecelakaan since:2026-06-03 until:2026-06-18",2026-10-02T07:47:40+00:00,0.20.1,3,selesai
+q2ecccf19f43e,CE01,"""cuaca ekstrem"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:02:40+00:00,0.20.1,189,selesai
+q90cc106ed680,CE01,"""puting beliung"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:02:58+00:00,0.20.1,51,selesai
+q409dc91244a8,CE01,"""angin kencang"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:03:07+00:00,0.20.1,229,selesai
+q2b3a666df691,CE01,"""angin topan"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:03:25+00:00,0.20.1,10,selesai
+qcd20ca4ec1d5,CE01,"""hujan es"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:03:32+00:00,0.20.1,14,selesai
+qdf62343f6427,CE01,"""siklon tropis"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:03:39+00:00,0.20.1,37,selesai
+qff7823cdaf1f,CE01,"""suhu ekstrem"" -filter:retweets -kecelakaan since:2026-01-31 until:2026-02-15",2026-10-02T08:06:18+00:00,0.20.1,9,selesai
+q2574c195f9d3,CE02,"""cuaca ekstrem"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:06:26+00:00,0.20.1,121,selesai
+q6af25b726cbc,CE02,"""puting beliung"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:06:38+00:00,0.20.1,88,selesai
+q236f3b14e81b,CE02,"""angin kencang"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:06:48+00:00,0.20.1,223,selesai
+q09ddd4a60c46,CE02,"""angin topan"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:07:04+00:00,0.20.1,23,selesai
+qd340bb943334,CE02,"""hujan es"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:07:11+00:00,0.20.1,44,selesai
+q596066f5bc84,CE02,"""siklon tropis"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:07:20+00:00,0.20.1,17,selesai
+qc36d1210ed97,CE02,"""suhu ekstrem"" -filter:retweets -kecelakaan since:2026-04-09 until:2026-04-24",2026-10-02T08:17:51+00:00,0.20.1,14,selesai
+q99ae796fed4b,CE03,"""cuaca ekstrem"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:17:59+00:00,0.20.1,116,selesai
+q6a9df61291aa,CE03,"""puting beliung"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:18:10+00:00,0.20.1,69,selesai
+q407693d55a20,CE03,"""angin kencang"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:18:19+00:00,0.20.1,198,selesai
+q4c938e69bc32,CE03,"""angin topan"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:18:36+00:00,0.20.1,15,selesai
+qd27b9ee8194e,CE03,"""hujan es"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:18:42+00:00,0.20.1,26,selesai
+qcf259ed0336e,CE03,"""siklon tropis"" -filter:retweets -kecelakaan since:2026-04-13 until:2026-04-28",2026-10-02T08:18:50+00:00,0.20.1,14,selesai
+q83d5c80ea6cb,KK01,kekeringan -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01,2026-10-02T08:37:50+00:00,0.20.1,1508,selesai
+qaf32ee8ab826,KK01,"""krisis air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01",2026-10-02T08:39:02+00:00,0.20.1,210,selesai
+qcd85ada94b14,KK01,"""kemarau panjang"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01",2026-10-02T08:39:16+00:00,0.20.1,443,selesai
+q4371badc157e,KK01,"""kesulitan air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01",2026-10-02T08:53:04+00:00,0.20.1,29,selesai
+q0008da0b5573,KK01,"""droping air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01",2026-10-02T08:53:12+00:00,0.20.1,4,selesai
+q961de8352e6e,KK01,"""gagal panen"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-09-01",2026-10-02T08:53:19+00:00,0.20.1,231,selesai
+qe1c22ddbc053,KK02,kekeringan -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01,2026-10-02T08:53:34+00:00,0.20.1,2132,selesai
+q5ab380d8857f,KK02,"""krisis air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:08:31+00:00,0.20.1,540,selesai
+qd84f66d2fc07,KK02,"""kemarau panjang"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:09:05+00:00,0.20.1,994,selesai
+q9b959abf4975,KK02,"""kesulitan air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:12+00:00,0.20.1,90,selesai
+q6e96fed7cab4,KK02,"""droping air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:21+00:00,0.20.1,16,selesai
+q1b22712067cf,KK02,"""gagal panen"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:28+00:00,0.20.1,412,selesai

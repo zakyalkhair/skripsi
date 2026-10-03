@@ -106,7 +106,7 @@ def tweet(rng, text, date, lang="in", reply=False, retweet=False, quote=False):
 
 def generate(cfg, n_per_event: int, seed: int) -> list[dict]:
     rng = random.Random(seed)
-    kejadian = load_kejadian(cfg.paths.kejadian, True)
+    kejadian = [k for k in load_kejadian(cfg.paths.kejadian, True) if k.event_id in WILAYAH]
     queries = build_queries(kejadian, cfg)
     rows = []
     for k in kejadian:
