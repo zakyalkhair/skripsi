@@ -10,24 +10,25 @@ Panduan langkah demi langkah untuk Windows PowerShell. Detail teknis dan alasan 
 ```
 1.1 crawl       → data/raw/raw.jsonl → data/interim/crawled.parquet
 1.2 preprocess  → data/interim/preprocessed.parquet
-1.3 dedup       → data/interim/dedup.parquet, data/processed/input_1_4.parquet (3.936 wakil)
+1.3 dedup       → data/interim/dedup.parquet, data/processed/input_1_4.parquet (7.927 wakil, 10 kejadian)
 1.4 filter      → aturan regex dulu, sisanya dilabeli LLM
                 → data/processed/hasil_1_4*.parquet (semua wakil + label)
                 → data/processed/informatif*.parquet (hanya yang informatif → Modul 2)
 ```
 
 - Tahap 1.1–1.3 = kode Python biasa (tanpa LLM). **Sudah selesai**; hasilnya ada di repo.
-- Tahap 1.4 = regex + LLM. Ada dua versi label:
+- Tahap 1.4 = regex + LLM, dengan prompt pedoman B40 (`config/prompt_informatif.md`).
 
-| Versi | Siapa yang melabeli | `model` di jsonl | Keluaran | Status |
-|---|---|---|---|---|
-| Claude | Claude (manual, interaktif di sesi Claude Code) | `manual-claude-code` | `informatif.parquet`, `hasil_1_4.parquet` | ✅ selesai (2.868 informatif) |
-| Qwen | Qwen 2.5 7B lewat Ollama (pipeline, prompt tetap) | `qwen2.5:7b` | `informatif_ollama_qwen.parquet`, `hasil_1_4_ollama_qwen.parquet` | ⏳ dijalankan di laptop |
+| Pelabel | `model` di jsonl | Keluaran | Status (3 Okt 2026) |
+|---|---|---|---|
+| Regex (`aturan:*` di config) | — | ikut di keluaran mana pun | otomatis |
+| Qwen 2.5 7B lewat Ollama | `qwen2.5:7b` | `informatif_ollama_qwen.parquet`, `hasil_1_4_ollama_qwen.parquet` | ⏳ 1.762 berlabel, 4.878 belum |
 
-- 1.202 tweet dilabeli **regex** (sama untuk kedua versi); 2.734 sisanya dilabeli Claude / Qwen.
-- Semua label disimpan bersama di `data/interim/llm_labels_1_4.jsonl`. Satu tweet muncul sekali
-  per pelabel — **bukan duplikat**, itu "lembar nilai" dua penilai. File keluaran tetap satu baris
-  per tweet.
+- Label versi prompt lama (Claude manual dan 406 label Qwen pertama) **sudah dihapus**
+  (keputusan 3 Okt 2026: hanya pedoman B40 yang dipakai). Riwayatnya tetap ada di git.
+- Semua label disimpan di `data/interim/llm_labels_1_4.jsonl`. Bila nanti ada pelabel kedua,
+  satu tweet muncul sekali per pelabel — **bukan duplikat**, itu "lembar nilai" dua penilai.
+  File keluaran tetap satu baris per tweet.
 
 ---
 
@@ -117,22 +118,22 @@ ollama serve                    # biarkan jendela ini terbuka; jalankan python d
 ### 2d. Tulis ulang keluaran tanpa memanggil model
 
 ```powershell
-python -m modul1 filter-finalize                         # versi Claude
 python -m modul1 filter-finalize --profil ollama_qwen    # versi Qwen
+# Tanpa --profil = config utama (Groq); jangan dijalankan kalau belum ada label Groq
 ```
 
 ---
 
-## 3. Bandingkan Claude vs Qwen
+## 3. Bandingkan dua pelabel (bila ada pelabel kedua, mis. Groq atau label manual)
 
 ```powershell
-python -m modul1 filter-bandingkan --a manual-claude-code --b qwen2.5:7b
+python -m modul1 filter-bandingkan --a qwen2.5:7b --b openai/gpt-oss-120b
 ```
 
 Hasil:
 
 - `reports/bandingkan_1_4.json` → `n_bersama`, `persen_setuju`, `cohen_kappa`, `matriks` 2×2
-  (baris = Claude, kolom = Qwen). Ini tabel kesepakatan antar-penilai untuk skripsi.
+  (baris = pelabel A, kolom = pelabel B). Ini tabel kesepakatan antar-penilai untuk skripsi.
 - `data/interim/beda_1_4.jsonl` → tweet yang labelnya beda, dengan kolom `label_final` kosong.
 
 Tafsiran kappa (Landis & Koch): < 0,20 buruk · 0,21–0,40 lemah · 0,41–0,60 sedang ·
@@ -160,13 +161,7 @@ python -m modul1 filter --limit 50      # uji coba
 python -m modul1 filter                 # kuota harian habis → berhenti rapi, jalankan lagi besok
 ```
 
-Catatan: tanpa `--profil`, keluaran menimpa `informatif.parquet` / `hasil_1_4.parquet` versi
-Claude. Simpan salinannya dulu bila perlu:
-
-```powershell
-Copy-Item data\processed\informatif.parquet data\processed\informatif_claude.parquet
-Copy-Item data\processed\hasil_1_4.parquet  data\processed\hasil_1_4_claude.parquet
-```
+Keluarannya: `informatif.parquet` / `hasil_1_4.parquet` (tanpa akhiran), terpisah dari versi Qwen.
 
 ---
 
@@ -181,8 +176,8 @@ python -m modul1 dedup                  # 1.3 → input_1_4.parquet baru
 python scripts\cek_twscrape.py         # diagnosa bila crawl 0 tweet
 ```
 
-⚠️ Bila `dedup` dijalankan ulang dan `input_1_4.parquet` berubah, label Claude hanya berlaku untuk
-`tweet_id` yang masih sama; tweet baru tidak punya label Claude.
+⚠️ Bila `dedup` dijalankan ulang dan `input_1_4.parquet` berubah, label yang ada hanya berlaku untuk
+`tweet_id` yang masih sama; tweet baru dilabeli pada run `filter` berikutnya.
 
 Kalibrasi ambang dedup (sekali):
 
@@ -226,8 +221,6 @@ menutupnya: GitHub → Settings → General → Danger Zone → Change visibilit
 
 ## 8. Untuk bab metodologi
 
-- Label Claude: dibuat asisten AI secara interaktif (bukan panggilan API dengan prompt tetap) —
-  sebutkan apa adanya.
 - Label Qwen: pipeline dengan prompt tetap (`config/prompt_informatif.md`), `temperature 0`,
   tercatat `prompt_hash` → dapat direproduksi.
 - Laporkan persen setuju + Cohen's kappa, lalu adjudikasi manual untuk yang berbeda.
