@@ -348,5 +348,25 @@
   "status": "selesai",
   "n_hasil": 412,
   "crawled_at": "2026-10-02T09:23:28+00:00"
+ },
+ "qec78edd54473": {
+  "status": "selesai",
+  "n_hasil": 1,
+  "crawled_at": "2026-10-03T03:15:27+00:00"
+ },
+ "qc20d4b2455db": {
+  "status": "selesai",
+  "n_hasil": 2,
+  "crawled_at": "2026-10-03T03:16:20+00:00"
+ },
+ "q94f8d0ec5139": {
+  "status": "selesai",
+  "n_hasil": 6,
+  "crawled_at": "2026-10-03T03:16:56+00:00"
+ },
+ "q412b18958595": {
+  "status": "selesai",
+  "n_hasil": 1,
+  "crawled_at": "2026-10-03T03:17:10+00:00"
  }
 }

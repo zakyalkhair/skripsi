@@ -19,8 +19,9 @@ from modul1.io_utils import write_jsonl
 def test_load_kejadian_hanya_pilot_urut_urutan_crawl(cfg):
     ks = load_kejadian(cfg.paths.kejadian, only_pilot=True)
     assert [k.event_id for k in ks] == ["GP07", "ER03", "LS01", "GP05", "BJ03", "KH05",
-                                          "CE01", "CE02", "CE03", "CE04", "CE05", "KK01", "KK02"]
-    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 34
+                                          "CE01", "CE02", "CE03", "CE04", "CE05", "KK01", "KK02",
+                                          "GL01", "GL02", "GL03", "GL04"]
+    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 38
     assert [k.event_id for k in load_kejadian(cfg.paths.kejadian, True, ["er03", "GP07"])] == ["GP07", "ER03"]
 
 

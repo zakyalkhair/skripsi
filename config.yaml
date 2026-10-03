@@ -61,6 +61,7 @@ crawl:
     # cuaca ekstrem: semua subtipe DIBI digabung jadi satu daftar
     cuaca_ekstrem: [cuaca ekstrem, puting beliung, angin kencang, angin topan, hujan es, siklon tropis, suhu ekstrem]
     kekeringan: [kekeringan, krisis air bersih, kemarau panjang, kesulitan air bersih, droping air bersih, gagal panen]
+    gelombang_pasang: [gelombang pasang, gelombang tinggi, banjir rob, abrasi, abrasi pantai, air laut naik]
 
 saring_dasar:
   lang: "in" # kode bahasa Indonesia di X

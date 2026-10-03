@@ -87,3 +87,27 @@ qd84f66d2fc07,KK02,"""kemarau panjang"" -filter:retweets -kecelakaan since:2026-
 q9b959abf4975,KK02,"""kesulitan air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:12+00:00,0.20.1,90,selesai
 q6e96fed7cab4,KK02,"""droping air bersih"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:21+00:00,0.20.1,16,selesai
 q1b22712067cf,KK02,"""gagal panen"" -filter:retweets -kecelakaan since:2026-07-01 until:2026-10-01",2026-10-02T09:23:28+00:00,0.20.1,412,selesai
+q3dd7b6ab5291,GL01,"""gelombang pasang"" (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29",2026-10-03T03:15:16+00:00,0.20.1,0,kosong
+qec78edd54473,GL01,"""gelombang tinggi"" (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29",2026-10-03T03:15:27+00:00,0.20.1,1,selesai
+q24e79fe28812,GL01,"""banjir rob"" (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29",2026-10-03T03:15:35+00:00,0.20.1,0,kosong
+q9187752f7110,GL01,abrasi (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29,2026-10-03T03:15:42+00:00,0.20.1,0,kosong
+q467086926be0,GL01,"""abrasi pantai"" (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29",2026-10-03T03:15:49+00:00,0.20.1,0,kosong
+q501311a63fa1,GL01,"""air laut naik"" (Sulut OR Minahasa) -filter:retweets -kecelakaan since:2026-03-14 until:2026-03-29",2026-10-03T03:15:55+00:00,0.20.1,0,kosong
+q6801e30221df,GL02,"""gelombang pasang"" (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20",2026-10-03T03:16:05+00:00,0.20.1,0,kosong
+qf8654a6e9060,GL02,"""gelombang tinggi"" (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20",2026-10-03T03:16:14+00:00,0.20.1,0,kosong
+qc20d4b2455db,GL02,"""banjir rob"" (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20",2026-10-03T03:16:20+00:00,0.20.1,2,selesai
+qc399fa0984e7,GL02,abrasi (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20,2026-10-03T03:16:28+00:00,0.20.1,0,kosong
+q41f2a1a9d166,GL02,"""abrasi pantai"" (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20",2026-10-03T03:16:35+00:00,0.20.1,0,kosong
+qadd9efa33a4f,GL02,"""air laut naik"" (Jateng OR Rembang) -filter:retweets -kecelakaan since:2026-06-05 until:2026-06-20",2026-10-03T03:16:42+00:00,0.20.1,0,kosong
+qd5e13378f41d,GL03,"""gelombang pasang"" (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:16:49+00:00,0.20.1,0,kosong
+q94f8d0ec5139,GL03,"""gelombang tinggi"" (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:16:56+00:00,0.20.1,6,selesai
+qb790c245c3f1,GL03,"""banjir rob"" (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:17:04+00:00,0.20.1,0,kosong
+q412b18958595,GL03,"abrasi (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:17:10+00:00,0.20.1,1,selesai
+qda41f1f7a5d0,GL03,"""abrasi pantai"" (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:17:20+00:00,0.20.1,0,kosong
+qcf828c5e7d3e,GL03,"""air laut naik"" (Maluku OR ""Seram Bagian Timur"" OR SBT OR Seram) -filter:retweets -kecelakaan since:2026-06-30 until:2026-07-15",2026-10-03T03:17:26+00:00,0.20.1,0,kosong
+qc773f8776c8e,GL04,"""gelombang pasang"" (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:17:33+00:00,0.20.1,0,kosong
+qf54bf761ce27,GL04,"""gelombang tinggi"" (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:17:39+00:00,0.20.1,0,kosong
+q27a543d1311d,GL04,"""banjir rob"" (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:17:46+00:00,0.20.1,0,kosong
+qb2bd24f10bae,GL04,"abrasi (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:17:52+00:00,0.20.1,0,kosong
+q4364498bd98c,GL04,"""abrasi pantai"" (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:18:01+00:00,0.20.1,0,kosong
+qa69410d61b62,GL04,"""air laut naik"" (Sulteng OR ""Parigi Moutong"" OR Parimo) -filter:retweets -kecelakaan since:2026-07-14 until:2026-07-29",2026-10-03T03:18:08+00:00,0.20.1,0,kosong
