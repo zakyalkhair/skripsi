@@ -91,26 +91,40 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
             raise ValueError(f"Tidak ada kata kunci untuk jenis '{k.jenis}' ({k.event_id}) di config")
         aliases = _dedupe_ci(k.alias_wilayah)
         # until: di X bersifat eksklusif -> tambah 1 hari agar hari terakhir ikut
-        suffix_parts = [c.lang_operator, c.retweet_operator]
-        suffix_parts += [f"-{_quote(n)}" for n in c.negative_keywords]
+        base_parts = [c.lang_operator, c.retweet_operator]
+        base_parts += [f"-{_quote(n)}" for n in c.negative_keywords]
         # jendela crawl = [tanggal_mulai - padding_sebelum, tanggal_selesai + padding_sesudah]
-        since = k.tanggal_mulai - timedelta(days=c.padding_hari_sebelum)
-        until = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
-        suffix_parts += [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
-        suffix = " ".join(p for p in suffix_parts if p)
-        tanpa_wilayah = k.jenis in c.jenis_tanpa_wilayah
-        for kw in _dedupe_ci(c.keywords[k.jenis]):
-            chunks = [[]] if tanpa_wilayah else _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars)
-            for chunk in chunks:
-                wilayah = f" ({' OR '.join(_quote(a) for a in chunk)})" if chunk else ""
-                text = f"{_quote(kw)}{wilayah} {suffix}"
-                if text in by_text:
-                    if k.event_id not in by_text[text].event_ids:
-                        by_text[text].event_ids.append(k.event_id)
-                else:
-                    by_text[text] = Kueri(query_id=query_id_of(text), text=text, event_ids=[k.event_id],
-                                          keyword=kw, aliases=chunk, since=since, until=until)
+        since_all = k.tanggal_mulai - timedelta(days=c.padding_hari_sebelum)
+        until_all = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
+        # alias kosong (kejadian.csv nasional per jenis) = tanpa filter wilayah
+        tanpa_wilayah = k.jenis in c.jenis_tanpa_wilayah or not aliases
+        for since, until in _windows(since_all, until_all, c.pecah_jendela_hari):
+            suffix_parts = base_parts + [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
+            suffix = " ".join(p for p in suffix_parts if p)
+            for kw in _dedupe_ci(c.keywords[k.jenis]):
+                chunks = [[]] if tanpa_wilayah else _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars)
+                for chunk in chunks:
+                    wilayah = f" ({' OR '.join(_quote(a) for a in chunk)})" if chunk else ""
+                    text = f"{_quote(kw)}{wilayah} {suffix}"
+                    if text in by_text:
+                        if k.event_id not in by_text[text].event_ids:
+                            by_text[text].event_ids.append(k.event_id)
+                    else:
+                        by_text[text] = Kueri(query_id=query_id_of(text), text=text, event_ids=[k.event_id],
+                                              keyword=kw, aliases=chunk, since=since, until=until)
     return list(by_text.values())
+
+
+def _windows(since, until, step_days: int):
+    """[since, until) dipecah per step_days hari (0 = utuh). until eksklusif."""
+    if step_days <= 0:
+        return [(since, until)]
+    out, cur = [], since
+    while cur < until:
+        nxt = min(cur + timedelta(days=step_days), until)
+        out.append((cur, nxt))
+        cur = nxt
+    return out
 
 
 def _chunk_aliases(aliases: list[str], kw: str, suffix: str, max_chars: int) -> list[list[str]]:
@@ -294,15 +308,6 @@ async def fetch(cfg: Config, queries: list[Kueri], kejadian: list[Kejadian], api
 
 
 # --------------------------------------------------------------------------- parse
-def _user_hash(user: dict | None, salt: str | None) -> str | None:
-    if not salt or not user:
-        return None
-    uid = user.get("id_str") or user.get("id")
-    if uid is None:
-        return None
-    return hashlib.sha256((str(uid) + salt).encode("utf-8")).hexdigest()
-
-
 def _tweet_id(d: dict) -> str:
     tid = d.get("id_str")
     if tid is None:
@@ -316,7 +321,7 @@ def is_retweet(d: dict) -> bool:
     return d.get("retweetedTweet") is not None or (d.get("rawContent") or "").startswith("RT @")
 
 
-def parse_raw_record(d: dict, salt: str | None, lang_id: str) -> dict:
+def parse_raw_record(d: dict, lang_id: str) -> dict:
     """Satu baris raw.jsonl -> rekaman teranonimkan. Field user (username, user_id, displayname,
     profil) tidak disalin sama sekali; quote tweet: hanya teks tweet itu sendiri (rawContent)."""
     coords = d.get("coordinates")
@@ -340,7 +345,6 @@ def parse_raw_record(d: dict, salt: str | None, lang_id: str) -> dict:
         "coordinates": coords,
         "query_id": [qid] if qid else [],
         "event_id": list(d.get("event_ids") or []),
-        "user_hash": _user_hash(d.get("user"), salt),
         "drop_reason": drop,
         "_windows": [tuple(d["query_window"])] if d.get("query_window") else [],
     }
@@ -355,13 +359,13 @@ def in_any_window(created_at: str | None, windows: list[tuple[str, str]]) -> boo
     return any(pd.Timestamp(s, tz="UTC") <= ts < pd.Timestamp(u, tz="UTC") for s, u in windows)
 
 
-def parse_raw(raw_path: str | Path, salt: str | None, lang_id: str) -> tuple[pd.DataFrame, dict]:
+def parse_raw(raw_path: str | Path, lang_id: str) -> tuple[pd.DataFrame, dict]:
     """raw.jsonl -> DataFrame satu baris per tweet_id (query_id & event_id digabung jadi list)."""
     merged: dict[str, dict] = {}
     n_lines = 0
     for d in iter_jsonl(raw_path):
         n_lines += 1
-        rec = parse_raw_record(d, salt, lang_id)
+        rec = parse_raw_record(d, lang_id)
         cur = merged.get(rec["tweet_id"])
         if cur is None:
             merged[rec["tweet_id"]] = rec
@@ -443,10 +447,7 @@ def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, 
 
     if not cfg.paths.raw_jsonl.exists():
         raise FileNotFoundError(f"{cfg.paths.raw_jsonl} belum ada — jalankan crawl dulu")
-    salt = os.environ.get("USER_HASH_SALT") or None
-    if not salt:
-        log.warning("USER_HASH_SALT kosong: user_hash diisi null")
-    df, st = parse_raw(cfg.paths.raw_jsonl, salt, cfg.saring_dasar.lang)
+    df, st = parse_raw(cfg.paths.raw_jsonl, cfg.saring_dasar.lang)
     log.info("raw.jsonl: %d baris -> %d tweet unik (duplikat ID digabung: %d)", st["baris_raw"], st["tweet_unik"], st["duplikat_id"])
     log.info("Saring dasar: retweet=%d, bukan_id=%d, di_luar_jendela=%d, lolos=%d (termasuk %d balasan, is_reply=True)",
              st["retweet"], st["bukan_id"], st["di_luar_jendela"], st["lolos"], st["balasan"])

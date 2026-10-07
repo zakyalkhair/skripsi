@@ -4,6 +4,11 @@
 # Data ikut di-commit (keputusan peneliti, 28-09-2026) agar bisa dijalankan di laptop lain.
 # Catatan: data/raw/raw.jsonl memuat data akun X yang belum dianonimkan; repo ini publik.
 data/raw/twscrape_accounts.db
+*.db
+# Data pengembangan 2025 (--workdir dev_2025): memuat cookie akun & data mentah besar
+dev_2025/
+# Keluaran Claude lokal
+Claude outputs/
 logs/*
 !logs/.gitkeep
 reports/*
@@ -15,3 +20,4 @@ demo/
 __pycache__/
 *.pyc
 .pytest_cache/
+data_arsip_sebelum_B62/

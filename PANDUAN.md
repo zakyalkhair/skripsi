@@ -54,16 +54,14 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 ### `.env` (tidak ada di GitHub, salin manual)
 
-Hanya perlu bila **crawl lagi** atau memakai **Groq**. Untuk Ollama tidak perlu.
+Hanya perlu bila **crawl lagi**. Untuk Ollama tidak perlu.
 
 ```powershell
 Copy-Item .env.example .env
 notepad .env
 ```
 
-- `USER_HASH_SALT` **harus sama** dengan laptop lama (kalau beda, `user_hash` tidak konsisten).
 - `X_ACCOUNT_1_COOKIES="auth_token=...; ct0=..."` (pakai tanda kutip).
-- `GROQ_API_KEY=` hanya bila memakai Groq.
 
 ---
 
@@ -82,6 +80,19 @@ curl.exe http://localhost:11434/api/tags      # cek server menjawab
 
 > `ollama serve` → error `bind: Only one usage of each socket address` artinya server **sudah
 > jalan**. Abaikan, lanjut saja.
+
+### 2a'. Model CPU (B60, dipakai mulai 4 Okt 2026)
+
+Laptop: MX450 2 GB → model 7B jalan di CPU. Buat sekali model turunan dengan konteks 8192, suhu 0, full CPU:
+
+```powershell
+cd C:\Zaky\Kuliah\Skripsi
+ollama create qwen2.5-cpu -f Modelfile.optimized
+ollama run qwen2.5-cpu "tes"     # lalu `ollama ps`: CONTEXT 8192, PROCESSOR 100% CPU
+```
+
+Lalu pakai profil **`ollama_qwen_cpu`** (5 tweet/permintaan) menggantikan `ollama_qwen`:
+`python -m modul1 filter --profil ollama_qwen_cpu`. Profil lama tetap ada agar label lama bisa ditelusuri.
 
 ### 2b. Uji coba 20 tweet
 
@@ -119,12 +130,12 @@ ollama serve                    # biarkan jendela ini terbuka; jalankan python d
 
 ```powershell
 python -m modul1 filter-finalize --profil ollama_qwen    # versi Qwen
-# Tanpa --profil = config utama (Groq); jangan dijalankan kalau belum ada label Groq
+# Tanpa --profil = config utama (Qwen lokal qwen2.5-cpu)
 ```
 
 ---
 
-## 3. Bandingkan dua pelabel (bila ada pelabel kedua, mis. Groq atau label manual)
+## 3. Bandingkan dua pelabel (bila ada pelabel kedua, mis. label manual anotator)
 
 ```powershell
 python -m modul1 filter-bandingkan --a qwen2.5:7b --b openai/gpt-oss-120b
@@ -153,23 +164,13 @@ dibuatkan bila sudah sampai tahap ini.
 
 ---
 
-## 4. Memakai Groq (opsional, alternatif Qwen)
-
-```powershell
-# isi GROQ_API_KEY di .env (https://console.groq.com → API Keys)
-python -m modul1 filter --limit 50      # uji coba
-python -m modul1 filter                 # kuota harian habis → berhenti rapi, jalankan lagi besok
-```
-
-Keluarannya: `informatif.parquet` / `hasil_1_4.parquet` (tanpa akhiran), terpisah dari versi Qwen.
-
----
+## 4. (Groq dihapus 7 Okt 2026 — tidak dipakai)
 
 ## 5. Mengulang tahap 1.1–1.3 (hanya bila perlu)
 
 ```powershell
-python -m modul1 crawl --events GP07    # crawl satu kejadian (kueri berstatus selesai dilewati)
-python -m modul1 crawl                  # semua kejadian pilot
+python -m modul1 crawl --events NAS-TS  # crawl satu jenis (B62: NAS-BJ, NAS-LS, NAS-GL, NAS-CE, NAS-KK, NAS-KH, NAS-GP, NAS-TS, NAS-ER); kueri selesai dilewati
+python -m modul1 crawl                  # semua 9 jenis nasional, 1 Jan–4 Okt 2026, per minggu (1.600 kueri)
 python -m modul1 crawl --skip-fetch     # bangun ulang crawled.parquet dari raw.jsonl saja
 python -m modul1 preprocess             # 1.2
 python -m modul1 dedup                  # 1.3 → input_1_4.parquet baru
@@ -213,7 +214,6 @@ menutupnya: GitHub → Settings → General → Danger Zone → Change visibilit
 | `koneksi:ConnectError` di 1.4 | Ollama belum jalan / model belum di-pull; cek `curl.exe http://localhost:11434/api/tags` |
 | `profil 'x' tidak ada di profil_llm` | salah ketik nama profil; yang ada: `ollama`, `ollama_cloud`, `ollama_qwen` |
 | `tidak ada label ok untuk model 'x'` | nilai `--a/--b` harus persis sama dengan kolom `model`; pesan galat menampilkan daftar yang ada |
-| `GROQ_API_KEY kosong` | isi `.env`, atau pakai `--profil ollama_qwen` |
 | Crawl `Cookies must include auth_token and ct0` | format `.env`: `X_ACCOUNT_1_COOKIES="auth_token=...; ct0=..."` |
 | Crawl `CERTIFICATE_VERIFY_FAILED` | `use_system_certs: true` di `config.yaml` (default) |
 

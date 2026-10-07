@@ -53,6 +53,9 @@ class CrawlCfg(BaseModel):
     retweet_operator: str
     negative_keywords: list[str]
     jenis_tanpa_wilayah: list[str] = []  # jenis yang dikueri tanpa filter alias wilayah
+    # >0: jendela [mulai, selesai] dipecah per N hari -> satu kueri per jendela (batas max_tweets_per_query
+    # berlaku per jendela, bukan per kejadian). 0 = satu jendela utuh.
+    pecah_jendela_hari: int = Field(default=0, ge=0)
     summary_sample_n: int = Field(ge=0)
     sample_per_query: int = Field(ge=0)
     keywords: dict[str, list[str]]
@@ -229,7 +232,6 @@ class CrawledTweet(BaseModel):
     coordinates: list[float] | None  # [longitude, latitude]
     query_id: list[str]
     event_id: list[str]
-    user_hash: str | None
     drop_reason: str | None
 
     @field_validator("tweet_id", mode="before")
@@ -250,6 +252,7 @@ FIELDS: dict[str, pa.DataType] = {
     "created_at": pa.timestamp("us", tz="UTC"),
     "text": pa.string(),
     "text_raw": pa.string(),
+    "text_raw_sha256": pa.string(),
     "text_clean": pa.string(),
     "lang": pa.string(),
     "hashtags": _LIST_STR,
@@ -258,7 +261,6 @@ FIELDS: dict[str, pa.DataType] = {
     "coordinates": pa.list_(pa.float64()),
     "query_id": _LIST_STR,
     "event_id": _LIST_STR,
-    "user_hash": pa.string(),
     "too_short": pa.bool_(),
     "cluster_id": pa.string(),
     "is_representatif": pa.bool_(),
@@ -275,14 +277,14 @@ FIELDS: dict[str, pa.DataType] = {
 
 CRAWLED_COLS = [
     "tweet_id", "created_at", "text", "lang", "hashtags", "urls", "is_reply",
-    "coordinates", "query_id", "event_id", "user_hash", "drop_reason",
+    "coordinates", "query_id", "event_id", "drop_reason",
 ]
-PREPROCESSED_COLS = CRAWLED_COLS[:3] + ["text_raw", "text_clean"] + CRAWLED_COLS[3:-1] + [
+PREPROCESSED_COLS = CRAWLED_COLS[:3] + ["text_raw", "text_raw_sha256", "text_clean"] + CRAWLED_COLS[3:-1] + [
     "too_short", "drop_reason",
 ]
 FINAL_COLS = [
-    "tweet_id", "created_at", "text", "text_raw", "text_clean", "lang", "hashtags", "urls",
-    "is_reply", "coordinates", "query_id", "event_id", "user_hash", "too_short", "cluster_id",
+    "tweet_id", "created_at", "text", "text_raw", "text_raw_sha256", "text_clean", "lang", "hashtags", "urls",
+    "is_reply", "coordinates", "query_id", "event_id", "too_short", "cluster_id",
     "is_representatif", "member_tweet_ids", "cluster_size", "drop_reason",
 ]
 DEDUP_COLS = FINAL_COLS

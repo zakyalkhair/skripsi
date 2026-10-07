@@ -11,7 +11,7 @@ acak memakai `seed` di `config.yaml`.
 
 ```bash
 uv venv -p 3.11 && uv pip install -r requirements.txt     # atau: python -m venv .venv && pip install -r requirements.txt
-cp .env.example .env                                        # isi akun X + USER_HASH_SALT (jangan di-commit)
+cp .env.example .env                                        # isi akun X (jangan di-commit)
 python -m pytest                                            # 60 test
 # Panduan langkah demi langkah (PowerShell): PANDUAN.md
 ```
@@ -36,8 +36,7 @@ python -m modul1 filter                       # 1.4 sisanya; bila kuota harian h
 python -m modul1 filter-finalize              # 1.4 tulis ulang keluaran dari label yang ada (tanpa API)
 ```
 
-Tahap 1.4 memakai API OpenAI-compatible. Default: Groq (gratis, `openai/gpt-oss-120b`), butuh
-`GROQ_API_KEY` di `.env`. Penyedia lain dipilih dengan `--profil` (daftar di `profil_llm`,
+Tahap 1.4 memakai API OpenAI-compatible. Default: Qwen lokal (`qwen2.5-cpu` lewat Ollama, full CPU, 5 tweet/permintaan; Groq dihapus 7 Okt 2026). Penyedia lain dipilih dengan `--profil` (daftar di `profil_llm`,
 `config.yaml`) tanpa mengubah config utama.
 
 ### 1.4 dengan Ollama dan membandingkan dua model
@@ -115,7 +114,6 @@ python -m modul1 --workdir demo run-all --skip-fetch
 | `coordinates` | `[longitude, latitude]` atau null |
 | `query_id` | list kueri yang menemukan tweet ini |
 | `event_id` | list kejadian asal kueri (satu tweet bisa cocok ke beberapa kejadian, mis. GP07 & ER03) |
-| `user_hash` | `sha256(user_id + USER_HASH_SALT)`; null bila salt kosong. `username`, `user_id`, `displayname`, dan field profil lain tidak disimpan |
 | `too_short` | `text_clean` tanpa `<URL>`/`<USER>` kurang dari `min_words` (3) kata |
 | `cluster_id` | `c<tweet_id wakil>`; null untuk tweet yang tidak ikut 1.3 |
 | `is_representatif` | wakil cluster (paling awal; seri → `tweet_id` numerik terkecil) |
@@ -186,12 +184,12 @@ Saran ambang = ambang terendah dengan presisi berbobot ≥ 0,95.
   - `doa_tanpa_fakta` → noninformatif: semoga/doa/berduka/pray… (T1), dengan pengecualian yang sama.
   Log dan `alur_data.csv` mencatat jumlah per sumber label. `pakai_llm: false` + `label_default`
   = mode regex saja.
-- **LLM:** API OpenAI-compatible (`/chat/completions`), default Groq `openai/gpt-oss-120b`
+- **LLM:** API OpenAI-compatible (`/chat/completions`), default Qwen lokal `qwen2.5-cpu` (Ollama)
   (open-weight, Apache 2.0). Prompt di `config/prompt_informatif.md` (pedoman B40, `PEDOMAN-INFORMATIF-1.4.md`:
   pertanyaan kunci + I1–I7 / T1–T6 + kasus sulit R1–R7 termasuk "ragu → informatif" + few-shot sintetis). Satu permintaan berisi deskripsi kejadian acuan dari
   `kejadian.csv` + `tweet_per_permintaan` (20) tweet bernomor lokal 1..n yang berbagi kejadian
   yang sama; jawaban JSON `{"hasil": [{"id", "label"}]}`, `temperature = 0`. Pengelompokan dipilih
-  karena kuota token harian free tier (±200 ribu token/hari di Groq); prompt meminta setiap tweet
+  karena kuota token harian free tier (±200 ribu token/hari pada penyedia API gratis; kini tidak dipakai); prompt meminta setiap tweet
   dinilai terpisah.
 - **Jejak:** setiap hasil disimpan di `data/interim/llm_labels_1_4.jsonl` (model, provider,
   prompt_hash, chunk, finish_reason, token). `prompt_hash` = sidik jari prompt + provider + model +

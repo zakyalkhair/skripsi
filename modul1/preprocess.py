@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
+import json
+import platform
 import re
+import subprocess
 import unicodedata
 
 import ftfy
@@ -65,10 +69,42 @@ def is_too_short(text_clean: str, min_words: int, url_token: str = "<URL>",
     return len(words) < min_words
 
 
+def text_hash(text_raw: str) -> str:
+    return hashlib.sha256(text_raw.encode("utf-8")).hexdigest()
+
+
+def write_manifest(path, n_rows: int, n_eligible: int) -> dict:
+    """Catat versi pustaka & Unicode agar text_raw bisa direproduksi (pembekuan korpus)."""
+    from datetime import datetime, timezone
+
+    try:
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+                                cwd=str(path.parent), timeout=10).stdout.strip() or None
+    except Exception:
+        commit = None
+    man = {
+        "tahap": "1.2 preprocessing",
+        "dibuat_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "python": platform.python_version(),
+        "ftfy": getattr(ftfy, "__version__", None),
+        "pandas": pd.__version__,
+        "unicode": unicodedata.unidata_version,
+        "git_commit": commit,
+        "baris": n_rows,
+        "lolos_ke_1_3": n_eligible,
+        "catatan": "text_raw = ftfy -> html.unescape -> NFKC -> rapikan spasi; posisi = indeks karakter Python",
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(man, indent=2, ensure_ascii=False), encoding="utf-8")
+    return man
+
+
 def preprocess_df(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     p = cfg.preprocess
     df = df.copy()
     df["text_raw"] = df["text"].map(lambda t: fix_text(t or ""))
+    # pembekuan: hash per tweet = alarm bila text_raw berubah setelah anotasi/ekstraksi
+    df["text_raw_sha256"] = df["text_raw"].map(text_hash)
     df["text_clean"] = df["text_raw"].map(
         lambda t: clean_text(t, p.url_token, p.user_token, p.hapus_mention, p.hapus_hashtag)
     )
@@ -98,6 +134,9 @@ def run(cfg: Config) -> pd.DataFrame:
 
     write_parquet(out, cfg.paths.preprocessed, PREPROCESSED_COLS)
     log.info("Ditulis: %s", cfg.paths.preprocessed)
+    man_path = cfg.paths.preprocessed.parent / "manifest_1_2.json"
+    write_manifest(man_path, len(out), eligible_out)
+    log.info("Manifest pembekuan: %s", man_path)
     update_alur_data(cfg.paths.alur_data, "preprocessing", eligible_in, eligible_out, n_short,
                      f"{DROP_TERLALU_PENDEK}={n_short}")
     return out

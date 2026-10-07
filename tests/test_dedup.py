@@ -70,7 +70,13 @@ def test_exact_dan_seri_waktu_pilih_tweet_id_terkecil_numerik(cfg):
 
 
 def test_penjaga_angka_memakai_placeholder_url():
-    assert number_signature("gempa m5 2 <URL>") == ["2", "5"]
+    assert number_signature("gempa m5 2 <URL>") == ["5", "2"]
+
+
+def test_penjaga_angka_memperhatikan_urutan():
+    a = number_signature("korban 3 orang 12 rumah rusak di ende")
+    b = number_signature("korban 12 orang 3 rumah rusak di ende")
+    assert a == ["3", "12"] and b == ["12", "3"] and a != b
     assert tweet_id_key("9") < tweet_id_key("10")
 
 

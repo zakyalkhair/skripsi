@@ -64,3 +64,10 @@ def test_preprocess_df_menandai_tanpa_menghapus_dan_tidak_menimpa_drop_reason(cf
     assert out["too_short"].tolist() == [True, False, True]
     assert out["drop_reason"].tolist() == ["terlalu_pendek", None, "retweet"]
     assert out["text"].tolist() == df["text"].tolist()  # teks asli tetap
+
+
+def test_hash_text_raw_tersimpan_dan_stabil():
+    import hashlib
+
+    from modul1.preprocess import text_hash
+    assert text_hash("Banjir & longsor") == hashlib.sha256("Banjir & longsor".encode("utf-8")).hexdigest()

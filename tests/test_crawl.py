@@ -19,9 +19,9 @@ from modul1.io_utils import write_jsonl
 def test_load_kejadian_hanya_pilot_urut_urutan_crawl(cfg):
     ks = load_kejadian(cfg.paths.kejadian, only_pilot=True)
     assert [k.event_id for k in ks] == ["GP07", "ER03", "LS01", "GP05", "BJ03", "KH05",
-                                          "CE01", "CE02", "CE03", "CE04", "CE05", "KK01", "KK02",
-                                          "GL01", "GL02", "GL03", "GL04", "GL05", "GL06", "GL07"]
-    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 41
+                                          "CE06", "CE07", "CE08", "CE09", "CE10", "KK01", "KK02",
+                                          "GL01", "GL02", "GL03", "GL04", "BJ07", "BJ08", "BJ09"]
+    assert len(load_kejadian(cfg.paths.kejadian, only_pilot=False)) == 45
     assert [k.event_id for k in load_kejadian(cfg.paths.kejadian, True, ["er03", "GP07"])] == ["GP07", "ER03"]
 
 
@@ -31,7 +31,7 @@ def test_build_queries_or_per_kata_kunci(cfg):
     assert [q.keyword for q in qs] == ["gempa", "gempa bumi", "gempa susulan", "pengungsi"]
     q = qs[1]
     assert q.text.startswith('"gempa bumi" (NTT OR Flores OR Ende OR Manggarai OR "Manggarai Timur"')
-    assert q.text.endswith(") -filter:retweets -kecelakaan since:2026-08-14 until:2026-08-30")
+    assert q.text.endswith(") -filter:retweets -kecelakaan -from:infoBMKG since:2026-08-14 until:2026-08-30")
     assert "lang:id" not in q.text and "  " not in q.text
     assert (q.since.isoformat(), q.until.isoformat()) == ("2026-08-14", "2026-08-30")
     assert q.query_id == query_id_of(q.text) and q.event_ids == ["GP07"]
@@ -97,7 +97,7 @@ def test_parse_raw_anonim_gabung_id_dan_saring(tmp_path):
     ]
     p = tmp_path / "raw.jsonl"
     write_jsonl(p, rows)
-    df, st = parse_raw(p, salt="garam", lang_id="in")
+    df, st = parse_raw(p, lang_id="in")
     assert st == {"baris_raw": 6, "tweet_unik": 5, "duplikat_id": 1, "retweet": 1, "bukan_id": 1,
                   "di_luar_jendela": 0, "lolos": 3, "balasan": 1}
     by = df.set_index("tweet_id")
@@ -111,10 +111,7 @@ def test_parse_raw_anonim_gabung_id_dan_saring(tmp_path):
     assert str(df["created_at"].dt.tz) == "UTC"
     blob = df.to_json(date_format="iso")
     assert "rahasia" not in blob and "Nama Asli" not in blob and "username" not in df.columns
-    assert by.loc["1969307187192924196", "user_hash"] is not None and len(by.loc["1969307187192924196", "user_hash"]) == 64
-
-    df2, _ = parse_raw(p, salt=None, lang_id="in")
-    assert df2["user_hash"].isna().all()
+    assert "user_hash" not in df.columns
 
 
 def test_tweet_di_luar_jendela_kueri_ditandai(tmp_path):
@@ -134,7 +131,7 @@ def test_tweet_di_luar_jendela_kueri_ditandai(tmp_path):
     ]
     p = tmp_path / "raw.jsonl"
     write_jsonl(p, rows)
-    df, st = parse_raw(p, salt=None, lang_id="in")
+    df, st = parse_raw(p, lang_id="in")
     by = df.set_index("tweet_id")["drop_reason"].to_dict()
     assert by == {"1969307187192924301": None, "1969307187192924302": "di_luar_jendela",
                   "1969307187192924303": "di_luar_jendela", "1969307187192924304": None,
@@ -221,9 +218,9 @@ def test_run_skip_fetch_menulis_parquet_sampel_dan_alur(cfg):
 
 
 def test_build_queries_jenis_tanpa_wilayah(cfg):
-    ks = load_kejadian(cfg.paths.kejadian, True, ["CE01", "GP07"])
+    ks = load_kejadian(cfg.paths.kejadian, True, ["CE06", "GP07"])
     qs = build_queries(ks, cfg.model_copy(update={"crawl": cfg.crawl.model_copy(
         update={"jenis_tanpa_wilayah": ["cuaca_ekstrem"]})}))
-    ce = [q for q in qs if q.event_ids == ["CE01"]]
+    ce = [q for q in qs if q.event_ids == ["CE06"]]
     assert ce and all("(" not in q.text and q.aliases == [] for q in ce)
     assert all("(" in q.text for q in qs if q.event_ids == ["GP07"])

@@ -4,8 +4,8 @@ Alur:
   input_1_4.parquet (wakil cluster)
     -> aturan regex dari config (tanpa LLM), berurutan, presisi tinggi: mis. laporan BMKG untuk
        wilayah kejadian -> informatif; MBG/karnaval atau doa murni tanpa petunjuk fakta -> noninformatif
-    -> sisanya (kasus ambigu) dikirim ke LLM lewat API OpenAI-compatible (/chat/completions): Groq, OpenRouter,
-       Ollama lokal, dll. — cukup ganti base_url/model di config. Beberapa tweet per permintaan.
+    -> sisanya (kasus ambigu) dikirim ke LLM lewat API OpenAI-compatible (/chat/completions): Ollama lokal (Qwen)
+       — cukup ganti base_url/model di config. Beberapa tweet per permintaan.
     -> hasil_1_4.parquet (semua wakil + label) dan informatif.parquet (label == informatif)
 
 Dapat dilanjutkan: setiap potongan (chunk) yang selesai langsung ditambahkan ke llm_labels (JSONL).
@@ -106,7 +106,7 @@ def rule_matches(rule: AturanCfg, text: str, event_ids: list[str], events: dict[
         return False
     if rule.wilayah_kejadian:
         aliases = [a for eid in event_ids for a in events.get(eid, {}).get("aliases", [])]
-        if not mentions_region(text, aliases):
+        if aliases and not mentions_region(text, aliases):  # tanpa alias = kejadian nasional -> lolos
             return False
     return True
 
@@ -200,7 +200,7 @@ def make_chunks(todo: pd.DataFrame, size: int) -> list[tuple[list[str], pd.DataF
 
 # --------------------------------------------------------------------------- klien HTTP
 class OpenAICompatClient:
-    """Klien minimal untuk POST {base_url}/chat/completions (Groq, OpenRouter, Ollama, dst.)."""
+    """Klien minimal untuk POST {base_url}/chat/completions (Ollama lokal, dst.)."""
 
     def __init__(self, base_url: str, api_key: str | None, timeout_s: float):
         import httpx

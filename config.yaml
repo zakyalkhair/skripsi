@@ -5,7 +5,7 @@
 seed: 42 # seed tunggal untuk semua proses acak (MinHash, sampling)
 
 paths:
-  kejadian: config/kejadian.csv
+  kejadian: config/kejadian.csv # B62: 9 baris nasional per jenis (kueri crawl)
   raw_jsonl: data/raw/raw.jsonl
   crawl_log: data/raw/crawl_log.csv
   crawl_progress: data/raw/crawl_progress.json
@@ -46,22 +46,28 @@ crawl:
   # sesudah crawl di saring dasar (lang == "in", selain itu drop_reason=bukan_id).
   lang_operator: ""
   retweet_operator: "-filter:retweets"
-  negative_keywords: [kecelakaan]
+  # B63: from:infoBMKG = bot laporan otomatis gempa BMKG dikecualikan sejak crawl (99% templat "Gempa Mag:")
+  negative_keywords: [kecelakaan, "from:infoBMKG"]
   # jenis yang dikueri tanpa filter daerah: hanya kata kunci + jendela waktu (alias_wilayah tetap
   # dipakai di tahap 1.4). Kejadian berjendela sama akan berbagi kueri (event_ids digabung).
   jenis_tanpa_wilayah: [cuaca_ekstrem, kekeringan]
+  # B62: crawl nasional 1 Jan 2026 - hari ini -> jendela dipecah per 7 hari agar batas 2.000/kueri tidak memotong.
+  # Kueri yang n_hasil-nya menyentuh batas di crawl_log -> perkecil (mis. 1) dan crawl ulang kueri itu.
+  pecah_jendela_hari: 7
   summary_sample_n: 5 # contoh tweet yang dicetak setelah satu kejadian selesai
   sample_per_query: 50 # sampel cek manual per kueri -> reports/sampel_cek_kueri.csv
+  # Kunci = jenis BNPB (B53): gempabumi, tanah_longsor, gelombang_pasang_abrasi, ... (sama dengan kejadian.csv)
   keywords:
     karhutla: [karhutla, kebakaran hutan, kebakaran lahan, kabut asap, titik api]
-    gempa: [gempa, gempa bumi, gempa susulan, pengungsi]
+    gempabumi: [gempa, gempa bumi, gempa susulan, pengungsi]
     banjir: [banjir, banjir bandang, terendam, pengungsi]
-    longsor: [longsor, tanah longsor, tertimbun]
+    tanah_longsor: [longsor, tanah longsor, tertimbun]
     erupsi: [erupsi, letusan, awan panas, abu vulkanik, mengungsi]
     # cuaca ekstrem: semua subtipe DIBI digabung jadi satu daftar
     cuaca_ekstrem: [cuaca ekstrem, puting beliung, angin kencang, angin topan, hujan es, siklon tropis, suhu ekstrem]
     kekeringan: [kekeringan, krisis air bersih, kemarau panjang, kesulitan air bersih, droping air bersih, gagal panen]
-    gelombang_pasang: [gelombang pasang, gelombang tinggi, banjir rob, abrasi, abrasi pantai, air laut naik]
+    gelombang_pasang_abrasi: [gelombang pasang, gelombang tinggi, banjir rob, abrasi, abrasi pantai, air laut naik]
+    tsunami: [tsunami]
 
 saring_dasar:
   lang: "in" # kode bahasa Indonesia di X
@@ -88,21 +94,21 @@ calibration:
   target_precision: 0.95
 
 filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API OpenAI-compatible)
-  # Groq (gratis, model open-weight gpt-oss). Kunci di .env: GROQ_API_KEY
-  base_url: https://api.groq.com/openai/v1
-  model: openai/gpt-oss-120b
-  api_key_env: GROQ_API_KEY
-  # Penyedia lain (mis. Ollama) -> lihat profil_llm di bawah; jalankan dengan --profil.
+  # Jalur utama (keputusan 6 Okt 2026): Qwen lokal lewat Ollama, full CPU. Groq dihapus 7 Okt 2026
+  # (tidak dipakai: tweet tidak dikirim ke pihak ketiga). Buat model dulu (folder Skripsi):
+  #   ollama create qwen2.5-cpu -f ..\Modelfile.optimized
+  base_url: http://localhost:11434/v1
+  model: qwen2.5-cpu
+  api_key_env: null # lokal, tanpa kunci
   extra_body: # parameter tambahan khusus penyedia (ikut prompt_hash)
     response_format: {type: json_object}
-    reasoning_effort: low # gpt-oss: hemat token; hapus untuk model lain (mis. Ollama/Qwen)
-  tweet_per_permintaan: 20
-  max_tokens: 2048 # cukup untuk reasoning + JSON 20 label
+  tweet_per_permintaan: 5
+  max_tokens: 2048 # 5 label pendek ±300 token; Qwen tanpa reasoning
   temperature: 0 # deterministik semampunya
-  timeout_s: 120
-  max_retry: 3 # untuk galat sementara (5xx, timeout, 429 singkat)
-  jeda_antar_permintaan_s: 8 # menjaga batas token per menit (Groq gratis: 8K TPM)
-  tunggu_429_maks_s: 120 # 429 dengan jeda lebih lama (kuota harian) -> berhenti rapi
+  timeout_s: 900 # CPU: ±1–2 menit/permintaan
+  max_retry: 3 # untuk galat sementara (5xx, timeout)
+  jeda_antar_permintaan_s: 0
+  tunggu_429_maks_s: 120
   # Tweet yang tidak cocok aturan mana pun dikirim ke LLM. false = tanpa LLM (regex saja):
   # tweet yang tidak cocok diberi label_default.
   pakai_llm: true
@@ -115,10 +121,10 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
   # Prinsip: presisi tinggi. Aturan noninformatif batal bila ada petunjuk fakta (angka, korban,
   # kerusakan, kebutuhan, pengungsian, bahaya) -> diserahkan ke LLM.
   aturan:
-    - nama: bmkg # laporan otomatis BMKG untuk wilayah kejadian (I6)
+    - nama: bmkg # salinan laporan BMKG oleh media/akun lain (bot @infoBMKG sudah dikecualikan di crawl, B63) (I6)
       label: informatif
       semua: ['gempa\s+mag\s*:\s*\d', '\blok\s*:']
-      wilayah_kejadian: true
+      # syarat wilayah_kejadian dihapus 6 Okt 2026: crawl nasional tanpa daerah acuan
     - nama: topik_lain # MBG, perayaan/karnaval tanpa fakta bencana (T3)
       label: noninformatif
       salah_satu: ['\bmbg\b', 'makan\s+bergizi', '\bkarnaval\b', '\b17\s+agustus(an)?\b', '\bhut\s+(ri|ke)',
@@ -163,4 +169,16 @@ profil_llm:
     tweet_per_permintaan: 10
     max_tokens: 2048
     timeout_s: 600
+    jeda_antar_permintaan_s: 0
+  ollama_qwen_cpu: # B60/K2: full CPU, konteks 8192, suhu 0. Buat dulu modelnya (folder Skripsi):
+    #   ollama create qwen2.5-cpu -f ..\Modelfile.optimized
+    # Dipakai untuk ulang 1.4 (K-1.4a): batch lebih kecil agar tweet panjang tidak gagal.
+    base_url: http://localhost:11434/v1
+    model: qwen2.5-cpu
+    api_key_env: null
+    extra_body: {response_format: {type: json_object}}
+    tweet_per_permintaan: 5
+    max_tokens: 2048 # 5 label pendek ±300 token; Qwen tanpa reasoning
+    temperature: 0
+    timeout_s: 900 # CPU: ±1–2 menit/permintaan, beri ruang
     jeda_antar_permintaan_s: 0

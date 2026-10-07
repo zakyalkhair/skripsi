@@ -42,7 +42,7 @@ async def main() -> None:
         print(f"{a['username']}: active={a['active']} logged_in={a['logged_in']} "
               f"total_req={a['total_req']} error={a['error_msg']}")
 
-    full = build_queries(load_kejadian(cfg.paths.kejadian, True, ["GP07"]), cfg)[0].text
+    full = build_queries(load_kejadian(cfg.paths.kejadian, True, ["NAS-GP"]), cfg)[0].text  # B62: kueri nasional gempabumi minggu pertama
     rng = "since:2026-08-14 until:2026-08-30"
     t0 = int(datetime(2026, 8, 14, tzinfo=timezone.utc).timestamp())
     t1 = int(datetime(2026, 8, 30, tzinfo=timezone.utc).timestamp())

@@ -18,7 +18,7 @@ TWEETS = {
     "101": BMKG,                                                   # aturan bmkg -> informatif
     "102": "BNPB: 105 orang meninggal akibat gempa M7,7 Flores, 179.037 warga mengungsi",  # LLM
     "103": "Ngapain sih nanyain MBG di depan korban gempa NTT?!",   # aturan topik_lain
-    "104": BMKG_NTB,                                               # BMKG wilayah lain -> LLM
+    "104": "Ada yang tahu kabar jalan ke Ruteng hari ini?",           # tidak cocok aturan -> LLM
     "105": "Semoga saudara kita di NTT diberi kekuatan",            # aturan doa_tanpa_fakta
 }
 KE_LLM = ["102", "104"]
@@ -73,10 +73,17 @@ def rule_of(cfg, text, ev=("GP07",)):
     return (r.nama, r.label) if r else None
 
 
-def test_aturan_bmkg_hanya_untuk_wilayah_kejadian(cfg):
+def test_aturan_bmkg_berlaku_di_seluruh_wilayah(cfg):
+    # crawl nasional: salinan laporan BMKG dari daerah mana pun langsung informatif
     assert rule_of(cfg, BMKG) == ("bmkg", "informatif")
-    assert rule_of(cfg, BMKG_NTB) is None  # wilayah lain -> LLM
+    assert rule_of(cfg, BMKG_NTB) == ("bmkg", "informatif")
+    assert rule_of(cfg, BMKG_NTB, ev=("NAS-GP",)) == ("bmkg", "informatif")
+    # tanpa pola "Gempa Mag: ... Lok:" -> bukan aturan bmkg (ke LLM)
     assert rule_of(cfg, "Gempa Flores, BMKG catat 1.624 gempa susulan") is None
+
+
+def test_syarat_wilayah_tetap_berfungsi_bila_dipakai(cfg):
+    # mekanisme lama (alias wilayah) tetap benar bila suatu saat diaktifkan lagi
     assert not fl.mentions_region("gunung Kendeng", ["Ende"])  # alias harus kata utuh
     assert fl.mentions_region("(40 km ENDE-NTT)", ["Ende"])
 
@@ -114,8 +121,8 @@ def test_aturan_config_divalidasi():
 def test_payload_berisi_konteks_nomor_lokal_dan_parameter(cfg):
     events = fl.load_events(cfg.paths.kejadian)
     p = fl.build_payload(["Gempa di Ende", "Doa untuk NTT"], ["GP07"], events, "SYS", cfg)
-    assert p["model"] == "openai/gpt-oss-120b" and p["temperature"] == 0
-    assert p["response_format"] == {"type": "json_object"} and p["reasoning_effort"] == "low"
+    assert p["model"] == "qwen2.5-cpu" and p["temperature"] == 0
+    assert p["response_format"] == {"type": "json_object"} and "reasoning_effort" not in p
     assert p["messages"][0] == {"role": "system", "content": "SYS"}
     assert "GP07: Gempa M7,7 Flores" in p["messages"][1]["content"]
     assert tweets_in(p) == [("1", "Gempa di Ende"), ("2", "Doa untuk NTT")]
@@ -133,7 +140,7 @@ def test_parse_labels_toleran_dan_ketat():
 def test_prompt_hash_berubah_bila_prompt_model_atau_provider_berubah(cfg):
     a = fl.prompt_hash("prompt", cfg)
     assert a == fl.prompt_hash("prompt", cfg) and a != fl.prompt_hash("prompt v2", cfg)
-    cfg.filter_llm.base_url = "http://localhost:11434/v1"
+    cfg.filter_llm.base_url = "http://192.168.1.10:11434/v1"
     assert a != fl.prompt_hash("prompt", cfg)
 
 
@@ -159,7 +166,7 @@ def test_run_hibrida_label_keluaran_dan_alur(ready):
     assert out["label"].to_dict() == {
         "101": "informatif", "102": "informatif", "103": "noninformatif", "104": "noninformatif",
         "105": "noninformatif"}
-    assert out.loc["102", "llm_model"] == "openai/gpt-oss-120b" and out.loc["103", "llm_model"] is None
+    assert out.loc["102", "llm_model"] == "qwen2.5-cpu" and out.loc["103", "llm_model"] is None
     assert sorted(read_parquet(cfg.paths.informatif)["tweet_id"]) == ["101", "102"]
     alur = pd.read_csv(cfg.paths.alur_data).set_index("tahap")
     assert (alur.loc["filter informatif", "masuk"], alur.loc["filter informatif", "keluar"],
@@ -186,7 +193,7 @@ def test_tanpa_llm_memakai_label_default(ready):
 
 def test_jawaban_hilang_dikirim_ulang_dan_label_ok_tidak_ditimpa(ready):
     cfg = ready
-    fl.run(cfg, FakeClient(lambda i, t: None if "SARINGI" in t else by_text(i, t)))
+    fl.run(cfg, FakeClient(lambda i, t: None if "Ruteng hari ini" in t else by_text(i, t)))
     out = read_parquet(cfg.paths.hasil_1_4).set_index("tweet_id")
     assert out.loc["104", "label"] is None and out.loc["104", "llm_status"] == "hilang_dari_jawaban"
     assert "belum berlabel=1" in pd.read_csv(cfg.paths.alur_data).set_index("tahap").loc["filter informatif", "alasan"]
@@ -235,10 +242,11 @@ def test_limit_sampel_deterministik(ready):
 def test_make_client_tanpa_kunci_memberi_pesan_jelas(cfg, monkeypatch):
     import logging
 
-    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("KUNCI_UJI", raising=False)
     monkeypatch.setattr("dotenv.load_dotenv", lambda *a, **k: None)
     cfg.crawl.use_system_certs = False
-    with pytest.raises(RuntimeError, match="GROQ_API_KEY"):
+    cfg.filter_llm.api_key_env = "KUNCI_UJI"  # penyedia API berkunci (hipotetis)
+    with pytest.raises(RuntimeError, match="KUNCI_UJI"):
         fl.make_client(cfg, logging.getLogger("t"))
     cfg.filter_llm.api_key_env = None  # Ollama lokal: tanpa kunci
     assert fl.make_client(cfg, logging.getLogger("t")) is not None

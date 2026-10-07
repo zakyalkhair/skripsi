@@ -31,8 +31,9 @@ WILAYAH = {
     "KH05": ["Palangka Raya", "Kotawaringin Timur", "Pulang Pisau", "Kapuas"],
 }
 KATA = {
-    "gempa": "gempa", "erupsi": "erupsi", "longsor": "longsor", "banjir": "banjir", "karhutla": "karhutla",
-}
+    "gempabumi": "gempa", "erupsi": "erupsi", "tanah_longsor": "longsor", "banjir": "banjir", "karhutla": "karhutla",
+    "cuaca_ekstrem": "puting beliung", "kekeringan": "kekeringan", "gelombang_pasang_abrasi": "gelombang pasang",
+}  # kunci = jenis BNPB (B53)
 PEMBUKA = ["", "Astaghfirullah, ", "Guys, ", "Update: ", "Duh, ", "Pagi ini ", "Barusan dapet kabar, ", "Sedih banget, "]
 PENUTUP = ["", " Semoga cepat pulih.", " Tetap waspada ya.", " Mohon doanya.", " Stay safe semuanya.",
            " Tolong disebarkan.", " Pemerintah harus gerak cepat!", " Kapan ini berakhir?", " Aamiin."]
@@ -126,7 +127,7 @@ def generate(cfg, n_per_event: int, seed: int) -> list[dict]:
         for _ in range(n_per_event):
             r = rng.random()
             w = rng.choice(ws)
-            if k.jenis == "gempa" and r < 0.15:  # templat bot BMKG, angka berbeda
+            if k.jenis == "gempabumi" and r < 0.15:  # templat bot BMKG, angka berbeda
                 t = (f"#Gempa Mag:{rng.randint(30, 65) / 10}, {when():%d-%b-%y %H:%M:%S} WIB, Lok:{rng.randint(50, 999) / 100} LS, "
                      f"{rng.randint(11800, 12500) / 100} BT ({rng.randint(5, 150)} km BaratLaut {w.upper()}), "
                      f"Kedlmn:{rng.randint(5, 200)} Km #BMKG {tco(rng)}")

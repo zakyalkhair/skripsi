@@ -29,8 +29,12 @@ DIGIT_RE = re.compile(r"\d+")
 
 # --------------------------------------------------------------------------- primitif
 def number_signature(text_clean: str) -> list[str]:
-    """Penjaga angka: multiset angka dalam text_clean (placeholder <URL> menyembunyikan angka t.co)."""
-    return sorted(DIGIT_RE.findall(text_clean))
+    """Penjaga angka: deret angka dalam text_clean SESUAI URUTAN kemunculan (keputusan 7 Okt 2026).
+
+    "korban 3 orang, 12 rumah" != "korban 12 orang, 3 rumah" -> tidak digabung. Placeholder <URL>
+    menyembunyikan angka t.co. Kesamaan deret berurutan bersifat transitif, jadi aman untuk union-find.
+    """
+    return DIGIT_RE.findall(text_clean)
 
 
 def shingles(text: str, k: int) -> set[str]:
