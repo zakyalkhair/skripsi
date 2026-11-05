@@ -1,51 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
-
-async function open(page: Page, errors: string[] = []) {
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-  // tile OSM diganti piksel kosong: uji tidak bergantung jaringan luar
-  await page.route(/tile\.openstreetmap\.org/, (r) => r.fulfill({ body: PNG, contentType: "image/png" }));
-  await page.goto("/");
-  await expect(page.locator("body")).toHaveAttribute("data-ready", "true");
-}
-
-const kpi = (page: Page, label: string) =>
-  page.locator(".panel .kpi").filter({ has: page.locator(".kpi-l", { hasText: new RegExp(`^${label}$`) }) }).locator(".kpi-v");
-const kabPath = (page: Page, kode: string) => page.locator(`path.kab[data-kode="${kode}"]`);
-const clickKab = (page: Page, kode: string) => kabPath(page, kode).dispatchEvent("click");
-const markers = (page: Page) => page.locator(".leaflet-marker-icon.pm-marker");
-const current = (page: Page) => page.locator(".crumbs [aria-current=page]");
-/** Lokasi unik yang tampil = penanda tunggal + isi klaster (klaster hanya untuk tampilan). */
-const lokasiUnik = (page: Page) => page.evaluate(() =>
-  document.querySelectorAll(".leaflet-marker-icon.pm-marker").length +
-  [...document.querySelectorAll(".pm-cluster b")].reduce((a, c) => a + parseInt(c.textContent ?? "0", 10), 0));
-/** Titik layar (halaman) untuk koordinat geografis, lewat peta Leaflet (mode dev). */
-const screenOf = (page: Page, lat: number, lng: number) => page.evaluate(([la, ln]) => {
-  const m = (window as unknown as { __psb: { map: L.Map } }).__psb.map;
-  const p = m.latLngToContainerPoint([la, ln]);
-  const r = m.getContainer().getBoundingClientRect();
-  return { x: r.left + p.x, y: r.top + p.y };
-}, [lat, lng]);
-const zoom = (page: Page) => page.evaluate(() => (window as unknown as { __psb: { map: L.Map } }).__psb.map.getZoom());
-/** Tunggu kamera benar-benar diam (zoom & pusat tidak berubah selama dua pemeriksaan berturut-turut). */
-async function settle(page: Page) {
-  let prev = "";
-  for (let i = 0; i < 40; i++) {
-    const cur = await page.evaluate(() => { const m = (window as unknown as { __psb: { map: L.Map } }).__psb.map; const c = m.getCenter(); return `${m.getZoom()}|${c.lat.toFixed(7)}|${c.lng.toFixed(7)}`; });
-    if (cur === prev) return;
-    prev = cur;
-    await page.waitForTimeout(160);
-  }
-}
-
-async function enterKab(page: Page, kode: string, nama: string) {
-  await clickKab(page, kode);
-  await expect(current(page)).toHaveText(nama);
-  await expect(page.locator(".panel .ptitle")).toHaveText(nama);
-  await expect.poll(() => lokasiUnik(page)).toBeGreaterThan(0);
-}
+import { expect, test } from "@playwright/test";
+import { clickKab, current, enterKab, kabPath, kpi, lokasiUnik, markers, open, screenOf, settle, zoom } from "./helpers";
 
 test("1. tampilan awal: Indonesia utuh, choropleth benar, satu label lokasi, tanpa penanda", async ({ page }) => {
   const errors: string[] = [];
@@ -139,7 +93,7 @@ test("5. klik penanda: pilih + zoom secukupnya; penanda dekat tidak memicu gerak
   const bulukerto = page.locator('.pm-marker[data-gid="contoh:desa/bulukerto"]');
   await bulukerto.hover();
   await expect(page.locator(".maptip")).toContainText("Desa Bulukerto");
-  await expect(page.locator(".maptip")).toContainText("Laporan kejadian");
+  await expect(page.locator(".maptip")).toContainText("Laporan yang menyebut lokasi ini");
   await bulukerto.click();
   await expect(page.locator(".panel .ptitle")).toHaveText("Desa Bulukerto");
   await settle(page);
@@ -278,12 +232,17 @@ test("10. rujukan lintas kab & dampak tanpa atribusi tetap benar", async ({ page
   const semeru = page.locator('.pm-marker[data-gid="contoh:gunung/semeru"]');
   await expect(semeru.locator(".pm-mk")).toHaveClass(/is-luar/);
   await expect(semeru).toHaveClass(/is-selected/);
-  await expect(page.locator(".note")).toContainText("wilayah administratif lain");
+  await expect(page.locator(".panel .note--ref")).toContainText("Lokasi berada di Kab. Lumajang, tetapi dirujuk dalam laporan terkait Kab. Malang.");
+  await expect(page.locator(".panel .peyebrow--ref")).toHaveText("Lokasi rujukan");
   await expect(page.locator(".evgroup")).toHaveCount(2);
   await page.locator(".back").click();
   await page.locator('.card[data-event="DE05"] .linkish', { hasText: "Desa Kalirejo" }).click();
-  await expect(page.getByText("Tidak ada dampak yang tertaut ke lokasi ini")).toBeVisible();
-  await expect(page.locator(".psec").filter({ hasText: "Dampak tingkat kejadian" })).toContainText("rumah rusak — 12 unit");
+  const g = page.locator('.evgroup[data-event="DE05"]');
+  await expect(g.locator(".fblock", { hasText: "Dampak di lokasi ini" })).toContainText("Belum ada dampak yang dilaporkan di lokasi ini");
+  const ev = g.locator(".fblock", { hasText: "Dampak tingkat kejadian" });
+  await expect(ev.locator(".fact-what")).toHaveText("rumah rusak");
+  await expect(ev.locator(".fact-qty")).toHaveText("12 unit");
+  await expect(g.locator(".fblock", { hasText: "Kebutuhan tingkat kejadian" })).toContainText("terpal");
   await page.getByRole("button", { name: "Kembali ke peta nasional" }).click();
   await expect(current(page)).toHaveText("Indonesia");
 });

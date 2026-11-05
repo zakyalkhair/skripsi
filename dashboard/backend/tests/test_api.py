@@ -101,3 +101,87 @@ def test_wilayah():
     j = get("/api/wilayah")
     assert len(j["kab"]) == 514 and sum(k["ada_data"] for k in j["kab"]) == 7
     assert j["dataset"]["contoh"] is True and j["dataset"]["label"] == "Data Contoh"
+
+
+# --------------------------------------------------------------------------- berpusat-kejadian
+def test_lokasi_mengelompokkan_fakta_per_kejadian():
+    j = get("/api/titik/contoh:kec/bangil/ringkasan")
+    ev = {k["event_id"]: k for k in j["kejadian"]}
+    assert set(ev) == {"DE09", "DE10"}  # dua banjir terpisah di lokasi yang sama
+    assert [(d["jumlah"], d["atribusi"]) for d in ev["DE09"]["dampak"]] == [(350, "lokasi_ini")]
+    assert [(d["jumlah"], d["atribusi"]) for d in ev["DE10"]["dampak"]] == [(90, "lokasi_ini")]
+    assert ev["DE09"]["dampak"][0]["sumber"] == [{"mention_id": "EM21", "tanggal_lokal": "2026-01-09", "tweet_ids": ["T19"]}]
+    assert [n["item"] for n in ev["DE09"]["kebutuhan"]] == ["air bersih"] and ev["DE10"]["kebutuhan"] == []
+    assert [o["nama_kanonik"] for o in ev["DE09"]["penanganan"]] == ["BPBD Kabupaten Pasuruan"]
+    assert ev["DE10"]["penanganan"] == []
+
+
+def test_atribusi_lokasi_ini_lain_dan_kejadian():
+    sup = {k["event_id"]: k for k in get("/api/titik/contoh:desa/supiturang/ringkasan")["kejadian"]}["DE01"]
+    atr = {d["id"]: (d["atribusi"], [l["nama"] for l in d["lokasi"]]) for d in sup["dampak"]}
+    assert atr == {"AO01": ("lokasi_ini", ["Desa Supiturang"]), "AO02": ("lokasi_lain", ["Desa Sumberwuluh"])}
+    kal = get("/api/titik/contoh:desa/kalirejo/ringkasan")["kejadian"][0]
+    assert [(d["kelas"], d["jumlah"], d["atribusi"]) for d in kal["dampak"]] == [("rumah", 12, "kejadian")]
+    assert [(n["item"], n["atribusi"]) for n in kal["kebutuhan"]] == [("terpal", "kejadian")]
+
+
+def test_tujuan_evakuasi_terhubung_ke_kejadian():
+    j = get("/api/titik/contoh:kec/candipuro/ringkasan")
+    de01 = next(k for k in j["kejadian"] if k["event_id"] == "DE01")
+    assert [x["relasi"] for x in de01["laporan"]] == ["evakuasi"]
+    assert de01["evakuasi"][0]["tujuan"][0]["nama"] == "Kec. Candipuro"
+
+
+def test_kartu_membawa_sumber_per_fakta():
+    j = get("/api/kab/3508/kejadian")
+    de01 = next(k for k in j["kejadian"] if k["event_id"] == "DE01")
+    assert all(d["sumber"] and d["sumber"][0]["tweet_ids"] for d in de01["dampak"])
+    assert {lap["mention_id"] for lap in de01["laporan"]} == {"EM01", "EM02", "EM03", "EM04", "EM05"}
+    assert set(j["tweets"]) >= {"T01", "T02", "T05"}
+
+
+# --------------------------------------------------------------------------- cakupan linimasa & provinsi
+def test_histogram_tingkat_lokasi_dan_provinsi():
+    sem = get("/api/histogram?lokasi=contoh:gunung/semeru")
+    assert sem["cakupan"] == "lokasi" and sum(w["total"] for w in sem["minggu"]) == 3  # bukan seluruh Kab. Malang
+    assert sum(w["total"] for w in get("/api/histogram?kab=3507")["minggu"]) == 6
+    assert sum(w["total"] for w in get("/api/histogram?prov=35")["minggu"]) == 33
+    assert sum(w["total"] for w in get("/api/histogram?prov=11")["minggu"]) == 0
+    get("/api/histogram?lokasi=contoh:tidak-ada", 404)
+    get("/api/histogram?prov=3x", 422)
+
+
+def test_agregat_provinsi():
+    assert get("/api/kab-agregat?prov=35")["ringkasan"] == get("/api/kab-agregat")["ringkasan"]
+    assert get("/api/kab-agregat?prov=11")["ringkasan"]["jumlah_kejadian"] == 0
+    get("/api/kab-agregat?prov=99", 404)
+
+
+# --------------------------------------------------------------------------- ekspor
+def test_ekspor_zip_ternormalisasi():
+    import csv
+    import io
+    import json
+    import zipfile
+
+    r = c.get("/api/ekspor?kab=3514&jenis=banjir")
+    assert r.status_code == 200 and r.headers["content-type"] == "application/zip"
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    man = json.loads(z.read("manifest.json"))
+    assert man["filter"]["jenis"] == ["banjir"] and man["cakupan"]["kode_kab"] == "3514"
+    assert any("bukan data resmi BNPB" in x for x in man["catatan"])
+    rows = lambda n: list(csv.DictReader(io.StringIO(z.read(n).decode("utf-8-sig"))))
+    assert {r["event_id"] for r in rows("kejadian.csv")} == {"DE09", "DE10"}  # karhutla tersaring
+    dampak = {(r["event_id"], r["jumlah"]) for r in rows("dampak.csv")}
+    assert dampak == {("DE09", "350"), ("DE10", "90")}  # tidak dijumlahkan
+    assert z.read("kejadian.csv").startswith("﻿".encode())
+    assert man["tabel"]["laporan"]["baris"] == 5
+    get("/api/ekspor?jenis=", 404)
+
+
+def test_sel_ekspor_mencegah_injeksi_formula():
+    from app.main import _sel
+
+    assert _sel("=HYPERLINK(\"x\")") == "'=HYPERLINK(\"x\")"
+    assert _sel("+62 812") == "'+62 812" and _sel("@user") == "'@user"
+    assert _sel("1234567890123456789") == "1234567890123456789" and _sel(None) == ""

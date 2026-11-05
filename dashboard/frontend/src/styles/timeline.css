@@ -1,4 +1,4 @@
-.timeline-wrap { position: absolute; z-index: 1150; left: var(--gap); right: var(--ctrl-right); bottom: var(--gap); height: var(--tl-h); pointer-events: none;
+.timeline-wrap { position: absolute; z-index: 1150; left: var(--gap); right: var(--tl-right); bottom: var(--gap); height: var(--tl-h); pointer-events: none;
   transition: right var(--d-panel) var(--e-out); }
 .timeline-wrap > * { pointer-events: auto; }
 .timeline { position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: 9px 14px 8px; min-width: 0;
@@ -11,7 +11,8 @@
 .tl-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-width: 0; }
 .tl-titles { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 .tl-title { margin: 0; font-size: 13px; font-weight: 700; white-space: nowrap; }
-.tl-scope { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-scope { min-width: 0; padding: 1px 8px; border-radius: 6px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); font-size: 12px; font-weight: 650;
+  color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
 .tl-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tl-range { font-size: 12px; font-weight: 650; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .tl-chart { position: relative; min-height: 0; margin-top: 2px; }
@@ -24,11 +25,14 @@
 .tl-week { transition: opacity var(--d-sel) var(--e-out); }
 .tl-week.is-out { opacity: 0.22; }
 .tl-week:hover .tl-bar { filter: brightness(1.08); }
-.tl-hit { fill: transparent; }
+.tl-hit { fill: transparent; cursor: pointer; } /* minggu dapat diklik: penunjuk tangan, bukan tanda plus */
 .tl-week:hover .tl-hit { fill: rgba(29, 26, 23, 0.05); }
 .tl-sel { fill: rgba(29, 26, 23, 0.045); pointer-events: none; transition: x 120ms, width 120ms; }
 .is-dragging .tl-sel { transition: none; }
 .tl-handle { cursor: ew-resize; outline: none; }
+.is-dragging .tl-svg, .is-dragging .tl-hit { cursor: ew-resize; }
+.tl-empty { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); margin: 0; padding: 6px 12px; border-radius: 8px; background: var(--glass);
+  box-shadow: var(--sh-1); font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .tl-hline { stroke: var(--ink); stroke-width: 1.4; }
 .tl-grip { fill: #fff; stroke: var(--ink); stroke-width: 1.3; transition: fill var(--d-hover); }
 .tl-handle:hover .tl-grip, .tl-handle:focus-visible .tl-grip { fill: var(--ink); }

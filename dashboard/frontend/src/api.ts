@@ -14,6 +14,10 @@ export function qs(q: Partial<Query>, extra: Record<string, string | null | unde
   return s ? `?${s}` : "";
 }
 
+/** Cakupan geografis aktif (satu tingkat paling rinci yang dipilih). */
+export interface Cakupan { prov?: string | null; kab?: string | null; lokasi?: string | null }
+const scopeParams = (c: Cakupan) => (c.lokasi ? { lokasi: c.lokasi } : c.kab ? { kab: c.kab } : c.prov ? { prov: c.prov } : {});
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
@@ -43,10 +47,12 @@ export const cancel = (channel: string): void => { controllers.get(channel)?.abo
 export const api = {
   wilayah: () => get<Wilayah>("wilayah", "/api/wilayah"),
   agregat: (q: Query) => get<KabAgregat>("agregat", `/api/kab-agregat${qs(q)}`),
+  agregatProv: (q: Query, prov: string) => get<KabAgregat>("agregat-prov", `/api/kab-agregat${qs(q, { prov })}`),
   kejadian: (kode: string, q: Query) => get<KabKejadian>("kejadian", `/api/kab/${kode}/kejadian${qs(q)}`),
   titik: (kode: string, q: Query) => get<KabTitik>("titik", `/api/kab/${kode}/titik${qs(q)}`),
   ringkasan: (gid: string, q: Query) => get<Ringkasan>("ringkasan", `/api/titik/${encodeURIComponent(gid)}/ringkasan${qs(q)}`),
-  histogram: (q: Query, kab: string | null) => get<Histogram>("histogram", `/api/histogram${qs({ jenis: q.jenis }, { kab })}`),
+  histogram: (q: Query, scope: Cakupan) => get<Histogram>("histogram", `/api/histogram${qs({ jenis: q.jenis }, scopeParams(scope))}`),
+  eksporUrl: (q: Query, scope: Cakupan) => `/api/ekspor${qs(q, scopeParams(scope))}`,
   geo: (name: string) => fetch(`${import.meta.env.BASE_URL}geo/${name}.geojson`).then((r) => {
     if (!r.ok) throw new ApiError(r.status, `Batas wilayah ${name} tidak dapat dimuat`);
     return r.json() as Promise<GeoJSON.FeatureCollection>;

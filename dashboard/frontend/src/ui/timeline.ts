@@ -1,4 +1,4 @@
-import { h, s, reducedMotion } from "../dom";
+import { esc, h, s, reducedMotion } from "../dom";
 import { ico } from "./icons";
 import { addDays, angka, iso, parseDate, rentang, tgl } from "../format";
 import { JENIS, LABEL_PENDEK } from "../jenis";
@@ -7,7 +7,11 @@ import type { Histogram } from "../types";
 const DAY = 86400000;
 const M = { l: 26, r: 10, t: 8, b: 20 };
 
-/** Histogram laporan kejadian per minggu (skala waktu nyata) + kuas rentang tanggal. */
+/** Cakupan geografis linimasa: label singkat (judul) + penjelasan (tooltip & pembaca layar). */
+export interface TlScope { label: string; detail: string }
+
+/** Histogram laporan kejadian per minggu (skala waktu nyata) + kuas rentang tanggal. Mengikuti cakupan
+ * geografis aktif: nasional, provinsi, kab/kota, atau satu lokasi (hanya laporan yang menyebut lokasi itu). */
 export class Timeline {
   readonly el: HTMLElement;
   private svg: SVGSVGElement;
@@ -22,6 +26,9 @@ export class Timeline {
   private rangeTxt: HTMLElement;
   private collapseBtn: HTMLButtonElement;
   private scope: HTMLElement;
+  private scopeInfo: TlScope = { label: "Nasional", detail: "Seluruh laporan kejadian" };
+  private unit = "laporan kejadian (EventMention) unik";
+  private emptyEl: HTMLElement;
   private summary: HTMLElement;
   private data: Histogram | null = null;
   private domain: [string, string] | null = null;
@@ -49,12 +56,13 @@ export class Timeline {
     this.handles = [mkHandle("a"), mkHandle("b")];
     this.svg.append(this.gAxis, this.selRect, this.gBars, ...this.handles);
     this.tip = h("div", { class: "tl-tip", role: "tooltip", hidden: true });
-    const chart = h("div", { class: "tl-chart" }, this.svg, this.tip);
+    this.emptyEl = h("p", { class: "tl-empty", hidden: true });
+    const chart = h("div", { class: "tl-chart" }, this.svg, this.emptyEl, this.tip);
     this.collapseBtn = h("button", { type: "button", class: "icon-btn", "aria-label": "Sembunyikan linimasa", title: "Sembunyikan linimasa",
       "aria-expanded": "true", "aria-controls": "tl-card", onclick: () => onToggle(false) }, ico("chevDown", 16));
     this.card = h("section", { class: "timeline float-card", id: "tl-card", "aria-labelledby": "tl-title" },
       h("header", { class: "tl-head" },
-        h("div", { class: "tl-titles" }, h("h2", { id: "tl-title", class: "tl-title" }, "Jumlah laporan kejadian per minggu"), this.scope),
+        h("div", { class: "tl-titles" }, h("h2", { id: "tl-title", class: "tl-title" }, "Laporan kejadian per minggu"), this.scope),
         h("div", { class: "tl-right" }, this.rangeTxt, this.collapseBtn)),
       chart, this.summary);
     this.pillTxt = h("span", { class: "pill-sub" });
@@ -87,11 +95,21 @@ export class Timeline {
     this.domain = awal && akhir ? [awal, akhir] : null;
   }
 
-  setData(d: Histogram, scopeLabel: string): void {
+  setData(d: Histogram, scope: TlScope): void {
     this.data = d;
-    this.scope.textContent = scopeLabel;
+    if (d.satuan) this.unit = d.satuan;
+    this.setScope(scope);
+  }
+
+  /** Ganti label cakupan tanpa memuat ulang data (mis. nama lokasi baru diketahui). */
+  setScope(scope: TlScope): void {
+    this.scopeInfo = scope;
+    this.scope.textContent = scope.label;
+    this.scope.title = `${scope.detail}. Satuan: ${this.unit}.`;
     this.render();
   }
+
+  get scopeLabel(): string { return this.scopeInfo.label; }
 
   setRange(dari: string | null, sampai: string | null): void {
     if (!this.domain) return;
@@ -118,6 +136,9 @@ export class Timeline {
     this.svg.setAttribute("viewBox", `0 0 ${this.w} ${this.hgt}`);
     this.svg.setAttribute("width", String(this.w));
     this.svg.setAttribute("height", String(this.hgt));
+    const kosong = !!d && d.minggu.every((w) => w.total === 0);
+    this.emptyEl.hidden = !kosong;
+    if (kosong) this.emptyEl.textContent = `Belum ada laporan kejadian untuk ${this.scopeInfo.label} pada jenis yang dipilih.`;
     if (!d || !this.domain || !d.minggu.length) { this.gBars.replaceChildren(); this.gAxis.replaceChildren(); return; }
     const max = Math.max(1, ...d.minggu.map((w) => w.total));
     const step = max <= 4 ? 1 : max <= 10 ? 2 : Math.ceil(max / 4);
@@ -179,7 +200,7 @@ export class Timeline {
     });
     const total = d.minggu.reduce((a, w) => a + w.total, 0);
     const sel = d.minggu.filter((w) => addDays(w.mulai, 6) >= ra && w.mulai <= rb).reduce((a, w) => a + w.total, 0);
-    const label = `Histogram ${angka(total)} laporan kejadian dalam ${d.minggu.length} minggu; ${angka(sel)} laporan pada minggu yang beririsan dengan rentang ${rentang(ra, rb)}.`;
+    const label = `Histogram ${this.scopeInfo.detail}: ${angka(total)} ${this.unit} dalam ${d.minggu.length} minggu; ${angka(sel)} pada minggu yang beririsan dengan rentang ${rentang(ra, rb)}.`;
     this.svg.setAttribute("aria-label", label);
     this.summary.textContent = `Rentang dipilih: ${rentang(ra, rb)}`;
   }
@@ -237,7 +258,8 @@ export class Timeline {
     if (!wk) return;
     const rows = JENIS.filter((j) => wk.per_jenis[j]).map((j) => `<div class="tip-j"><i style="background:var(--j-${j})"></i>${LABEL_PENDEK[j]}<b>${wk.per_jenis[j]}</b></div>`).join("");
     this.tip.innerHTML = `<div class="tip-title">${rentang(wk.mulai, addDays(wk.mulai, 6))}</div>
-      <div class="tip-row"><span>Laporan kejadian</span><b>${wk.total}</b></div>${rows || '<div class="tip-meta">Tidak ada laporan</div>'}`;
+      <div class="tip-row"><span>Laporan kejadian unik</span><b>${wk.total}</b></div>${rows || '<div class="tip-meta">Tidak ada laporan</div>'}
+      <div class="tip-meta">${esc(this.scopeInfo.label)} · klik untuk memilih minggu ini</div>`;
     this.tip.hidden = false;
     const tw = this.tip.offsetWidth;
     const left = Math.min(Math.max(4, (x / this.w) * this.svg.clientWidth - tw / 2), this.svg.clientWidth - tw - 4);

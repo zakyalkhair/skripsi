@@ -14,6 +14,7 @@ WITH e, collect(k)[0] AS kode_kab
 
 _EVENT_FILTER = """
 WHERE ($jenis IS NULL OR e.jenis IN $jenis)
+  AND ($prov IS NULL OR kode_kab STARTS WITH $prov)
   AND ($sampai IS NULL OR date(e.start_time) <= date($sampai))
   AND ($dari IS NULL OR date(e.end_time) >= date($dari))
 """
@@ -51,6 +52,8 @@ RETURN toString(min(date(m.tanggal_lokal))) AS awal, toString(max(date(m.tanggal
 HISTOGRAM = """
 MATCH (m:EventMention)-[:CONSOLIDATED_INTO]->(:DisasterEvent)
 WHERE ($jenis IS NULL OR m.jenis IN $jenis) AND ($kab IS NULL OR m.kode_kab = $kab)
+  AND ($prov IS NULL OR m.kode_kab STARTS WITH $prov)
+  AND ($gid IS NULL OR EXISTS { (m)-[:MENTIONS]->(:Location {gazetteer_id: $gid}) })
 WITH date.truncate('week', date(m.tanggal_lokal)) AS w, m.jenis AS jenis, count(DISTINCT m) AS n
 RETURN toString(w) AS mulai, jenis, n
 """
@@ -58,6 +61,12 @@ RETURN toString(w) AS mulai, jenis, n
 # id laporan untuk subgraf: semua laporan dari kejadian yang relevan (agar kode_kab kejadian tetap benar)
 MENTION_IDS_KAB = EVENT_KAB + """
 WHERE kode_kab = $kode
+MATCH (m2:EventMention)-[:CONSOLIDATED_INTO]->(e)
+RETURN collect(DISTINCT m2.mention_id) AS ids
+"""
+
+MENTION_IDS_SEMUA = EVENT_KAB + """
+WHERE $prov IS NULL OR kode_kab STARTS WITH $prov
 MATCH (m2:EventMention)-[:CONSOLIDATED_INTO]->(e)
 RETURN collect(DISTINCT m2.mention_id) AS ids
 """

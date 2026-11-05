@@ -26,14 +26,19 @@ export interface MapHandlers {
 }
 export interface Pad { top: number; right: number; bottom: number; left: number }
 
-interface KabProps { kode_kab: string; nama: string; provinsi: string }
+interface KabProps { kode_kab: string; nama: string; provinsi: string; kode_prov?: string }
+interface ProvProps { kode_prov: string; nama: string }
 type KabLayer = L.Path & { feature: GeoJSON.Feature<GeoJSON.Geometry, KabProps>; getBounds(): L.LatLngBounds };
+type ProvLayer = L.Path & { feature: GeoJSON.Feature<GeoJSON.Geometry, ProvProps>; getBounds(): L.LatLngBounds };
 type Rec = { m: L.Marker; key: string; t: Titik };
 
 export class MapView {
   readonly map: L.Map;
+  readonly tiles: L.TileLayer;
   private tip: MapTip;
   private kabLayers = new Map<string, KabLayer>();
+  private provLayers = new Map<string, ProvLayer>();
+  private selectedProv: string | null = null;
   private hoverLayer: L.GeoJSON;
   private selHalo: L.GeoJSON;
   private selLine: L.GeoJSON;
@@ -62,7 +67,7 @@ export class MapView {
     });
     this.tip = new MapTip(tipHost);
     this.map.attributionControl.setPrefix(false);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    this.tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19, className: "basemap",
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Batas: Kemendagri 2020 (disederhanakan)',
     }).addTo(this.map);
@@ -163,7 +168,10 @@ export class MapView {
 
   // ------------------------------------------------------------------ poligon
   setGeo(kab: GeoJSON.FeatureCollection, prov: GeoJSON.FeatureCollection): void {
-    L.geoJSON(prov, { pane: "prov", interactive: false, style: { className: "prov", weight: 0.9, fill: false } }).addTo(this.map);
+    L.geoJSON(prov as GeoJSON.FeatureCollection<GeoJSON.Geometry, ProvProps>, {
+      pane: "prov", interactive: false, style: { className: "prov", weight: 0.9, fill: false },
+      onEachFeature: (f, layer) => { this.provLayers.set((f.properties as ProvProps).kode_prov, layer as ProvLayer); },
+    }).addTo(this.map);
     L.geoJSON(kab as GeoJSON.FeatureCollection<GeoJSON.Geometry, KabProps>, {
       pane: "kab",
       style: () => ({ className: "kab", weight: 0.6, fillOpacity: 1 }),
@@ -221,6 +229,14 @@ export class MapView {
   }
 
   kabName(kode: string): string | null { return this.kabLayers.get(kode)?.feature.properties.nama ?? null; }
+  private selectedKabName(): string | null { return this.selectedKab ? this.kabName(this.selectedKab) : null; }
+
+  /** Data penanda yang sedang ditampilkan (untuk ekspor PNG; bukan salinan DOM). */
+  titikOf(gid: string): Titik | null { return this.markers.get(gid)?.t ?? null; }
+  get selection(): { kab: string | null; prov: string | null; titik: string | null; sorot: Set<string> | null } {
+    return { kab: this.selectedKab, prov: this.selectedProv, titik: this.selectedTitik, sorot: this.sorot };
+  }
+  get isMoving(): boolean { return this.moving; }
 
   setCounts(counts: Map<string, number>, cakupan: Set<string>): void {
     this.counts = counts;
@@ -238,15 +254,24 @@ export class MapView {
       el.setAttribute("data-n", String(n));
       el.setAttribute("data-k", this.cakupan.has(kode) || n > 0 ? String(kelasOf(n)) : "na");
       el.classList.toggle("is-selected", kode === this.selectedKab);
-      el.classList.toggle("is-dim", this.selectedKab !== null && kode !== this.selectedKab);
+      // kab terpilih: selain kab itu diredupkan; provinsi terpilih: kab di luar provinsi diredupkan
+      el.classList.toggle("is-dim", this.selectedKab !== null ? kode !== this.selectedKab
+        : this.selectedProv !== null && !kode.startsWith(this.selectedProv));
     }
   }
 
-  private drawSelection(kode: string | null): void {
+  private drawSelection(kode: string | null, prov: string | null = null): void {
     this.selHalo.clearLayers();
     this.selLine.clearLayers();
-    const l = kode ? this.kabLayers.get(kode) : null;
+    const l = kode ? this.kabLayers.get(kode) : prov ? this.provLayers.get(prov) : null;
     if (l) { this.selHalo.addData(l.feature); this.selLine.addData(l.feature); }
+  }
+
+  /** Batas provinsi = gabungan batas kab/kota di dalamnya (lebih rapat daripada poligon provinsi yang disederhanakan). */
+  private provBounds(prov: string): L.LatLngBounds | null {
+    let b: L.LatLngBounds | null = null;
+    for (const [kode, l] of this.kabLayers) if (kode.startsWith(prov)) b = b ? b.extend(l.getBounds()) : L.latLngBounds(l.getBounds().getSouthWest(), l.getBounds().getNorthEast());
+    return b ?? this.provLayers.get(prov)?.getBounds() ?? null;
   }
 
   // ------------------------------------------------------------------ kamera
@@ -255,6 +280,7 @@ export class MapView {
     const dy = ((p.bottom - p.top) - (this.pad.bottom - this.pad.top)) / 2;
     this.pad = p;
     if (mode === "refit" && this.selectedKab && !this.selectedTitik) { void this.fly(this.kabLayers.get(this.selectedKab)!.getBounds(), 0.5, 11.5); return; }
+    if (mode === "refit" && !this.selectedKab && this.selectedProv) { const b = this.provBounds(this.selectedProv); if (b) { void this.fly(b, 0.5, 9.5); return; } }
     if (mode !== "none" && (Math.abs(dx) > 1 || Math.abs(dy) > 1))
       this.map.panBy([dx, dy], { animate: !reducedMotion(), duration: 0.32, easeLinearity: 0.35 });
   }
@@ -265,6 +291,7 @@ export class MapView {
     this.tip.hide();
     const prev = this.selectedKab;
     this.selectedKab = kode;
+    this.selectedProv = kode.slice(0, 2);
     this.selectedTitik = null;
     this.sorot = null;
     this.restyle();
@@ -274,8 +301,24 @@ export class MapView {
     return layer ? this.fly(layer.getBounds(), 0.75, 11.5) : Promise.resolve(true);
   }
 
+  /** Pilih provinsi: kab/kota di luar provinsi diredupkan, batas provinsi digaris, kamera memuat seluruh provinsi. */
+  focusProv(prov: string): Promise<boolean> {
+    this.clearHover();
+    this.tip.hide();
+    this.selectedKab = null;
+    this.selectedProv = prov;
+    this.selectedTitik = null;
+    this.sorot = null;
+    this.restyle();
+    this.drawSelection(null, prov);
+    this.leaveMarkers();
+    const b = this.provBounds(prov);
+    return b ? this.fly(b, 0.75, 9.5) : Promise.resolve(true);
+  }
+
   national(animate = true): Promise<boolean> {
     this.selectedKab = null;
+    this.selectedProv = null;
     this.selectedTitik = null;
     this.sorot = null;
     this.restyle();
@@ -398,7 +441,7 @@ export class MapView {
     const rec = this.markers.get(gid);
     if (!rec || this.moving) return;
     const p = this.map.latLngToContainerPoint(rec.m.getLatLng());
-    this.tip.show(`mk:${gid}`, markerTooltip(rec.t), p.x, p.y - 18, "anchor");
+    this.tip.show(`mk:${gid}`, markerTooltip(rec.t, this.selectedKabName()), p.x, p.y - 18, "anchor");
   }
 
   private icon(t: Titik, i: number): L.DivIcon {
@@ -414,7 +457,7 @@ export class MapView {
     const rec = this.markers.get(gid);
     const el = rec?.m.getElement();
     if (!rec || !el) return;
-    el.setAttribute("aria-label", markerAria(rec.t));
+    el.setAttribute("aria-label", markerAria(rec.t, this.selectedKabName()));
     el.setAttribute("aria-describedby", "maptip");
     el.setAttribute("data-gid", gid);
     el.setAttribute("aria-pressed", String(gid === this.selectedTitik));

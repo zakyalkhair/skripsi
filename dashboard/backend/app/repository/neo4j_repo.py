@@ -42,16 +42,27 @@ class Neo4jRepository(Repository):
     def kab_dengan_data(self) -> set[str]:
         return {r["kode_kab"] for r in self._run(Q.KAB_DENGAN_DATA) if r["kode_kab"]}
 
-    def kab_agregat(self, f: Filter) -> dict:
+    def kab_agregat(self, f: Filter, prov: str | None = None) -> dict:
+        if prov:
+            self.cek_prov(prov)
         if f.jenis is not None and not f.jenis:
-            return service.kab_agregat(Graph(), f)
-        rows = [r for r in self._run(Q.KAB_AGREGAT, **_p(f)) if r["kode_kab"]]
-        ring = self._run(Q.RINGKASAN, **_p(f))[0]
-        return {"filter": f.as_dict(), "kab": rows, "ringkasan": ring}
+            return service.kab_agregat(Graph(), f, prov)
+        rows = [r for r in self._run(Q.KAB_AGREGAT, **_p(f), prov=prov) if r["kode_kab"]]
+        ring = self._run(Q.RINGKASAN, **_p(f), prov=prov)[0]
+        return {"filter": {**f.as_dict(), "prov": prov}, "kab": rows, "ringkasan": ring}
 
-    def histogram(self, f: Filter, kab: str | None) -> dict:
+    def graph_ekspor(self, f: Filter, prov: str | None, kab: str | None, lokasi: str | None) -> Graph:
+        if lokasi:
+            return self.graph_lokasi(lokasi, f)
+        if kab:
+            return self.graph_kab(kab, f)
+        return self._subgraf(self._run(Q.MENTION_IDS_SEMUA, prov=prov)[0]["ids"])
+
+    def histogram(self, f: Filter, kab: str | None, prov: str | None = None, lokasi: str | None = None) -> dict:
         if kab:
             self.cek_kab(kab)
+        if prov:
+            self.cek_prov(prov)
         r = self._run(Q.RENTANG)[0]
         if not r["awal"]:
             return service.histogram(Graph(), f, kab)
@@ -62,9 +73,11 @@ class Neo4jRepository(Repository):
             weeks[w.isoformat()] = {}
             w += timedelta(days=7)
         if f.jenis is None or f.jenis:
-            for row in self._run(Q.HISTOGRAM, jenis=_p(f)["jenis"], kab=kab):
+            for row in self._run(Q.HISTOGRAM, jenis=_p(f)["jenis"], kab=kab, prov=prov, gid=lokasi):
                 weeks.setdefault(row["mulai"], {})[row["jenis"]] = row["n"]
-        return {"filter": {"jenis": f.as_dict()["jenis"], "kab": kab},
+        return {"filter": {"jenis": f.as_dict()["jenis"], "kab": kab, "prov": prov, "lokasi": lokasi},
+                "cakupan": "lokasi" if lokasi else "kab" if kab else "prov" if prov else "nasional",
+                "satuan": "laporan kejadian (EventMention) unik",
                 "minggu": [{"mulai": k, "total": sum(v.values()), "per_jenis": dict(sorted(v.items()))}
                            for k, v in sorted(weeks.items())],
                 "rentang": {"awal": r["awal"], "akhir": r["akhir"]}}

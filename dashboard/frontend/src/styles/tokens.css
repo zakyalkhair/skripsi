@@ -15,13 +15,17 @@
   --focus: #2b5cd6;
   --tint: #faf3ee;
 
-  /* warna kategorikal jenis bencana (indikator kecil, bukan latar) */
-  --j-banjir: #2f6bb3;
-  --j-longsor: #8a6438;
-  --j-cuaca: #6c58c2;
-  --j-karhutla: #d8741f;
-  --j-gempa: #13857a;
-  --j-erupsi: #a33877;
+  /* Warna kategorikal jenis bencana — SATU-SATUNYA sumber warna jenis (peta, linimasa, legenda, ekspor PNG).
+     Turunan palet Okabe–Ito, diuji dengan simulasi buta warna (Machado 2009): ΔE2000 antar-pasangan
+     ≥ 12 untuk penglihatan normal, protanopia, deuteranopia, dan tritanopia; kontras ≥ 3:1 terhadap putih.
+     Cuaca ekstrem (biru langit) vs erupsi (ungu kemerahan): ΔE2000 ≈ 51 normal, ≈ 24 deuteranopia.
+     Warna tidak pernah menjadi satu-satunya penanda: label jenis selalu menyertai (chip, kartu, tooltip, legenda). */
+  --j-banjir: #0958c1;
+  --j-longsor: #765128;
+  --j-cuaca: #159be8;
+  --j-karhutla: #ea7107;
+  --j-gempa: #03906d;
+  --j-erupsi: #a83876;
 
   /* skala merah sekuensial = JUMLAH kejadian unik (bukan keparahan); diisi transparan di atas peta */
   --ch-1: #f1b29e;

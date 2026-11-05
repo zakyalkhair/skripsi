@@ -55,8 +55,16 @@ class Repository(ABC):
             raise NotFound(f"kab/kota {kode} tidak dikenal")
         return self._kab_names[kode]
 
-    def kab_agregat(self, f: Filter) -> dict:
-        return service.kab_agregat(self.graph_all(), f)
+    def cek_prov(self, kode: str) -> str:
+        nama = next((w["provinsi"] for w in self._wilayah if w["kode_prov"] == kode), None)
+        if nama is None:
+            raise NotFound(f"provinsi {kode} tidak dikenal")
+        return nama
+
+    def kab_agregat(self, f: Filter, prov: str | None = None) -> dict:
+        if prov:
+            self.cek_prov(prov)
+        return service.kab_agregat(self.graph_all(), f, prov)
 
     def kab_kejadian(self, kode: str, f: Filter) -> dict:
         return {**service.kab_kejadian(self.graph_kab(kode, f), kode, f), "nama": self.cek_kab(kode)["nama"]}
@@ -79,7 +87,36 @@ class Repository(ABC):
             k["nama_kab"] = w["nama"] if w else None
         return out
 
-    def histogram(self, f: Filter, kab: str | None) -> dict:
+    def histogram(self, f: Filter, kab: str | None, prov: str | None = None, lokasi: str | None = None) -> dict:
         if kab:
             self.cek_kab(kab)
-        return service.histogram(self.graph_all(), f, kab)
+        if prov:
+            self.cek_prov(prov)
+        g = self.graph_all()
+        if lokasi and lokasi not in g.locations:
+            raise NotFound(f"lokasi {lokasi} tidak ditemukan")
+        return service.histogram(g, f, kab, prov=prov, lokasi=lokasi)
+
+    def graph_ekspor(self, f: Filter, prov: str | None, kab: str | None, lokasi: str | None) -> Graph:
+        return self.graph_all()
+
+    def ekspor(self, f: Filter, prov: str | None = None, kab: str | None = None, lokasi: str | None = None) -> dict:
+        """Tabel ekspor + manifest. Nama wilayah dilengkapi dari data wilayah resmi (kode Kemendagri)."""
+        if kab:
+            self.cek_kab(kab)
+        if prov:
+            self.cek_prov(prov)
+        g = self.graph_ekspor(f, prov, kab, lokasi)
+        if lokasi and lokasi not in g.locations:
+            raise NotFound(f"lokasi {lokasi} tidak ditemukan")
+        tabel = service.ekspor(g, f, prov=prov, kab=kab, lokasi=lokasi)
+        for r in tabel["kejadian"]:
+            w = self._kab_names.get(r["kode_kab"] or "")
+            r["nama_kab"] = w["nama"] if w else None
+            r["provinsi"] = w["provinsi"] if w else None
+        meta = self.metadata()
+        cakupan = {"tingkat": "lokasi" if lokasi else "kab" if kab else "prov" if prov else "nasional",
+                   "kode_prov": prov, "kode_kab": kab, "gazetteer_id": lokasi,
+                   "nama": (g.locations[lokasi]["nama"] if lokasi else self._kab_names[kab]["nama"] if kab
+                            else self.cek_prov(prov) if prov else "Indonesia")}
+        return {"tabel": tabel, "cakupan": cakupan, "dataset": meta}

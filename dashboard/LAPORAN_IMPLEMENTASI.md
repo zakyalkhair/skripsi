@@ -1,5 +1,42 @@
 # Laporan Implementasi — Peta Situasi Bencana
 
+## Tahap 3 — berpusat-kejadian, cakupan, berbagi, ekspor, asisten
+- **Kursor & umpan balik**: elemen laporan yang dapat diklik (poligon, penanda, klaster, kartu, baris peringkat,
+  minggu linimasa, rujukan sumber) memakai `pointer`; pegangan linimasa `ew-resize`; tidak ada override global
+  yang mengganggu Leaflet. Hover & fokus terlihat dipertahankan.
+- **Informasi berpusat-kejadian** mengikuti relasi graf `DisasterEvent ← CONSOLIDATED_INTO — EventMention —
+  AFFECTED/REQUIRES →`, penanganan dari `Org-HANDLES→Mention`. Kartu: Dampak kejadian, Kebutuhan, Penanganan,
+  Sumber laporan. Detail lokasi: "Dampak/Kebutuhan di lokasi ini", "… tingkat kejadian", dan (dilipat) "di lokasi
+  lain"; `DEPLOYED_TO` (tanpa tautan laporan) tampil sebagai "Lembaga yang dikerahkan ke lokasi ini" tingkat lokasi.
+  Setiap fakta = satu node beserta tanggal & laporan sumbernya; angka dari laporan berbeda tidak dijumlahkan;
+  keadaan kosong ringkas ("Belum ada … yang dilaporkan"), tidak pernah nol.
+- **Cakupan linimasa**: nasional → provinsi (tingkat baru: remah roti, daftar provinsi, `?prov=`) → kab/kota →
+  lokasi (hanya laporan yang `MENTIONS` lokasi). Judul menyebut cakupan, satuan = laporan kejadian (EventMention)
+  unik, keadaan kosong eksplisit.
+- **Lokasi rujukan**: keanggotaan dari kode wilayah gazetteer (`di_luar_kab`), bentuk & warna jenis tetap +
+  cincin putus-putus (sama dengan legenda); tooltip "Lokasi berada di Kab. Lumajang, tetapi dirujuk dalam laporan
+  terkait Kab. Malang."; panel memberi label "Lokasi rujukan — bukan lokasi kejadian".
+- **Warna jenis** baru (turunan Okabe–Ito, satu sumber `--j-*`): ΔE2000 antar-pasangan ≥ 12 untuk normal,
+  protanopia, deuteranopia, tritanopia; kontras ≥ 3:1 terhadap putih. Cuaca ekstrem (biru langit) vs erupsi (ungu
+  kemerahan): ΔE2000 ≈ 51 (normal) / 24 (deuteranopia), sebelumnya 22 / 19. Legenda jenis + label teks di mana-mana.
+- **URL**: `prov|kab`, `lokasi`, `jenis`, `dari`, `sampai`, `kejadian`. Navigasi geografis = `pushState`,
+  filter = `replaceState`; popstate diterapkan tanpa ditulis balik (tanpa loop); parameter divalidasi terhadap
+  daftar wilayah, domain tanggal, dan backend (lokasi 404 → diabaikan + notifikasi). **Bagikan Tampilan** menyalin
+  tautan (cadangan: dialog salin manual).
+- **Ekspor Data (CSV)**: backend `/api/ekspor` → ZIP berisi 6 CSV ternormalisasi (ID sebagai teks, UTF-8 BOM,
+  `QUOTE_ALL`, pelindung injeksi formula) + `manifest.json` (filter, cakupan, sumber, catatan "bukan data resmi
+  BNPB"). Tanpa data → 404 → notifikasi.
+- **Ekspor Peta (PNG)**: digambar ulang di kanvas (path SVG, penanda dari data, legenda, judul/cakupan/periode/
+  filter, atribusi, penafian, waktu). Ubin OSM diambil ulang dengan `fetch` mode CORS; bila ditolak/gagal, peta
+  dasar tidak disertakan dan hal itu tertulis di gambar & notifikasi — keamanan peramban tidak diakali.
+- **Asisten Situasi Bencana**: tab [Detail …] [✦ Tanya AI] di panel kanan, tombol mengambang "Tanya AI" saat panel
+  tertutup (desktop; di ponsel di kepala lembar bawah), "Tanyakan tentang kejadian ini" di setiap kartu/kelompok.
+  Konteks "Bertanya tentang: …", cakupan "Konteks terpilih / Seluruh data" (tidak mengubah filter peta), contoh
+  pertanyaan kontekstual, Enter kirim / Shift+Enter baris baru, keadaan memuat/galat/coba lagi, riwayat bertahan
+  antar-tab, komponen sitasi (ID tweet, ID kejadian, tanggal) yang hanya menampilkan rujukan dari layanan.
+  **Tidak ada endpoint QA di backend** → layanan bawaan `unavailableChatService` menampilkan keadaan "belum
+  tersedia"; tidak ada endpoint yang dikarang dan tidak ada jawaban/sitasi palsu.
+
 ## Penyempurnaan antarmuka (tahap 2)
 - **Tata letak peta penuh**: sidebar permanen dihapus; bilah filter, remah roti, legenda, linimasa, dan panel
   rincian kini kartu mengambang. Panel, legenda, dan linimasa dapat diminimalkan/dipulihkan tanpa kehilangan
@@ -50,17 +87,27 @@
   penanda, dan histogram memakai `tanggal_lokal`. Kartu menampilkan "x laporan pada rentang ini (dari y
   sepanjang data)". `end_time` diberi label "Laporan terakhir"; status ya/tidak → "Memenuhi / Belum memenuhi
   ambang bencana".
-- Bingkai awal peta mengikuti cakupan data (Jawa Timur) dengan tombol "Seluruh Indonesia", supaya peta
-  nasional tidak terlalu jauh untuk data yang terpusat.
+- Tampilan awal = seluruh Indonesia, sedikit lebih dekat daripada sekadar "muat" di area yang tidak tertutup
+  panel (ujung barat & timur tetap di dalam peta).
 - Gerak: drill-down 800 ms, penanda muncul setelah kamera berhenti (stagger ≤ 14 × 32 ms, hanya saat masuk),
   transisi isian poligon 380 ms, panel 300 ms; `prefers-reduced-motion` mematikan animasi dan kamera berpindah langsung.
 - Permintaan per kanal memakai `AbortController` → respons usang tidak menimpa filter terbaru.
 
 ## Pengujian (dijalankan di lingkungan ini)
-- `pytest` backend: **11 lulus** — hitungan distinct (tweet lintas kab dihitung sekali, satu tweet dua laporan),
+- `pytest` backend: **19 lulus** — hitungan distinct (tweet lintas kab dihitung sekali, satu tweet dua laporan),
   irisan interval vs tanggal laporan, `jenis=` kosong ≠ semua, satu penanda per lokasi, gunung lintas kab,
-  dampak tanpa atribusi, laporan tingkat kab tanpa titik (gempa tanpa episentrum), validasi, 405 untuk metode tulis.
-- Playwright (Chromium headless): **17 lulus** — tampilan awal Indonesia, hover tidak macet (gerak cepat lintas
+  dampak tanpa atribusi, laporan tingkat kab tanpa titik (gempa tanpa episentrum), validasi, 405 untuk metode tulis;
+  tahap 3: pengelompokan per kejadian (Bangil: 350 & 90 unit terpisah), atribusi lokasi_ini/lokasi_lain/kejadian,
+  relasi evakuasi, sumber per fakta, histogram per cakupan (lokasi Semeru 3, kab 3507 = 6, prov 35 = 33),
+  agregat provinsi, ZIP ekspor (BOM, isi, 404 bila kosong), pelindung injeksi formula.
+- Playwright (Chromium headless): **35 lulus** — 17 uji lama (disesuaikan dengan teks baru) + 18 uji tahap 3:
+  kursor penunjuk, zoom nasional, Bangil & kartu berpusat-kejadian, linimasa per cakupan & keadaan kosong,
+  tampilan provinsi, cincin lokasi rujukan + tooltip, jarak warna (termasuk simulasi deuteranopia/protanopia),
+  URL pulih/Back/Forward/muat ulang/parameter tidak valid, URL tanpa status transien, salin tautan + cadangan,
+  ZIP CSV (isi & manifest) + umpan balik tanpa data, PNG (dengan & tanpa CORS ubin), asisten (tombol mengambang
+  tidak menabrak linimasa/legenda/kontrol, tab, belum tersedia, riwayat, cakupan tidak mengubah filter, konteks
+  kejadian, layanan uji dengan sitasi/galat/coba lagi), ponsel 390 px. `npm run build` lulus.
+- Sebelumnya (tahap 2): tampilan awal Indonesia, hover tidak macet (gerak cepat lintas
   poligon, keluar ke laut/panel), pindah kab langsung, klik laut vs klik panel, zoom penanda tanpa gerak ulang,
   kartu sorot/lepas (mouse & papan ketik), filter & dropdown, sinkronisasi rentang atas–linimasa, minimalkan
   panel/legenda/linimasa, rujukan lintas kab, klik cepat berulang, lebar 1440/1024/768/390 px, reduced motion,
@@ -77,7 +124,13 @@
 - Poligon kab/kota tidak dapat difokus dengan Tab satu per satu (514 path SVG); alternatif papan ketik: combobox
   wilayah dan daftar kab/kota di panel.
 - Batas Kemendagri 2020 disederhanakan untuk visualisasi; 4 provinsi pemekaran Papua 2022 belum terpisah.
-- Tile OSM tidak termuat di browser uji; tampilan latar belakang peta hanya diperiksa tanpa tile.
+- Tile OSM tidak termuat di browser uji; tampilan latar belakang peta hanya diperiksa tanpa tile. Penyertaan peta
+  dasar pada PNG bergantung pada header CORS server ubin (tile.openstreetmap.org biasanya mengizinkan); jalur
+  cadangan diuji dengan menolak permintaan fetch ubin.
+- **Asisten belum dapat menjawab**: perlu endpoint QA/GraphRAG di backend (mis. `POST`, sehingga middleware
+  baca-saja perlu pengecualian khusus) yang mengembalikan teks + sitasi ID tweet/kejadian nyata; frontend tinggal
+  mendaftarkan implementasi `ChatService`.
+- Nama provinsi pada ekspor/PNG mengikuti `wilayah`; urutan kejadian & fakta mengikuti tanggal laporan pertama.
 
 ## Asumsi integrasi (belum final di skema)
 1. `DisasterEvent.kode_kab` diturunkan dari modus `EventMention.kode_kab` (`adapter.event_kode_kab`, `queries.EVENT_KAB`).
@@ -89,5 +142,4 @@
 5. `HumanitarianNeed.lokasi` berisi `gazetteer_id` atau null; `Location.coordinates` berupa titik lat/lon (null untuk tingkat kab).
 
 ## Di luar cakupan (tidak diimplementasikan)
-Sinkronisasi state ke URL (tautan berbagi), pemuatan batas kecamatan/desa sebagai poligon, mode gelap,
-ekspor CSV hasil filter.
+Pemuatan batas kecamatan/desa sebagai poligon, mode gelap, endpoint tanya jawab (GraphRAG) di backend.

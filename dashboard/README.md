@@ -1,7 +1,7 @@
 # Peta Situasi Bencana
 
 Dashboard geospasial baca-saja untuk menjelajahi informasi bencana yang diekstraksi dari unggahan X
-berbahasa Indonesia: **nasional → kab/kota → lokasi → laporan kejadian → tweet sumber**.
+berbahasa Indonesia: **nasional → provinsi → kab/kota → lokasi → kejadian → laporan → tweet sumber**.
 
 > Mode bawaan memakai **Data Contoh** ilustratif (`data/contoh/`) — bukan pemantauan bencana nyata.
 
@@ -26,8 +26,8 @@ Build statis: `npm run build` → `frontend/dist/` (sajikan bersama backend; `/a
 ## Uji
 
 ```bash
-cd dashboard/backend && .venv/bin/python -m pytest -q          # 11 uji API (hitungan distinct, semantik tanggal, kasus tepi)
-cd dashboard/frontend && npx playwright test                   # 17 uji browser; menyalakan backend + vite otomatis
+cd dashboard/backend && .venv/bin/python -m pytest -q          # 19 uji API (hitungan distinct, atribusi, cakupan, ekspor ZIP)
+cd dashboard/frontend && npx playwright test                   # 35 uji browser; menyalakan backend + vite otomatis
 ```
 Playwright memakai Chromium terpasang di `/opt/pw-browsers` bila ada, atau `PW_CHROMIUM=/path/chrome`,
 atau browser bawaan Playwright (`npx playwright install chromium`).
@@ -38,6 +38,21 @@ Peta memenuhi layar; bilah filter, remah roti, legenda, linimasa, dan panel rinc
 dan dapat diminimalkan (preferensi disimpan per perangkat). Klik kab/kota = masuk/pindah wilayah; klik laut
 atau tombol rumah (kanan atas peta) = kembali ke peta nasional; klik kartu kejadian = sorot lokasinya
 (klik lagi untuk melepas). Rentang tanggal diatur di bilah atas dan tersinkron dengan kuas linimasa.
+
+- **Tingkat geografis**: Indonesia → provinsi (remah roti/daftar provinsi) → kab/kota → lokasi. Linimasa selalu
+  mengikuti cakupan aktif; pada tingkat lokasi hanya laporan yang menyebut lokasi itu yang dihitung.
+- **Berpusat-kejadian**: setiap kartu kejadian memuat *Dampak*, *Kebutuhan*, *Penanganan*, dan *Sumber laporan*;
+  setiap fakta tampil dengan tanggal & laporan sumbernya (dapat dibuka hingga tweet), angka dari laporan berbeda
+  tidak dijumlahkan. Di detail lokasi fakta dibagi "di lokasi ini" vs "tingkat kejadian".
+- **Lokasi rujukan** (di kab/kota lain, ditentukan dari kode wilayah gazetteer) tetap berbentuk & berwarna asli
+  dengan cincin putus-putus; bukan lokasi kejadian.
+- **Tautan**: wilayah, jenis, rentang, kejadian disorot, dan lokasi tersimpan di URL (Back/Forward, muat ulang);
+  tombol **Bagikan Tampilan** menyalin tautannya. Percakapan & status UI tidak pernah masuk URL.
+- **Ekspor**: *Ekspor Data (CSV)* = ZIP berisi tabel ternormalisasi + `manifest.json`; *Ekspor Peta (PNG)* =
+  peta terlihat + legenda + filter + atribusi + penafian.
+- **Tanya AI** (Asisten Situasi Bencana): tab di panel kanan / tombol mengambang. **Backend belum menyediakan
+  endpoint tanya jawab (GraphRAG)**, sehingga asisten menampilkan keadaan "belum tersedia" secara terbuka;
+  antarmuka layanan ada di `frontend/src/chat/service.ts` (`setChatService`).
 
 ## Integrasi Neo4j
 
@@ -66,11 +81,12 @@ python scripts/buat_contoh.py                            # menulis data/contoh/*
 | Endpoint | Isi |
 |---|---|
 | `GET /api/wilayah` | provinsi, 514 kab/kota (`ada_data`), metadata dataset |
-| `GET /api/kab-agregat?jenis=&dari=&sampai=` | kejadian unik per kab/kota + ringkasan (kejadian, laporan, tweet unik, kab) |
-| `GET /api/kab/{kode}/kejadian?…` | kartu kejadian (hitungan periode & total, dampak, kebutuhan, lembaga) |
-| `GET /api/kab/{kode}/titik?…` | lokasi unik yang dapat dipetakan + jenis + jumlah laporan |
-| `GET /api/titik/{gazetteer_id}/ringkasan?…` | laporan dikelompokkan per kejadian, tweet sumber, dampak/kebutuhan per lokasi vs tingkat kejadian |
-| `GET /api/histogram?jenis=&kab=` | laporan kejadian per minggu (Senin) |
+| `GET /api/kab-agregat?jenis=&dari=&sampai=&prov=` | kejadian unik per kab/kota + ringkasan (nasional atau satu provinsi) |
+| `GET /api/kab/{kode}/kejadian?…` | kartu kejadian: hitungan, dampak, kebutuhan, penanganan, laporan sumber (+ peta tweet) |
+| `GET /api/kab/{kode}/titik?…` | lokasi unik yang dapat dipetakan + jenis + jumlah laporan + `di_luar_kab` |
+| `GET /api/titik/{gazetteer_id}/ringkasan?…` | kejadian yang menyebut lokasi (atau tujuan evakuasi) dengan fakta beratribusi + sumber |
+| `GET /api/histogram?jenis=&prov=\|kab=\|lokasi=` | laporan kejadian unik per minggu (Senin) pada cakupan tsb. |
+| `GET /api/ekspor?jenis=&dari=&sampai=&prov=\|kab=\|lokasi=` | ZIP: `kejadian/laporan/dampak/kebutuhan/penanganan/tweet.csv` + `manifest.json` (404 bila kosong) |
 
 `jenis` tidak dikirim = semua jenis; `jenis=` (kosong) = tidak ada jenis dipilih (hasil kosong).
 `gazetteer_id` boleh memuat `/` atau `:` (kirim ter-encode).
