@@ -16,18 +16,32 @@ from collections import defaultdict
 from pathlib import Path
 
 import shapefile  # pyshp
-from shapely.geometry import mapping, shape
+from shapely.geometry import MultiPolygon, mapping, shape
 from shapely.ops import unary_union
 
 OUT = Path(__file__).resolve().parents[1] / "frontend" / "public" / "geo"
 DETAIL_PROV = {"35"}  # Jawa Timur: cakupan data contoh
 TOL_DETAIL, TOL_KASAR, TOL_PROV = 0.0025, 0.02, 0.05
+MIN_PART_PROV = 0.0025  # derajat² (~30 km² di khatulistiwa)
 
 
 def rnd(o, nd):
     if isinstance(o, (list, tuple)):
         return [rnd(x, nd) for x in o] if not isinstance(o[0], (int, float)) else [round(o[0], nd), round(o[1], nd)]
     return o
+
+
+MIN_FRAG = 1e-5  # derajat² (~0,1 km²): serpihan/lubang sangat kecil dari digitasi, tampil sebagai titik
+
+
+def clean(g):
+    """Buang serpihan poligon & lubang interior yang sangat kecil (artefak), pertahankan bagian terbesar."""
+    from shapely.geometry import Polygon
+    parts = list(g.geoms) if g.geom_type == "MultiPolygon" else [g]
+    keep = [Polygon(p.exterior, [r for r in p.interiors if Polygon(r).area >= MIN_FRAG]) for p in parts if p.area >= MIN_FRAG]
+    if not keep:
+        keep = [max(parts, key=lambda p: p.area)]
+    return keep[0] if len(keep) == 1 else MultiPolygon(keep)
 
 
 def title(s: str) -> str:
@@ -51,7 +65,7 @@ def main(shp: str) -> None:
                        "provinsi": title(rec["Provinsi"]), "kode_prov": kode[:2]}
     feats, by_prov = [], defaultdict(list)
     for kode in sorted(geoms):
-        g = unary_union(geoms[kode])
+        g = clean(unary_union(geoms[kode]))
         by_prov[kode[:2]].append(g)
         detail = kode[:2] in DETAIL_PROV
         s = g.simplify(TOL_DETAIL if detail else TOL_KASAR, preserve_topology=True)
@@ -61,7 +75,11 @@ def main(shp: str) -> None:
                       "geometry": {**mapping(s), "coordinates": rnd(mapping(s)["coordinates"], 4 if detail else 3)}})
     prov = []
     for kp, gs in sorted(by_prov.items()):
-        s = unary_union(gs).simplify(TOL_PROV, preserve_topology=True)
+        u = unary_union(gs)
+        # garis provinsi hanya struktur visual: buang pulau kecil (< ~30 km²) agar tidak menjadi bercak gelap
+        if u.geom_type == "MultiPolygon":
+            u = MultiPolygon([g for g in u.geoms if g.area >= MIN_PART_PROV] or [max(u.geoms, key=lambda g: g.area)])
+        s = u.simplify(TOL_PROV, preserve_topology=True)
         nama = next(p["provinsi"] for p in props.values() if p["kode_prov"] == kp)
         prov.append({"type": "Feature", "properties": {"kode_prov": kp, "nama": nama},
                      "geometry": {**mapping(s), "coordinates": rnd(mapping(s)["coordinates"], 3)}})

@@ -1,10 +1,11 @@
 import { h, s, reducedMotion } from "../dom";
+import { ico } from "./icons";
 import { addDays, angka, iso, parseDate, rentang, tgl } from "../format";
 import { JENIS, LABEL_PENDEK } from "../jenis";
 import type { Histogram } from "../types";
 
 const DAY = 86400000;
-const M = { l: 30, r: 14, t: 10, b: 22 };
+const M = { l: 26, r: 10, t: 8, b: 20 };
 
 /** Histogram laporan kejadian per minggu (skala waktu nyata) + kuas rentang tanggal. */
 export class Timeline {
@@ -15,8 +16,11 @@ export class Timeline {
   private selRect: SVGRectElement;
   private handles: SVGGElement[];
   private tip: HTMLElement;
-  private inDari: HTMLInputElement;
-  private inSampai: HTMLInputElement;
+  private card: HTMLElement;
+  private pill: HTMLButtonElement;
+  private pillTxt: HTMLElement;
+  private rangeTxt: HTMLElement;
+  private collapseBtn: HTMLButtonElement;
   private scope: HTMLElement;
   private summary: HTMLElement;
   private data: Histogram | null = null;
@@ -27,13 +31,9 @@ export class Timeline {
   private drag: { mode: "new" | "a" | "b" | "move"; x0: number; r0: [string, string] } | null = null;
   private commitTimer = 0;
 
-  constructor(private onRange: (dari: string | null, sampai: string | null) => void) {
-    this.inDari = h("input", { type: "date", class: "date-in", id: "tl-dari", "aria-label": "Tanggal mulai" });
-    this.inSampai = h("input", { type: "date", class: "date-in", id: "tl-sampai", "aria-label": "Tanggal akhir" });
-    for (const inp of [this.inDari, this.inSampai]) inp.addEventListener("change", () => this.fromInputs());
-    const preset = (label: string, days: number | null) =>
-      h("button", { type: "button", class: "seg-btn", "data-preset": days ?? "all", onclick: () => this.preset(days) }, label);
+  constructor(private onRange: (dari: string | null, sampai: string | null) => void, onToggle: (open: boolean) => void) {
     this.scope = h("span", { class: "tl-scope" });
+    this.rangeTxt = h("span", { class: "tl-range" });
     this.summary = h("p", { class: "sr-only", "aria-live": "polite" });
     this.svg = s("svg", { class: "tl-svg", role: "img" });
     this.gAxis = s("g", { class: "tl-axis" });
@@ -42,7 +42,7 @@ export class Timeline {
     const mkHandle = (side: "a" | "b") => {
       const g = s("g", { class: "tl-handle", tabindex: 0, role: "slider", "data-side": side,
         "aria-label": side === "a" ? "Batas awal rentang tanggal" : "Batas akhir rentang tanggal" });
-      g.append(s("line", { y1: M.t, y2: M.t, class: "tl-hline" }), s("rect", { class: "tl-grip", width: 10, height: 22, rx: 3 }));
+      g.append(s("line", { y1: M.t, y2: M.t, class: "tl-hline" }), s("rect", { class: "tl-grip", width: 8, height: 20, rx: 2.5 }));
       g.addEventListener("keydown", (e) => this.handleKey(e as KeyboardEvent, side));
       return g;
     };
@@ -50,24 +50,41 @@ export class Timeline {
     this.svg.append(this.gAxis, this.selRect, this.gBars, ...this.handles);
     this.tip = h("div", { class: "tl-tip", role: "tooltip", hidden: true });
     const chart = h("div", { class: "tl-chart" }, this.svg, this.tip);
-    this.el = h("section", { class: "timeline", "aria-labelledby": "tl-title" },
+    this.collapseBtn = h("button", { type: "button", class: "icon-btn", "aria-label": "Sembunyikan linimasa", title: "Sembunyikan linimasa",
+      "aria-expanded": "true", "aria-controls": "tl-card", onclick: () => onToggle(false) }, ico("chevDown", 16));
+    this.card = h("section", { class: "timeline float-card", id: "tl-card", "aria-labelledby": "tl-title" },
       h("header", { class: "tl-head" },
-        h("div", { class: "tl-titles" },
-          h("h2", { id: "tl-title", class: "tl-title" }, "Jumlah laporan kejadian per minggu"), this.scope),
-        h("div", { class: "tl-controls" },
-          h("div", { class: "seg", role: "group", "aria-label": "Rentang cepat" }, preset("7 hari", 7), preset("30 hari", 30), preset("Semua", null)),
-          h("div", { class: "date-range" }, this.inDari, h("span", { "aria-hidden": "true" }, "–"), this.inSampai))),
+        h("div", { class: "tl-titles" }, h("h2", { id: "tl-title", class: "tl-title" }, "Jumlah laporan kejadian per minggu"), this.scope),
+        h("div", { class: "tl-right" }, this.rangeTxt, this.collapseBtn)),
       chart, this.summary);
+    this.pillTxt = h("span", { class: "pill-sub" });
+    this.pill = h("button", { type: "button", class: "pill tl-pill", "aria-label": "Tampilkan linimasa laporan", "aria-expanded": "false",
+      onclick: () => onToggle(true) }, ico("chart", 15), h("span", {}, "Linimasa"), this.pillTxt, ico("chevUp", 14));
+    this.el = h("div", { class: "timeline-wrap" }, this.card, this.pill);
     this.svg.addEventListener("pointerdown", (e) => this.down(e));
     this.svg.addEventListener("pointermove", (e) => this.move(e));
     this.svg.addEventListener("pointerup", (e) => this.up(e));
+    this.svg.addEventListener("pointercancel", () => { this.drag = null; this.el.classList.remove("is-dragging"); });
     this.svg.addEventListener("pointerleave", () => { if (!this.drag) this.tip.hidden = true; });
-    new ResizeObserver(() => { const r = chart.getBoundingClientRect(); this.w = Math.max(240, r.width); this.hgt = Math.max(72, r.height); this.render(); }).observe(chart);
+    new ResizeObserver(() => {
+      const r = chart.getBoundingClientRect();
+      if (r.width < 60) return; // tersembunyi
+      this.w = r.width; this.hgt = Math.max(64, r.height); this.render();
+    }).observe(chart);
+  }
+
+  /** Tinggi kartu saat terbuka (untuk bantalan kamera). */
+  height(): number { return this.card.offsetHeight || 148; }
+
+  setOpen(open: boolean): void {
+    this.el.classList.toggle("is-collapsed", !open);
+    this.card.inert = !open;
+    this.pill.inert = open;
+    this.collapseBtn.setAttribute("aria-expanded", String(open));
   }
 
   setDomain(awal: string | null, akhir: string | null): void {
     this.domain = awal && akhir ? [awal, akhir] : null;
-    for (const inp of [this.inDari, this.inSampai]) { inp.min = awal ?? ""; inp.max = akhir ?? ""; }
   }
 
   setData(d: Histogram, scopeLabel: string): void {
@@ -79,14 +96,9 @@ export class Timeline {
   setRange(dari: string | null, sampai: string | null): void {
     if (!this.domain) return;
     this.range = [dari ?? this.domain[0], sampai ?? this.domain[1]];
-    this.inDari.value = this.range[0];
-    this.inSampai.value = this.range[1];
-    const all = !dari && !sampai;
-    const days = all ? null : Math.round((parseDate(this.range[1]).getTime() - parseDate(this.range[0]).getTime()) / DAY) + 1;
-    this.el.querySelectorAll<HTMLButtonElement>(".seg-btn").forEach((b) => {
-      const p = b.dataset.preset;
-      b.setAttribute("aria-pressed", String(all ? p === "all" : this.range![1] === this.domain![1] && String(days) === p));
-    });
+    const txt = !dari && !sampai ? `Seluruh periode · ${rentang(this.range[0], this.range[1])}` : rentang(this.range[0], this.range[1]);
+    this.rangeTxt.textContent = txt;
+    this.pillTxt.textContent = rentang(this.range[0], this.range[1]);
     this.render();
   }
 
@@ -245,20 +257,6 @@ export class Timeline {
     this.range = side === "a" ? [v <= r[1] ? v : r[1], r[1]] : [r[0], v >= r[0] ? v : r[0]];
     this.render();
     this.commit(350);
-  }
-
-  private fromInputs(): void {
-    if (!this.domain) return;
-    let a = this.inDari.value || this.domain[0], b = this.inSampai.value || this.domain[1];
-    if (a > b) [a, b] = [b, a];
-    this.range = [a, b];
-    this.commit(0);
-  }
-
-  private preset(days: number | null): void {
-    if (!this.domain) return;
-    this.range = days === null ? [this.domain[0], this.domain[1]] : [addDays(this.domain[1], -(days - 1)) < this.domain[0] ? this.domain[0] : addDays(this.domain[1], -(days - 1)), this.domain[1]];
-    this.commit(0);
   }
 
   private commit(delay: number): void {

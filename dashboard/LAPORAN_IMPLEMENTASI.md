@@ -1,5 +1,27 @@
 # Laporan Implementasi — Peta Situasi Bencana
 
+## Penyempurnaan antarmuka (tahap 2)
+- **Tata letak peta penuh**: sidebar permanen dihapus; bilah filter, remah roti, legenda, linimasa, dan panel
+  rincian kini kartu mengambang. Panel, legenda, dan linimasa dapat diminimalkan/dipulihkan tanpa kehilangan
+  pilihan; di layar ≤ 820 px panel menjadi lembar bawah. Bantalan kamera dihitung dari panel yang terbuka
+  sehingga wilayah terpilih tidak tertutup panel.
+- **Model interaksi peta yang eksplisit**: hover & seleksi digambar di lapisan terpisah tanpa pointer-events
+  (tidak ada lagi `bringToFront` saat hover — penyebab kedip); satu tooltip peta dengan pemilik tunggal dan jeda
+  sembunyi singkat, disembunyikan saat kamera bergerak, saat penanda dilepas, dan saat pointer keluar. Klik
+  kab/kota lain langsung berpindah; klik laut kembali ke nasional (ditunda 300 ms agar klik ganda tetap zoom);
+  klik panel/kontrol tidak diteruskan ke peta. Satu kontrol rumah + zoom di kanan atas area peta terlihat.
+- **Penanda**: klik = pilih + terbang secukupnya (zoom sasaran per tingkat lokasi, pusat area terlihat), tidak
+  bergerak bila penanda sudah terlihat; penanda kab lama dipudarkan sebelum kamera berpindah.
+- **Kartu kejadian** dapat diklik seluruhnya (tombol "Sorot" dihapus); klik lagi melepas sorotan; aksesibel
+  dengan papan ketik; keadaan rincian yang dibuka dipertahankan saat filter berubah.
+- **Visual**: satu keluarga huruf Plus Jakarta Sans; choropleth merah sekuensial transparan (opasitas 0,55) yang
+  menyatakan *jumlah* kejadian (legenda menegaskan bukan keparahan); daratan di luar cakupan diberi warna netral
+  tipis; chip filter netral dengan kotak centang kecil berwarna kategori; rentang tanggal pindah ke bilah atas
+  (format Indonesia, rentang cepat di popover). Label "Ikhtisar nasional", garis warna di tepi kartu, dan label
+  ganda "Indonesia/Seluruh Indonesia" dihapus. Tampilan awal = seluruh Indonesia.
+- Geometri: serpihan/lubang < ~0,1 km² dibuang dan pulau < ~30 km² tidak digambar pada garis provinsi
+  (hanya untuk visualisasi) — menghilangkan bercak gelap; GeoJSON 1,7 MB → 0,85 MB.
+
 ## Fitur yang selesai
 - **Tiga keadaan terhubung**: ikhtisar nasional (choropleth 514 kab/kota) → kab/kota (kamera `flyToBounds`,
   penanda lokasi, kartu kejadian) → lokasi (laporan per kejadian, tweet sumber). Breadcrumb, tombol
@@ -38,9 +60,11 @@
 - `pytest` backend: **11 lulus** — hitungan distinct (tweet lintas kab dihitung sekali, satu tweet dua laporan),
   irisan interval vs tanggal laporan, `jenis=` kosong ≠ semua, satu penanda per lokasi, gunung lintas kab,
   dampak tanpa atribusi, laporan tingkat kab tanpa titik (gempa tanpa episentrum), validasi, 405 untuk metode tulis.
-- Playwright (Chromium headless): **14 lulus** — 7 skenario penerimaan §18, perubahan filter cepat,
-  papan ketik (penanda + pegangan rentang), lebar 1440/1024/768/390 px tanpa luapan horizontal, reduced motion,
-  tanpa error konsol pada tampilan awal. Tile OSM diganti piksel kosong di uji (tidak ada akses jaringan dari browser uji).
+- Playwright (Chromium headless): **17 lulus** — tampilan awal Indonesia, hover tidak macet (gerak cepat lintas
+  poligon, keluar ke laut/panel), pindah kab langsung, klik laut vs klik panel, zoom penanda tanpa gerak ulang,
+  kartu sorot/lepas (mouse & papan ketik), filter & dropdown, sinkronisasi rentang atas–linimasa, minimalkan
+  panel/legenda/linimasa, rujukan lintas kab, klik cepat berulang, lebar 1440/1024/768/390 px, reduced motion,
+  tanpa error konsol. Tile OSM diganti piksel kosong di uji (tidak ada akses jaringan dari browser uji).
 
 ## Keterbatasan (jujur)
 - **Prototipe `peta-situasi-bencana.html` tidak tersedia**; data contoh dibuat baru dan **bukan** dataset prototipe.

@@ -1,4 +1,5 @@
-import { h, icon } from "../dom";
+import { h } from "../dom";
+import { ico } from "./icons";
 import type { Wilayah } from "../types";
 
 type Opt = Wilayah["kab"][number];
@@ -19,10 +20,9 @@ export class Combobox {
       "aria-autocomplete": "list", "aria-expanded": "false", "aria-controls": `${id}-list`, placeholder, "aria-label": label });
     this.list = h("ul", { id: `${id}-list`, class: "combo-list", role: "listbox", "aria-label": label, hidden: true });
     this.clear = h("button", { type: "button", class: "combo-clear", "aria-label": "Kembali ke seluruh wilayah", hidden: true,
-      onclick: () => { this.onPick(null); this.input.focus(); } }, "×");
-    this.el = h("div", { class: "combo" },
-      icon("combo-icon", '<circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'),
-      this.input, this.clear, this.list);
+      onclick: () => { this.onPick(null); this.input.focus(); } }, ico("close", 14));
+    this.el = h("div", { class: "combo tb-field" },
+      ico("search", 16, "combo-icon"), this.input, this.clear, this.list);
     this.input.addEventListener("focus", () => { this.input.select(); this.open(""); });
     this.input.addEventListener("input", () => this.open(this.input.value));
     this.input.addEventListener("keydown", (e) => this.key(e));

@@ -27,10 +27,17 @@ Build statis: `npm run build` → `frontend/dist/` (sajikan bersama backend; `/a
 
 ```bash
 cd dashboard/backend && .venv/bin/python -m pytest -q          # 11 uji API (hitungan distinct, semantik tanggal, kasus tepi)
-cd dashboard/frontend && npx playwright test                   # 14 uji browser; menyalakan backend + vite otomatis
+cd dashboard/frontend && npx playwright test                   # 17 uji browser; menyalakan backend + vite otomatis
 ```
 Playwright memakai Chromium terpasang di `/opt/pw-browsers` bila ada, atau `PW_CHROMIUM=/path/chrome`,
 atau browser bawaan Playwright (`npx playwright install chromium`).
+
+## Antarmuka
+
+Peta memenuhi layar; bilah filter, remah roti, legenda, linimasa, dan panel rincian mengambang di atasnya
+dan dapat diminimalkan (preferensi disimpan per perangkat). Klik kab/kota = masuk/pindah wilayah; klik laut
+atau tombol rumah (kanan atas peta) = kembali ke peta nasional; klik kartu kejadian = sorot lokasinya
+(klik lagi untuk melepas). Rentang tanggal diatur di bilah atas dan tersinkron dengan kuas linimasa.
 
 ## Integrasi Neo4j
 

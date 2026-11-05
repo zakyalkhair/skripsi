@@ -1,58 +1,53 @@
 :root {
-  /* permukaan & tinta (netral sedikit hangat agar peta tetap fokus) */
-  --bg: #eeede8;
-  --surface: #fbfaf7;
-  --surface-2: #f4f3ee;
-  --surface-3: #e9e7e0;
-  --ink: #161b1d;
-  --ink-2: #3f474a;
-  --ink-3: #6c7477;
-  --ink-4: #969d9f;
-  --line: #dedcd4;
-  --line-2: #c8c5bb;
-  --focus: #1f5fd1;
-  --select: #121619;
+  /* permukaan hangat & tinta */
+  --bg: #e9e5de;
+  --surface: #fdfcfa;
+  --glass: rgba(253, 252, 250, 0.94);
+  --surface-2: #f5f2ec;
+  --surface-3: #ece7df;
+  --ink: #1d1a17;
+  --ink-2: #47413b;
+  --ink-3: #79716a;
+  --ink-4: #a59d95;
+  --line: rgba(45, 36, 28, 0.09);
+  --line-2: rgba(45, 36, 28, 0.16);
+  --line-3: rgba(45, 36, 28, 0.3);
+  --focus: #2b5cd6;
+  --tint: #faf3ee;
 
-  /* warna kategorikal jenis bencana (satu sumber; dipakai chip, kartu, penanda, histogram) */
-  --j-banjir: #2a6fc4;
-  --j-longsor: #9b6a1c;
-  --j-cuaca: #7b52c4;
-  --j-karhutla: #d4561f;
-  --j-gempa: #128578;
-  --j-erupsi: #b02a68;
+  /* warna kategorikal jenis bencana (indikator kecil, bukan latar) */
+  --j-banjir: #2f6bb3;
+  --j-longsor: #8a6438;
+  --j-cuaca: #6c58c2;
+  --j-karhutla: #d8741f;
+  --j-gempa: #13857a;
+  --j-erupsi: #a33877;
 
-  /* skala sekuensial choropleth: jumlah kejadian unik (batu tulis -> tinta) */
-  --ch-0: #e4e2dc;
-  --ch-1: #cfd6e0;
-  --ch-2: #a7b5c8;
-  --ch-3: #7a8ead;
-  --ch-4: #51668b;
-  --ch-5: #2c3e60;
-  --ch-na: transparent;
+  /* skala merah sekuensial = JUMLAH kejadian unik (bukan keparahan); diisi transparan di atas peta */
+  --ch-1: #f1b29e;
+  --ch-2: #e47e65;
+  --ch-3: #cd4b35;
+  --ch-4: #a6281b;
+  --ch-5: #6d140e;
+  --ch-0: #b3a99c;
+  --ch-op: 0.55;
+  --land: #fbf9f5;
 
-  /* tipografi */
-  --f-ui: "Barlow", system-ui, sans-serif;
-  --f-cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --t-11: 0.6875rem; --t-12: 0.75rem; --t-13: 0.8125rem; --t-14: 0.875rem; --t-15: 0.9375rem;
-  --t-16: 1rem; --t-18: 1.125rem; --t-20: 1.25rem; --t-24: 1.5rem; --t-30: 1.875rem;
+  /* tipografi: satu keluarga */
+  --f: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  /* ruang & bentuk */
-  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px;
-  --r-1: 4px; --r-2: 6px; --r-3: 10px;
-  --shadow-1: 0 1px 2px rgba(20, 24, 26, 0.06), 0 1px 1px rgba(20, 24, 26, 0.04);
-  --shadow-2: 0 6px 20px -6px rgba(20, 24, 26, 0.22), 0 2px 6px rgba(20, 24, 26, 0.08);
+  /* bentuk, bayangan */
+  --r-s: 6px; --r-m: 8px; --r-l: 12px;
+  --sh-1: 0 1px 2px rgba(30, 22, 14, 0.06), 0 0 0 1px rgba(30, 22, 14, 0.06);
+  --sh-2: 0 10px 28px -12px rgba(30, 22, 14, 0.28), 0 2px 6px -2px rgba(30, 22, 14, 0.08), 0 0 0 1px rgba(30, 22, 14, 0.06);
 
   /* gerak */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
-  --d-hover: 150ms; --d-chip: 190ms; --d-tip: 130ms; --d-card: 240ms; --d-panel: 300ms; --d-marker: 380ms; --d-fill: 380ms;
-
-  --hdr-h: 56px;
-  --panel-w: clamp(340px, 29vw, 440px);
+  --e-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --e-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-hover: 140ms; --d-sel: 200ms; --d-panel: 280ms; --d-mk: 300ms; --d-fill: 360ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --d-hover: 0ms; --d-chip: 0ms; --d-tip: 0ms; --d-card: 0ms; --d-panel: 0ms; --d-marker: 0ms; --d-fill: 0ms; }
+  :root { --d-hover: 0ms; --d-sel: 0ms; --d-panel: 0ms; --d-mk: 0ms; --d-fill: 0ms; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
 }

@@ -19,6 +19,7 @@ export function rentang(a: string | null | undefined, b: string | null | undefin
   if (!a || !b) return "Tidak tersedia";
   if (a === b) return tgl(a);
   const da = parseDate(a), db = parseDate(b);
+  if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth()) return `${da.getDate()} – ${tgl(b)}`;
   return `${tgl(a, da.getFullYear() !== db.getFullYear())} – ${tgl(b)}`;
 }
 

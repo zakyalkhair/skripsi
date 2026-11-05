@@ -1,44 +1,65 @@
-import { h, icon } from "../dom";
+import { h } from "../dom";
 import { JENIS, LABEL, LABEL_PENDEK } from "../jenis";
 import type { Store } from "../store";
 import { isDefaultFilter } from "../store";
-import type { Wilayah } from "../types";
+import type { Jenis, Wilayah } from "../types";
 import { Combobox } from "./combobox";
+import { DateRange } from "./daterange";
+import { ico, iconSvg } from "./icons";
 
-export function buildFilters(store: Store, onKab: (kode: string | null) => void) {
+const SINGKAT: Record<Jenis, string> = { banjir: "Banjir", longsor: "Longsor", cuaca: "Cuaca", karhutla: "Karhutla", gempa: "Gempa", erupsi: "Erupsi" };
+
+/** Bilah filter mengambang: jenis bencana · wilayah · periode · atur ulang. */
+export function buildToolbar(store: Store, onKab: (kode: string | null) => void) {
+  const box = (j: Jenis | "all") => h("span", { class: "chip-box", style: j === "all" ? null : `--c: var(--j-${j})`, "aria-hidden": "true" });
   const chips = JENIS.map((j) =>
-    h("button", { type: "button", class: "chip", "data-jenis": j, "aria-pressed": "true", title: LABEL[j],
+    h("button", { type: "button", class: "chip", "data-jenis": j, "aria-pressed": "true", title: LABEL[j], "aria-label": LABEL[j],
       onclick: () => {
         const next = new Set(store.state.jenis);
         next.has(j) ? next.delete(j) : next.add(j);
         store.set({ jenis: next });
-      } },
-      h("span", { class: "chip-dot", style: `--c: var(--j-${j})`, "aria-hidden": "true" }), LABEL_PENDEK[j]));
+      } }, box(j), h("span", { class: "chip-t" }, h("span", { class: "chip-l" }, LABEL_PENDEK[j]), h("span", { class: "chip-s", "aria-hidden": "true" }, SINGKAT[j]))));
   const semua = h("button", { type: "button", class: "chip chip--all", "aria-pressed": "true",
-    onclick: () => store.set({ jenis: store.state.jenis.size === JENIS.length ? new Set() : new Set(JENIS) }) }, "Semua jenis");
-  const reset = h("button", { type: "button", class: "btn btn--ghost", disabled: true,
-    onclick: () => store.set({ jenis: new Set(JENIS), dari: null, sampai: null }) },
-    icon("btn-ic", '<path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'), "Atur ulang filter");
+    onclick: () => store.set({ jenis: store.state.jenis.size === JENIS.length ? new Set() : new Set(JENIS) }) },
+    box("all"), h("span", { class: "chip-t" }, "Semua"));
   const combo = new Combobox("kab-combo", "Kabupaten/kota", "Cari kab/kota…", onKab);
-  const status = h("span", { class: "filter-status", "aria-live": "polite" });
+  const date = new DateRange((dari, sampai) => store.set({ dari, sampai }));
+  const reset = h("button", { type: "button", class: "tb-reset", disabled: true,
+    onclick: () => store.set({ jenis: new Set(JENIS), dari: null, sampai: null }) }, ico("reset", 15), h("span", {}, "Atur ulang"));
+  const count = h("span", { class: "tb-count", hidden: true });
+  const more = h("button", { type: "button", class: "tb-more", "aria-expanded": "false", "aria-controls": "tb-extra",
+    onclick: () => setOpen(more.getAttribute("aria-expanded") !== "true") }, ico("sliders", 16), h("span", {}, "Filter"), count);
 
-  const el = h("div", { class: "filterbar", role: "region", "aria-label": "Filter data" },
-    h("div", { class: "fgroup" },
-      h("span", { class: "flabel", id: "lbl-jenis" }, "Jenis bencana"),
-      h("div", { class: "chips", role: "group", "aria-labelledby": "lbl-jenis" }, semua, ...chips)),
-    h("div", { class: "fgroup fgroup--kab" }, h("label", { class: "flabel", for: "kab-combo-input" }, "Wilayah"), combo.el),
-    h("div", { class: "fgroup fgroup--end" }, status, reset));
+  const gJenis = h("div", { class: "tb-group tb-jenis", role: "group", "aria-label": "Jenis bencana" }, semua, ...chips);
+  const gKab = h("div", { class: "tb-group tb-kab" }, combo.el);
+  const gDate = h("div", { class: "tb-group tb-date" }, date.el);
+  const extra = h("div", { class: "tb-extra", id: "tb-extra" }, gJenis, h("span", { class: "tb-sep", "aria-hidden": "true" }), gDate,
+    h("span", { class: "tb-sep", "aria-hidden": "true" }), reset);
+  const el = h("div", { class: "toolbar float-card", role: "region", "aria-label": "Filter data" },
+    h("div", { class: "tb-main" }, gKab, more), extra);
+
+  function setOpen(open: boolean): void {
+    more.setAttribute("aria-expanded", String(open));
+    el.classList.toggle("is-open", open);
+    el.dispatchEvent(new CustomEvent("toolbar-resize", { bubbles: true }));
+  }
 
   function sync(): void {
     const s = store.state;
-    chips.forEach((c) => c.setAttribute("aria-pressed", String(s.jenis.has(c.dataset.jenis as never))));
-    semua.setAttribute("aria-pressed", String(s.jenis.size === JENIS.length));
-    semua.classList.toggle("is-partial", s.jenis.size > 0 && s.jenis.size < JENIS.length);
-    reset.disabled = isDefaultFilter(s);
+    for (const c of chips) c.setAttribute("aria-pressed", String(s.jenis.has(c.dataset.jenis as Jenis)));
+    const all = s.jenis.size === JENIS.length, none = s.jenis.size === 0;
+    semua.setAttribute("aria-pressed", String(all));
+    semua.setAttribute("aria-label", all ? "Semua jenis dipilih; klik untuk mengosongkan" : "Pilih semua jenis");
+    semua.classList.toggle("is-partial", !all && !none);
+    semua.querySelector(".chip-box")!.innerHTML = all ? iconSvg("check", 12) : !none ? iconSvg("dash", 12) : "";
+    for (const c of chips) c.querySelector(".chip-box")!.innerHTML = s.jenis.has(c.dataset.jenis as Jenis) ? iconSvg("check", 12) : "";
     const n = (s.jenis.size < JENIS.length ? 1 : 0) + (s.dari || s.sampai ? 1 : 0);
-    status.textContent = n ? `${n} filter aktif` : "";
+    reset.disabled = isDefaultFilter(s);
     reset.setAttribute("aria-label", n ? `Atur ulang filter (${n} aktif)` : "Atur ulang filter");
+    count.hidden = n === 0;
+    count.textContent = String(n);
     combo.setValue(s.kab);
+    date.setRange(s.dari, s.sampai);
   }
-  return { el, sync, setWilayah: (w: Wilayah) => combo.setOptions(w.kab) };
+  return { el, sync, date, setWilayah: (w: Wilayah) => combo.setOptions(w.kab), closePopovers: () => date.close(false), isPopoverOpen: () => date.isOpen };
 }

@@ -57,12 +57,11 @@ export function markerAria(t: Titik): string {
 }
 
 export function markerTooltip(t: Titik): string {
-  const jenis = t.jenis.map((j) => `<span class="tip-j"><i style="background:var(--j-${j})"></i>${LABEL_PENDEK[j]}</span>`).join("");
+  const jenis = t.jenis.map((j) => `<span class="tt-j"><i style="background:var(--j-${j})"></i>${LABEL_PENDEK[j]}</span>`).join("");
   const luar = t.di_luar_kab
-    ? `<div class="tip-note">Terletak di ${esc(t.nama_kab_lokasi ?? "kab/kota lain")}; dirujuk oleh laporan dari wilayah ini.</div>` : "";
-  return `<div class="tip-title">${esc(t.nama)}</div>
-    <div class="tip-sub">${esc(TINGKAT_LABEL[t.tingkat] ?? t.tingkat)}</div>
-    <div class="tip-row"><span>Laporan kejadian</span><b>${t.jumlah_laporan}</b></div>
-    <div class="tip-jenis">${jenis}</div>
-    <div class="tip-meta">${rentang(t.tanggal_awal, t.tanggal_akhir)}</div>${luar}`;
+    ? `<div class="tt-note">Terletak di ${esc(t.nama_kab_lokasi ?? "kab/kota lain")}; dirujuk oleh laporan dari wilayah ini.</div>` : "";
+  return `<div class="tt-title">${esc(t.nama)}</div>
+    <div class="tt-sub">${esc(TINGKAT_LABEL[t.tingkat] ?? t.tingkat)} · ${rentang(t.tanggal_awal, t.tanggal_akhir)}</div>
+    <div class="tt-row"><span>Laporan kejadian</span><b>${t.jumlah_laporan}</b></div>
+    <div class="tt-jenis">${jenis}</div>${luar}`;
 }
