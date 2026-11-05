@@ -12,6 +12,8 @@ import { MapTip } from "./tip";
 
 /** Batas geografis Indonesia (Sabang–Merauke, Miangas–Rote) untuk tampilan awal. */
 export const INDONESIA: L.LatLngBoundsLiteral = [[-11.1, 94.8], [6.2, 141.1]];
+/** Tambahan zoom tampilan nasional di atas zoom yang muat penuh di area terlihat. */
+const ZOOM_NASIONAL_EKSTRA = 0.5;
 
 /** Zoom sasaran saat memilih penanda, menurut tingkat lokasi (cukup dekat, konteks tetap terlihat). */
 const ZOOM_TITIK: Record<string, number> = { desa: 12.5, jembatan: 13, bangunan: 13, jalan: 12.5, kecamatan: 12, gunung: 11.5 };
@@ -279,7 +281,31 @@ export class MapView {
     this.restyle();
     this.drawSelection(null);
     this.leaveMarkers();
-    return this.fly(L.latLngBounds(INDONESIA), animate ? 0.7 : 0);
+    return this.flyNational(animate ? 0.7 : 0);
+  }
+
+  /** Kamera nasional: lebih dekat dari sekadar muat di area terlihat; ujung negara boleh tertutup panel, tidak keluar peta. */
+  private flyNational(duration: number): Promise<boolean> {
+    const bounds = L.latLngBounds(INDONESIA);
+    const pas = this.map.getBoundsZoom(bounds, false, L.point(this.pad.left + this.pad.right, this.pad.top + this.pad.bottom));
+    const target = Math.min(pas + ZOOM_NASIONAL_EKSTRA, this.map.getBoundsZoom(bounds));
+    // Geser dari pusat area terlihat secukupnya agar ujung barat & timur tetap di dalam peta.
+    const c = this.map.project(this.offsetCenter(bounds.getCenter(), target), target);
+    const barat = this.map.project(bounds.getNorthWest(), target).x, timur = this.map.project(bounds.getSouthEast(), target).x;
+    const paruh = this.map.getSize().x / 2;
+    c.x = timur - barat >= paruh * 2 ? (barat + timur) / 2 : Math.max(timur - paruh, Math.min(barat + paruh, c.x));
+    const center = this.map.unproject(c, target);
+    const token = ++this.flightToken;
+    return new Promise((resolve) => {
+      const done = () => resolve(token === this.flightToken);
+      if (reducedMotion() || duration === 0) {
+        this.map.setView(center, target, { animate: false });
+        requestAnimationFrame(done);
+        return;
+      }
+      this.map.once("moveend", done);
+      this.map.flyTo(center, target, { duration, easeLinearity: 0.22 });
+    });
   }
 
   private fly(bounds: L.LatLngBounds, duration: number, maxZoom?: number): Promise<boolean> {
