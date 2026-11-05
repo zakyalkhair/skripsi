@@ -19,9 +19,13 @@ export interface KabAgregat {
 export interface Sumber { mention_id: string; tanggal_lokal: string; tweet_ids: string[] }
 /** lokasi_ini | lokasi_lain | lokasi (tanpa fokus) | kejadian (tidak tertaut ke lokasi tertentu) */
 export type Atribusi = "lokasi_ini" | "lokasi_lain" | "lokasi" | "kejadian";
-export interface Dampak { id: string; kelas: string | null; status: string | null; jumlah: number | null; satuan: string | null; lokasi: LokRef[]; event_id: string | null; atribusi: Atribusi; sumber: Sumber[] }
-export interface Kebutuhan { id: string; kategori: string | null; item: string | null; status: string | null; lokasi: LokRef | null; event_id: string | null; atribusi: Atribusi; sumber: Sumber[] }
-export interface Lembaga { id: string; nama_kanonik: string | null; wilayah: string | null; tingkat: string | null; peran: string[]; induk: string | null; dikerahkan_ke?: LokRef[]; sumber?: Sumber[] }
+export interface Dampak { id: string; kelas: string | null; objek?: string | null; label?: string; status: string | null; jumlah: number | null; satuan: string | null; lokasi: LokRef[]; event_id: string | null; atribusi: Atribusi; sumber: Sumber[] }
+export interface Kebutuhan { id: string; kategori: string | null; item: string | null; status: string | null; lembaga?: { nama: string; aksi: string | null; tweet_id: string | null }[]; lokasi: LokRef | null; event_id: string | null; atribusi: Atribusi; sumber: Sumber[] }
+export interface Aksi { aksi: string; lokasi: LokRef | null; tweet_id: string | null; tanggal: string | null }
+export interface KebBaris { lokasi: LokRef | null; atribusi: Atribusi; status: string; lembaga: string[]; sumber: Sumber[] }
+export interface KebGrup { kategori: string | null; item: string | null; baris: KebBaris[]; ringkas: string | null }
+export interface Kronologi { tanggal: string; teks: string; tweet_ids: string[] }
+export interface Lembaga { id: string; nama_kanonik: string | null; wilayah: string | null; tingkat: string | null; peran: string[]; aksi?: Aksi[]; induk: string | null; dikerahkan_ke?: LokRef[]; sumber?: Sumber[] }
 export interface Laporan extends Sumber { jenis: Jenis; event_id: string | null; lokasi?: LokRef[]; relasi?: "menyebut" | "evakuasi" | null }
 export interface TweetInfo { upload: string; text: string | null; url: string | null }
 
@@ -30,6 +34,7 @@ export interface Kejadian {
   start_time: string; end_time: string; kode_kab: string | null;
   jumlah_laporan_periode: number; jumlah_tweet_periode: number; jumlah_laporan_total: number; jumlah_tweet_total: number;
   lokasi_ids: string[]; lokasi: LokRef[]; dampak: Dampak[]; kebutuhan: Kebutuhan[]; lembaga: Lembaga[]; laporan: Laporan[];
+  kebutuhan_grup?: KebGrup[]; kronologi?: Kronologi[];
 }
 export interface KabKejadian { kode_kab: string; nama: string; kejadian: Kejadian[]; tweets: Record<string, TweetInfo> }
 
@@ -45,6 +50,7 @@ export interface Ringkasan {
   jumlah_laporan: number; jumlah_tweet: number; tanggal_awal: string | null; tanggal_akhir: string | null; jenis: Jenis[];
   kejadian: { event_id: string; nama: string; jenis: Jenis; status: string; start_time: string; end_time: string; kode_kab: string | null; nama_kab: string | null;
     laporan: Laporan[]; jumlah_laporan_kejadian: number; dampak: Dampak[]; kebutuhan: Kebutuhan[]; penanganan: Lembaga[];
+    kebutuhan_grup?: KebGrup[]; kronologi?: Kronologi[];
     evakuasi: (Sumber & { asal: LokRef[]; tujuan: LokRef[] })[] }[];
   tweet_map: Record<string, TweetInfo>;
   lembaga_dikerahkan: Lembaga[];

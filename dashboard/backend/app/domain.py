@@ -52,4 +52,7 @@ class Graph:
     org_handles: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     org_deployed: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     org_parent: dict[str, str] = field(default_factory=dict)
+    # properti relasi: HANDLES {aksi, sumber} (target laporan/kebutuhan/dampak), DEPLOYED_TO {aksi, sumber}
+    handles: list[dict] = field(default_factory=list)
+    deploys: list[dict] = field(default_factory=list)
     gazetteer: dict[str, dict] = field(default_factory=dict)  # gazetteer lokal: tingkat, kode_kab

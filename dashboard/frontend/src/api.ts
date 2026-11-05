@@ -2,7 +2,7 @@ import type { Histogram, Jenis, KabAgregat, KabKejadian, KabTitik, Ringkasan, Wi
 import { JENIS } from "./jenis";
 
 /** Versi kontrak API yang diharapkan frontend (sama dengan API_VERSI di backend/app/repository/base.py). */
-export const API_VERSI = 3;
+export const API_VERSI = 4;
 export const PESAN_VERSI = "Server backend masih versi lama: sebagian rincian (sumber laporan per kejadian) tidak tersedia. Pastikan proses uvicorn lama di port 8000 sudah berhenti, lalu jalankan ulang.";
 /** Respons server lama dilengkapi nilai kosong agar dasbor tetap berjalan (tidak ada data yang dikarang). */
 let lama = false;

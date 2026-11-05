@@ -723,128 +723,149 @@
   "AffectedObject": [
    {
     "id": "AO01",
-    "kelas": "penduduk",
+    "kelas": "manusia",
     "status": "mengungsi",
     "jumlah": 120,
-    "satuan": "jiwa"
+    "satuan": "jiwa",
+    "lokasi": "contoh:desa/supiturang",
+    "objek": "warga"
    },
    {
     "id": "AO02",
     "kelas": "rumah",
     "status": "tertimbun",
     "jumlah": 8,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": "contoh:desa/sumberwuluh",
+    "objek": "rumah"
    },
    {
     "id": "AO03",
-    "kelas": "jembatan",
+    "kelas": "prasarana_vital",
     "status": "putus",
     "jumlah": 1,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": "contoh:jembatan/gladak-perak",
+    "objek": "jembatan"
    },
    {
     "id": "AO04",
     "kelas": "rumah",
     "status": "rusak",
     "jumlah": 12,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": null,
+    "objek": "rumah"
    },
    {
     "id": "AO05",
-    "kelas": "jalan",
+    "kelas": "prasarana_vital",
     "status": "tertutup",
     "jumlah": null,
-    "satuan": null
+    "satuan": null,
+    "lokasi": "contoh:desa/sumberbrantas",
+    "objek": "jalan"
    },
    {
     "id": "AO06",
     "kelas": "rumah",
     "status": "terendam",
     "jumlah": 350,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": "contoh:kec/bangil",
+    "objek": "rumah"
    },
    {
     "id": "AO07",
     "kelas": "rumah",
     "status": "terendam",
     "jumlah": 90,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": "contoh:kec/bangil",
+    "objek": "rumah"
    },
    {
     "id": "AO08",
-    "kelas": "lahan",
+    "kelas": "sosial_ekonomi",
     "status": "terbakar",
     "jumlah": 40,
-    "satuan": "hektare"
+    "satuan": "hektare",
+    "lokasi": "contoh:gunung/arjuno",
+    "objek": "lahan"
    },
    {
     "id": "AO09",
-    "kelas": "bangunan",
+    "kelas": "lainnya",
     "status": "rusak ringan",
     "jumlah": 3,
-    "satuan": "unit"
+    "satuan": "unit",
+    "lokasi": null,
+    "objek": "bangunan"
    },
    {
     "id": "AO10",
-    "kelas": "penduduk",
+    "kelas": "manusia",
     "status": "meninggal",
     "jumlah": 2,
-    "satuan": "jiwa"
+    "satuan": "jiwa",
+    "lokasi": "contoh:kec/panti",
+    "objek": "warga"
    },
    {
     "id": "AO11",
     "kelas": "rumah",
     "status": "terendam",
     "jumlah": null,
-    "satuan": null
+    "satuan": null,
+    "lokasi": "contoh:kec/porong"
    }
   ],
   "HumanitarianNeed": [
    {
     "id": "HN01",
-    "kategori": "logistik",
+    "kategori": "kesehatan_obat",
     "item": "masker",
     "status": "demanded",
     "lokasi": "contoh:desa/supiturang"
    },
    {
     "id": "HN02",
-    "kategori": "hunian",
+    "kategori": "hunian_tenda",
     "item": "tenda pengungsian",
     "status": "demanded",
     "lokasi": "contoh:kec/candipuro"
    },
    {
     "id": "HN03",
-    "kategori": "logistik",
+    "kategori": "kesehatan_obat",
     "item": "masker",
     "status": "supplied",
     "lokasi": "contoh:desa/supiturang"
    },
    {
     "id": "HN04",
-    "kategori": "hunian",
+    "kategori": "hunian_tenda",
     "item": "terpal",
     "status": "demanded",
     "lokasi": null
    },
    {
     "id": "HN05",
-    "kategori": "logistik",
+    "kategori": "air_bersih_sanitasi",
     "item": "air bersih",
     "status": "demanded",
     "lokasi": "contoh:kec/bangil"
    },
    {
     "id": "HN06",
-    "kategori": "personel",
+    "kategori": "lainnya",
     "item": "relawan pemadam",
     "status": "demanded",
     "lokasi": "contoh:gunung/arjuno"
    },
    {
     "id": "HN07",
-    "kategori": "kesehatan",
+    "kategori": "kesehatan_obat",
     "item": "obat-obatan",
     "status": "demanded",
     "lokasi": "contoh:kec/panti"
@@ -1528,29 +1549,14 @@
    "to": "AO01"
   },
   {
-   "type": "LOCATED_IN",
-   "from": "AO01",
-   "to": "contoh:desa/supiturang"
-  },
-  {
    "type": "AFFECTED",
    "from": "EM04",
    "to": "AO02"
   },
   {
-   "type": "LOCATED_IN",
-   "from": "AO02",
-   "to": "contoh:desa/sumberwuluh"
-  },
-  {
    "type": "AFFECTED",
    "from": "EM07",
    "to": "AO03"
-  },
-  {
-   "type": "LOCATED_IN",
-   "from": "AO03",
-   "to": "contoh:jembatan/gladak-perak"
   },
   {
    "type": "AFFECTED",
@@ -1563,19 +1569,9 @@
    "to": "AO05"
   },
   {
-   "type": "LOCATED_IN",
-   "from": "AO05",
-   "to": "contoh:desa/sumberbrantas"
-  },
-  {
    "type": "AFFECTED",
    "from": "EM21",
    "to": "AO06"
-  },
-  {
-   "type": "LOCATED_IN",
-   "from": "AO06",
-   "to": "contoh:kec/bangil"
   },
   {
    "type": "AFFECTED",
@@ -1583,19 +1579,9 @@
    "to": "AO07"
   },
   {
-   "type": "LOCATED_IN",
-   "from": "AO07",
-   "to": "contoh:kec/bangil"
-  },
-  {
    "type": "AFFECTED",
    "from": "EM26",
    "to": "AO08"
-  },
-  {
-   "type": "LOCATED_IN",
-   "from": "AO08",
-   "to": "contoh:gunung/arjuno"
   },
   {
    "type": "AFFECTED",
@@ -1608,19 +1594,9 @@
    "to": "AO10"
   },
   {
-   "type": "LOCATED_IN",
-   "from": "AO10",
-   "to": "contoh:kec/panti"
-  },
-  {
    "type": "AFFECTED",
    "from": "EM32",
    "to": "AO11"
-  },
-  {
-   "type": "LOCATED_IN",
-   "from": "AO11",
-   "to": "contoh:kec/porong"
   },
   {
    "type": "REQUIRES",
@@ -1660,57 +1636,110 @@
   {
    "type": "HANDLES",
    "from": "ORG01",
-   "to": "EM02"
+   "to": "EM02",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T02"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG01",
-   "to": "EM04"
+   "to": "EM04",
+   "props": {
+    "aksi": "pencarian korban",
+    "sumber": "T04"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG01",
+   "to": "HN03",
+   "props": {
+    "aksi": "membagikan masker",
+    "sumber": "T05"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG01",
-   "to": "contoh:desa/supiturang"
+   "to": "contoh:desa/supiturang",
+   "props": {
+    "aksi": "membuka posko pengungsian",
+    "sumber": "T02"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG02",
-   "to": "EM05"
+   "to": "EM05",
+   "props": {
+    "aksi": "mengirim bantuan logistik",
+    "sumber": "T05"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG02",
-   "to": "contoh:desa/supiturang"
+   "to": "contoh:desa/supiturang",
+   "props": {
+    "aksi": "pemantauan",
+    "sumber": "T05"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG03",
-   "to": "EM30"
+   "to": "EM30",
+   "props": {
+    "aksi": "pencarian dan penyelamatan",
+    "sumber": "T28"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG03",
-   "to": "contoh:kec/panti"
+   "to": "contoh:kec/panti",
+   "props": {
+    "aksi": "pencarian korban",
+    "sumber": "T28"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG04",
-   "to": "EM22"
+   "to": "EM22",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T20"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG04",
-   "to": "contoh:kec/bangil"
+   "to": "contoh:kec/bangil",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T20"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG05",
-   "to": "EM26"
+   "to": "EM26",
+   "props": {
+    "aksi": "pemadaman darat",
+    "sumber": "T24"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG05",
-   "to": "contoh:gunung/arjuno"
+   "to": "contoh:gunung/arjuno",
+   "props": {
+    "aksi": "pemadaman darat",
+    "sumber": "T24"
+   }
   },
   {
    "type": "PART_OF",
@@ -1720,17 +1749,29 @@
   {
    "type": "HANDLES",
    "from": "ORG07",
-   "to": "EM15"
+   "to": "EM15",
+   "props": {
+    "aksi": "pembersihan material longsor",
+    "sumber": "T14"
+   }
   },
   {
    "type": "DEPLOYED_TO",
    "from": "ORG07",
-   "to": "contoh:desa/sumberbrantas"
+   "to": "contoh:desa/sumberbrantas",
+   "props": {
+    "aksi": "pembersihan material longsor",
+    "sumber": "T14"
+   }
   },
   {
    "type": "HANDLES",
    "from": "ORG08",
-   "to": "EM14"
+   "to": "EM14",
+   "props": {
+    "aksi": "membantu warga terdampak",
+    "sumber": "T13"
+   }
   },
   {
    "type": "EVACUATED_TO",

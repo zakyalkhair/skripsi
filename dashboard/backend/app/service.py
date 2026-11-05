@@ -115,7 +115,9 @@ def _dampak(g: Graph, mids, *, fokus: str | None = None, hanya: str | None = Non
             continue
         if hanya == "kejadian" and atr != "kejadian":
             continue
-        out.append({"id": aid, "kelas": a.get("kelas"), "status": a.get("status"), "jumlah": a.get("jumlah"),
+        objek = a.get("objek")
+        label = f"{objek or KELAS_LABEL.get(a.get('kelas'), a.get('kelas') or 'objek')} {a.get('status') or ''}".strip()
+        out.append({"id": aid, "kelas": a.get("kelas"), "objek": objek, "label": label, "status": a.get("status"), "jumlah": a.get("jumlah"),
                     "satuan": a.get("satuan"), "lokasi": [_loc_ref(g, l) for l in locs], "atribusi": atr,
                     "event_id": g.m_event.get(ms[0]), "sumber": [_sumber(g, m) for m in ms]})
     out.sort(key=lambda d: (d["sumber"][0]["tanggal_lokal"], d["id"]))
@@ -137,10 +139,53 @@ def _kebutuhan(g: Graph, mids, *, fokus: str | None = None, hanya: str | None = 
             continue
         if hanya == "kejadian" and atr != "kejadian":
             continue
-        out.append({"id": hid, "kategori": n.get("kategori"), "item": n.get("item"), "status": n.get("status"),
+        lembaga = [{"nama": g.orgs[h["org"]].get("nama_kanonik"), "aksi": h["aksi"], "tweet_id": h["sumber"]}
+                   for h in g.handles if h["target"] == hid and h["org"] in g.orgs]
+        out.append({"id": hid, "kategori": n.get("kategori"), "item": n.get("item"), "status": n.get("status"), "lembaga": lembaga,
                     "lokasi": _loc_ref(g, lok), "atribusi": atr, "event_id": g.m_event.get(ms[0]),
                     "sumber": [_sumber(g, m) for m in ms]})
     out.sort(key=lambda d: (d["sumber"][0]["tanggal_lokal"], d["id"]))
+    return out
+
+
+KELAS_LABEL = {"manusia": "manusia", "rumah": "rumah", "pelayanan_dasar": "pelayanan dasar", "prasarana_vital": "prasarana vital",
+               "sosial_ekonomi": "sosial ekonomi", "lainnya": "objek lain"}
+
+
+def _kebutuhan_grup(items: list[dict]) -> list[dict]:
+    """Kelompok (kategori, item) -> baris per lokasi: 'supplied' di lokasi itu = disalurkan (lembaga dari HANDLES),
+    selain itu diminta. Ringkasan 'x dari n lokasi disalurkan' dihitung di sini, bukan atribut."""
+    grup: dict[tuple, dict] = {}
+    for k in items:
+        g = grup.setdefault((k["kategori"], k["item"]), {"kategori": k["kategori"], "item": k["item"], "baris": {}})
+        key = (k["lokasi"] or {}).get("gazetteer_id")
+        b = g["baris"].setdefault(key, {"lokasi": k["lokasi"], "atribusi": k["atribusi"], "status": "demanded", "lembaga": [], "sumber": []})
+        if k["status"] == "supplied":
+            if b["status"] != "supplied":
+                b["sumber"] = []
+            b["status"] = "supplied"
+            b["lembaga"] += [l["nama"] for l in k.get("lembaga", []) if l["nama"] not in b["lembaga"]]
+        if k["status"] == "supplied" or b["status"] == "demanded":
+            b["sumber"] += [s for s in k["sumber"] if s not in b["sumber"]]
+    out = []
+    for g in grup.values():
+        rows = list(g["baris"].values())
+        n, ok = len(rows), sum(r["status"] == "supplied" for r in rows)
+        out.append({"kategori": g["kategori"], "item": g["item"], "baris": rows,
+                    "ringkas": f"{ok} dari {n} lokasi disalurkan" if n > 1 else None})
+    return out
+
+
+def _kronologi(g: Graph, mids) -> list[dict]:
+    """Cadangan tanpa LLM: satu baris per tanggal dari EventMention, teks = cuplikan Tweet.text."""
+    per: dict[str, list[str]] = defaultdict(list)
+    for m in mids:
+        per[A.to_date(g.mentions[m]["tanggal_lokal"]).isoformat()] += [t for t in sorted(g.m_tweets.get(m, ())) if t in g.tweets and t not in per[A.to_date(g.mentions[m]["tanggal_lokal"]).isoformat()]]
+    out = []
+    for d in sorted(per):
+        tws = per[d]
+        teks = (g.tweets[tws[0]].get("text") or "").strip() if tws else ""
+        out.append({"tanggal": d, "teks": teks[:157] + "…" if len(teks) > 160 else teks, "tweet_ids": tws})
     return out
 
 
@@ -161,7 +206,20 @@ def _penanganan(g: Graph, mids) -> list[dict]:
             continue
         dep = [_loc_ref(g, l) for l in sorted(g.org_deployed.get(oid, ())) if l in g.locations]
         peran = ["Menangani laporan"] + [f"Dikerahkan ke {d['nama']}" for d in dep]
-        out.append({**_org(g, oid), "peran": peran, "dikerahkan_ke": dep, "sumber": [_sumber(g, m) for m in ms]})
+        # aksi spesifik dari properti relasi, hanya yang sumber tweet-nya milik laporan kejadian ini
+        tws = _tweets_of(g, ms)
+        tgl = {t: A.to_date(g.mentions[m]["tanggal_lokal"]).isoformat() for m in ms for t in g.m_tweets.get(m, ())}
+        aksi, seen = [], set()
+        for d in g.deploys:
+            if d["org"] == oid and d["aksi"] and d["sumber"] in tws and (d["aksi"], d["lokasi"]) not in seen:
+                seen.add((d["aksi"], d["lokasi"]))
+                aksi.append({"aksi": d["aksi"], "lokasi": _loc_ref(g, d["lokasi"]), "tweet_id": d["sumber"], "tanggal": tgl.get(d["sumber"])})
+        for h in g.handles:
+            if h["org"] == oid and h["aksi"] and h["sumber"] in tws and not any(x["aksi"] == h["aksi"] for x in aksi):
+                lok = g.needs.get(h["target"], {}).get("lokasi")
+                aksi.append({"aksi": h["aksi"], "lokasi": _loc_ref(g, lok), "tweet_id": h["sumber"], "tanggal": tgl.get(h["sumber"])})
+        aksi.sort(key=lambda x: (x["tanggal"] or "", x["aksi"]))
+        out.append({**_org(g, oid), "peran": peran, "aksi": aksi, "dikerahkan_ke": dep, "sumber": [_sumber(g, m) for m in ms]})
     return out
 
 
@@ -207,8 +265,9 @@ def _kartu(g: Graph, eid: str, f: Filter) -> dict:
             "jumlah_laporan_periode": len(periode), "jumlah_tweet_periode": len(_tweets_of(g, periode)),
             "jumlah_laporan_total": len(semua), "jumlah_tweet_total": len(_tweets_of(g, semua)),
             "lokasi_ids": titik, "lokasi": [_loc_ref(g, l) for l in titik],
-            "dampak": _dampak(g, periode), "kebutuhan": _kebutuhan(g, periode), "lembaga": _penanganan(g, periode),
-            "laporan": _laporan(g, periode)}
+            "dampak": _dampak(g, periode), "kebutuhan": (keb := _kebutuhan(g, periode)), "kebutuhan_grup": _kebutuhan_grup(keb),
+            "lembaga": _penanganan(g, periode), "laporan": _laporan(g, periode), "kronologi": _kronologi(g, periode),
+            "kronologi_sumber": "cadangan"}
 
 
 def kab_kejadian(g: Graph, kode: str, f: Filter) -> dict:
@@ -268,7 +327,8 @@ def titik_ringkasan(g: Graph, gid: str, f: Filter) -> dict:
             "laporan": [{"mention_id": x["mention_id"], "tanggal_lokal": x["tanggal_lokal"], "jenis": x["jenis"],
                          "tweet_ids": x["tweet_ids"], "relasi": x["relasi"]} for x in lap],
             "jumlah_laporan_kejadian": len(periode),
-            "dampak": _dampak(g, periode, fokus=gid), "kebutuhan": _kebutuhan(g, periode, fokus=gid),
+            "dampak": _dampak(g, periode, fokus=gid), "kebutuhan": (keb := _kebutuhan(g, periode, fokus=gid)),
+            "kebutuhan_grup": _kebutuhan_grup(keb), "kronologi": _kronologi(g, periode),
             "penanganan": _penanganan(g, periode),
             "evakuasi": [{**_sumber(g, m), "asal": [_loc_ref(g, l) for l in g.m_locs.get(m, ()) if l != gid],
                           "tujuan": [_loc_ref(g, l) for l in sorted(g.m_evac.get(m, ()))]}

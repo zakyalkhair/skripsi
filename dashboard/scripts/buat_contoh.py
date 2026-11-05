@@ -119,37 +119,41 @@ TW = {
     "T30": "Banjir merendam rumah warga di Porong.",
     "T31": "Genangan banjir di Porong belum surut pagi ini.",
 }
-AO = [  # id, mention#, kelas, status, jumlah, satuan, lokasi|None
-    ("AO01", 2, "penduduk", "mengungsi", 120, "jiwa", "supiturang"),
-    ("AO02", 4, "rumah", "tertimbun", 8, "unit", "sumberwuluh"),
-    ("AO03", 7, "jembatan", "putus", 1, "unit", "gladak-perak"),
-    ("AO04", 13, "rumah", "rusak", 12, "unit", None),  # kasus Kalirejo: tanpa atribusi lokasi
-    ("AO05", 15, "jalan", "tertutup", None, None, "sumberbrantas"),
-    ("AO06", 21, "rumah", "terendam", 350, "unit", "bangil"),
-    ("AO07", 24, "rumah", "terendam", 90, "unit", "bangil"),
-    ("AO08", 26, "lahan", "terbakar", 40, "hektare", "arjuno"),
-    ("AO09", 29, "bangunan", "rusak ringan", 3, "unit", None),
-    ("AO10", 31, "penduduk", "meninggal", 2, "jiwa", "panti"),
-    ("AO11", 32, "rumah", "terendam", None, None, "porong"),
+# Mengikuti skema: AffectedObject.kelas (6 enum) + objek (opsional; di data nyata ada di log ekstraksi)
+# + lokasi (atribut gazetteer_id, hanya bila tweet menautkan angka ke tempat secara eksplisit).
+AO = [  # id, mention#, kelas, objek, status, jumlah, satuan, lokasi|None
+    ("AO01", 2, "manusia", "warga", "mengungsi", 120, "jiwa", "supiturang"),
+    ("AO02", 4, "rumah", "rumah", "tertimbun", 8, "unit", "sumberwuluh"),
+    ("AO03", 7, "prasarana_vital", "jembatan", "putus", 1, "unit", "gladak-perak"),
+    ("AO04", 13, "rumah", "rumah", "rusak", 12, "unit", None),  # kasus Kalirejo: tanpa atribusi lokasi
+    ("AO05", 15, "prasarana_vital", "jalan", "tertutup", None, None, "sumberbrantas"),
+    ("AO06", 21, "rumah", "rumah", "terendam", 350, "unit", "bangil"),
+    ("AO07", 24, "rumah", "rumah", "terendam", 90, "unit", "bangil"),
+    ("AO08", 26, "sosial_ekonomi", "lahan", "terbakar", 40, "hektare", "arjuno"),
+    ("AO09", 29, "lainnya", "bangunan", "rusak ringan", 3, "unit", None),
+    ("AO10", 31, "manusia", "warga", "meninggal", 2, "jiwa", "panti"),
+    ("AO11", 32, "rumah", None, "terendam", None, None, "porong"),  # tanpa objek: label dari kelas + status
 ]
-HN = [  # id, mention#, kategori, item, status, lokasi|None
-    ("HN01", 2, "logistik", "masker", "demanded", "supiturang"),
-    ("HN02", 5, "hunian", "tenda pengungsian", "demanded", "candipuro"),
-    ("HN03", 5, "logistik", "masker", "supplied", "supiturang"),
-    ("HN04", 13, "hunian", "terpal", "demanded", None),
-    ("HN05", 21, "logistik", "air bersih", "demanded", "bangil"),
-    ("HN06", 25, "personel", "relawan pemadam", "demanded", "arjuno"),
-    ("HN07", 31, "kesehatan", "obat-obatan", "demanded", "panti"),
+HN = [  # id, mention#, kategori (10 enum), item, status, lokasi|None
+    ("HN01", 2, "kesehatan_obat", "masker", "demanded", "supiturang"),
+    ("HN02", 5, "hunian_tenda", "tenda pengungsian", "demanded", "candipuro"),
+    ("HN03", 5, "kesehatan_obat", "masker", "supplied", "supiturang"),
+    ("HN04", 13, "hunian_tenda", "terpal", "demanded", None),
+    ("HN05", 21, "air_bersih_sanitasi", "air bersih", "demanded", "bangil"),
+    ("HN06", 25, "lainnya", "relawan pemadam", "demanded", "arjuno"),
+    ("HN07", 31, "kesehatan_obat", "obat-obatan", "demanded", "panti"),
 ]
-ORG = [  # id, nama, wilayah, tingkat, handles[mention#], deployed[lok], part_of
-    ("ORG01", "BPBD Kabupaten Lumajang", "Kab. Lumajang", "kabupaten", [2, 4], ["supiturang"], None),
-    ("ORG02", "BNPB", "Indonesia", "nasional", [5], ["supiturang"], None),
-    ("ORG03", "Basarnas Surabaya", "Jawa Timur", "provinsi", [30], ["panti"], None),
-    ("ORG04", "BPBD Kabupaten Pasuruan", "Kab. Pasuruan", "kabupaten", [22], ["bangil"], None),
-    ("ORG05", "Manggala Agni Daops Malang", "Jawa Timur", "provinsi", [26], ["arjuno"], "ORG06"),
+# HANDLES {aksi, sumber}: target = mention# (int) atau id kebutuhan/dampak; DEPLOYED_TO {aksi, sumber}: (lokasi, aksi, mention#)
+ORG = [  # id, nama, wilayah, tingkat, handles[(target, aksi, mention# sumber)], deployed[(lok, aksi, mention#)], part_of
+    ("ORG01", "BPBD Kabupaten Lumajang", "Kab. Lumajang", "kabupaten",
+     [(2, "evakuasi warga", 2), (4, "pencarian korban", 4), ("HN03", "membagikan masker", 5)], [("supiturang", "membuka posko pengungsian", 2)], None),
+    ("ORG02", "BNPB", "Indonesia", "nasional", [(5, "mengirim bantuan logistik", 5)], [("supiturang", "pemantauan", 5)], None),
+    ("ORG03", "Basarnas Surabaya", "Jawa Timur", "provinsi", [(30, "pencarian dan penyelamatan", 30)], [("panti", "pencarian korban", 30)], None),
+    ("ORG04", "BPBD Kabupaten Pasuruan", "Kab. Pasuruan", "kabupaten", [(22, "evakuasi warga", 22)], [("bangil", "evakuasi warga", 22)], None),
+    ("ORG05", "Manggala Agni Daops Malang", "Jawa Timur", "provinsi", [(26, "pemadaman darat", 26)], [("arjuno", "pemadaman darat", 26)], "ORG06"),
     ("ORG06", "Kementerian Lingkungan Hidup dan Kehutanan", "Indonesia", "nasional", [], [], None),
-    ("ORG07", "BPBD Kota Batu", "Kota Batu", "kabupaten", [15], ["sumberbrantas"], None),
-    ("ORG08", "PMI Kabupaten Malang", "Kab. Malang", "kabupaten", [14], [], None),
+    ("ORG07", "BPBD Kota Batu", "Kota Batu", "kabupaten", [(15, "pembersihan material longsor", 15)], [("sumberbrantas", "pembersihan material longsor", 15)], None),
+    ("ORG08", "PMI Kabupaten Malang", "Kab. Malang", "kabupaten", [(14, "membantu warga terdampak", 14)], [], None),
 ]
 EVAKUASI = [(2, "candipuro")]  # (mention#, lokasi tujuan)
 
@@ -189,19 +193,24 @@ def main() -> None:
                                        "end_time": d[-1], "status": status})
     for tw, text in TW.items():
         nodes["Tweet"].append({"tweet_id": tw, "upload": tw_time[tw], "text": text, "url": None})
-    for aid, m, kelas, status, jml, sat, lok in AO:
-        nodes["AffectedObject"].append({"id": aid, "kelas": kelas, "status": status, "jumlah": jml, "satuan": sat})
+    tw_of = {f"EM{i:02d}": m[4] for i, m in enumerate(MEN, 1)}
+    for aid, m, kelas, objek, status, jml, sat, lok in AO:
+        node = {"id": aid, "kelas": kelas, "status": status, "jumlah": jml, "satuan": sat, "lokasi": gid(lok) if lok else None}
+        if objek:
+            node["objek"] = objek
+        nodes["AffectedObject"].append(node)
         rels.append({"type": "AFFECTED", "from": f"EM{m:02d}", "to": aid})
-        if lok:
-            rels.append({"type": "LOCATED_IN", "from": aid, "to": gid(lok)})
     for hid, m, kat, item, status, lok in HN:
         nodes["HumanitarianNeed"].append({"id": hid, "kategori": kat, "item": item, "status": status,
                                           "lokasi": gid(lok) if lok else None})
         rels.append({"type": "REQUIRES", "from": f"EM{m:02d}", "to": hid})
     for oid, nama, wil, tingkat, handles, deployed, part in ORG:
         nodes["Organization"].append({"id": oid, "nama_kanonik": nama, "wilayah": wil, "tingkat": tingkat})
-        rels += [{"type": "HANDLES", "from": oid, "to": f"EM{m:02d}"} for m in handles]
-        rels += [{"type": "DEPLOYED_TO", "from": oid, "to": gid(l)} for l in deployed]
+        for target, aksi, sm in handles:
+            to = f"EM{target:02d}" if isinstance(target, int) else target
+            rels.append({"type": "HANDLES", "from": oid, "to": to, "props": {"aksi": aksi, "sumber": tw_of[f"EM{sm:02d}"]}})
+        for l, aksi, sm in deployed:
+            rels.append({"type": "DEPLOYED_TO", "from": oid, "to": gid(l), "props": {"aksi": aksi, "sumber": tw_of[f"EM{sm:02d}"]}})
         if part:
             rels.append({"type": "PART_OF", "from": oid, "to": part})
     rels += [{"type": "EVACUATED_TO", "from": f"EM{m:02d}", "to": gid(l)} for m, l in EVAKUASI]

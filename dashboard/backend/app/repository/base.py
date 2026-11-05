@@ -10,7 +10,7 @@ from ..domain import Filter, Graph
 
 
 # Naikkan bila bentuk respons berubah; harus sama dengan API_VERSI di frontend/src/api.ts.
-API_VERSI = 3
+API_VERSI = 4
 
 class NotFound(Exception):
     pass

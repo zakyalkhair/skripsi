@@ -4,7 +4,8 @@ import { LABEL_PENDEK, STATUS_LABEL, TINGKAT_LABEL } from "../jenis";
 import { kelasOf } from "../map/legend";
 import { kalimatRujukan } from "../map/marker";
 import type { Jenis, KabAgregat, KabKejadian, KabTitik, Kejadian, Ringkasan, Wilayah } from "../types";
-import { dampakItem, factBlock, kebutuhanItem, laporanList, lembagaItem, type TweetMap } from "./facts";
+import { dampakGroups, dampakQty, dampakText, factBlock, kebutuhanGroups, kronologiList, laporanList, lembagaBlock, type TweetMap } from "./facts";
+import type { KebGrup } from "../types";
 import { ico } from "./icons";
 
 /** Kejadian yang ditanyakan ke asisten (konteks percakapan; tidak masuk URL). */
@@ -35,6 +36,24 @@ const section = (title: string, ...body: (Node | null | false)[]) => h("section"
 const none = (t = "Tidak disebutkan") => h("p", { class: "muted small" }, t);
 const statusBadge = (st: string) => h("span", { class: `status status--${st === "ya" ? "ya" : "tidak"}`,
   title: "Status ambang bencana (ya/tidak) — bukan status berlangsung/selesai" }, STATUS_LABEL[st] ?? "Status tidak tersedia");
+
+const KRONO_NOTE = "Cadangan otomatis tanpa LLM: satu baris per tanggal dari cuplikan tweet (laporan situasi Modul 4.3 belum tersambung).";
+const grupAtr = (gs: KebGrup[] | undefined, atr: string): KebGrup[] =>
+  (gs ?? []).map((g) => ({ ...g, baris: g.baris.filter((b) => b.atribusi === atr), ringkas: null })).filter((g) => g.baris.length);
+const ringkasBox = (t: string) => h("div", { class: "ringkas" }, h("p", { class: "ringkas-l" }, ico("sparkle", 12), "Ringkasan otomatis (dummy)"), h("p", { class: "ringkas-x" }, t));
+const fakta = (ds: { label?: string; jumlah: number | null; satuan: string | null; kelas: string | null; status: string | null; objek?: string | null }[]) =>
+  ds.slice(0, 3).map((x) => `${dampakText(x as never)} ${dampakQty(x as never)}`).join("; ");
+function ringkasKab(d: KabKejadian): string {
+  const j = [...new Set(d.kejadian.map((k) => LABEL_PENDEK[k.jenis]))].join(", ");
+  const dampak = d.kejadian.flatMap((k) => k.dampak), org = [...new Set(d.kejadian.flatMap((k) => k.lembaga.map((l) => l.nama_kanonik)))];
+  return `${d.kejadian.length} kejadian (${j}) dilaporkan di ${d.nama}.` + (dampak.length ? ` Dampak yang dilaporkan antara lain: ${fakta(dampak)} (per laporan, tidak dijumlahkan).` : " Belum ada dampak yang dilaporkan.")
+    + (org.length ? ` Penanganan oleh ${org.join(", ")}.` : "");
+}
+function ringkasLokasi(r: Ringkasan): string {
+  const ini = r.kejadian.flatMap((k) => k.dampak.filter((x) => x.atribusi === "lokasi_ini"));
+  return `${r.lokasi.nama} disebut dalam ${r.jumlah_laporan} laporan pada ${r.kejadian.length} kejadian (${rentang(r.tanggal_awal, r.tanggal_akhir)}).`
+    + (ini.length ? ` Dampak di lokasi ini: ${fakta(ini)}.` : " Belum ada dampak yang dilaporkan khusus untuk lokasi ini.");
+}
 
 /** Label tab rincian menurut tingkat tampilan. */
 export const DETAIL_LABEL = { nasional: "Ringkasan", prov: "Detail Wilayah", kab: "Detail Wilayah", lokasi: "Detail Lokasi" } as const;
@@ -216,6 +235,7 @@ export class Panel {
         ? h("p", { class: "note" }, `${angka(t.laporan_tanpa_titik)} laporan hanya menyebut wilayah kab/kota (tanpa lokasi rinci) sehingga tidak tampil sebagai penanda.`) : null,
       luar ? h("p", { class: "note note--ref" }, ico("info", 14), `${angka(luar)} lokasi bercincin putus-putus berada di kab/kota lain; lokasi itu dirujuk oleh laporan kejadian di ${d.nama}, bukan lokasi kejadian.`) : null,
       kosong ?? h("div", {},
+        ringkasBox(ringkasKab(d)),
         h("p", { class: "cards-hint" }, "Klik kartu untuk menyorot lokasinya di peta."),
         h("div", { class: "cards", role: "list", "aria-label": "Kejadian bencana" }, ...d.kejadian.map((k) => this.card(k, d.tweets))))), `kab:${d.kode_kab}`);
   }
@@ -236,9 +256,10 @@ export class Panel {
     const det = h("details", { class: "card-more" },
       h("summary", {}, ico("chevRight", 13, "sum-chev"), h("span", {}, "Dampak, kebutuhan, penanganan, dan sumber")),
       h("p", { class: "card-scope" }, "Dari laporan pada rentang tanggal terpilih. Setiap angka ditampilkan per laporan, tidak dijumlahkan."),
-      factBlock("Dampak kejadian", k.dampak.map((d) => dampakItem(d, tw, true)), "Belum ada dampak yang dilaporkan"),
-      factBlock("Kebutuhan", k.kebutuhan.map((x) => kebutuhanItem(x, tw, true)), "Belum ada kebutuhan yang dilaporkan"),
-      factBlock("Penanganan", k.lembaga.map((l) => lembagaItem(l, tw)), "Belum ada penanganan yang dilaporkan"),
+      k.kronologi?.length ? factBlock("Kronologi kejadian", [kronologiList(k.kronologi)], null, KRONO_NOTE, k.kronologi.length, true) : null,
+      factBlock("Dampak kejadian", dampakGroups(k.dampak, tw, { scope: true }), "Belum ada dampak yang dilaporkan", undefined, k.dampak.length, true),
+      factBlock("Kebutuhan", kebutuhanGroups(k.kebutuhan_grup ?? [], tw), "Belum ada kebutuhan yang dilaporkan", undefined, (k.kebutuhan_grup ?? []).length, true),
+      factBlock("Penanganan", k.lembaga.map((l) => lembagaBlock(l, tw)), "Belum ada penanganan yang dilaporkan"),
       factBlock("Sumber laporan", k.laporan.length ? [laporanList(k.laporan, tw)] : [], "Tidak ada laporan pada rentang ini"));
     if (this.openDetails.has(k.event_id)) det.open = true;
     det.addEventListener("toggle", () => { det.open ? this.openDetails.add(k.event_id) : this.openDetails.delete(k.event_id); });
@@ -310,6 +331,7 @@ export class Panel {
         kpi("Periode laporan", rentang(r.tanggal_awal, r.tanggal_akhir))),
       r.jenis.length ? h("div", { class: "jtags" }, ...r.jenis.map(jenisTag)) : null,
       r.jumlah_laporan === 0 && !r.kejadian.length ? h("div", { class: "pstate pstate--compact" }, h("p", {}, "Tidak ada laporan untuk lokasi ini yang sesuai dengan filter yang dipilih.")) : null,
+      r.kejadian.length ? ringkasBox(ringkasLokasi(r)) : null,
       r.kejadian.length ? section(`Kejadian terkait lokasi ini (${r.kejadian.length})`,
         h("p", { class: "psec-note" }, "Dampak dan kebutuhan dikelompokkan per kejadian. \"Di lokasi ini\" = laporan menautkannya ke lokasi ini; \"tingkat kejadian\" = disebut tanpa lokasi tertentu."),
         ...r.kejadian.map((k) => {
@@ -323,19 +345,19 @@ export class Panel {
             evak ? `tujuan evakuasi dalam ${angka(evak)} laporan` : null].filter(Boolean).join("; ");
           const lainBox = lain.length || kLain.length ? h("details", { class: "fother" },
             h("summary", {}, ico("chevRight", 12, "sum-chev"), `Di lokasi lain dalam kejadian ini (${lain.length + kLain.length})`),
-            factBlock("Dampak di lokasi lain", lain.map((d) => dampakItem(d, tw, false)), null),
-            factBlock("Kebutuhan di lokasi lain", kLain.map((x) => kebutuhanItem(x, tw, false)), null)) : null;
+            factBlock("Dampak di lokasi lain", dampakGroups(lain, tw, { scope: false }), null, undefined, lain.length, true),
+            factBlock("Kebutuhan di lokasi lain", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_lain"), tw), null, undefined, kLain.length, true)) : null;
           return h("article", { class: "evgroup", "data-event": k.event_id },
             h("div", { class: "evgroup-h" }, jenisTag(k.jenis), h("strong", {}, k.nama)),
             h("div", { class: "evgroup-m" }, h("span", {}, k.nama_kab ?? "Kab/kota tidak tersedia"), statusBadge(k.status)),
             h("p", { class: "evgroup-d" }, `Mulai ${tgl(k.start_time)} · laporan terakhir ${tgl(k.end_time)}`),
             rel ? h("p", { class: "evgroup-rel" }, `${rel}.`) : null,
-            factBlock("Dampak di lokasi ini", ini.map((d) => dampakItem(d, tw, false)), "Belum ada dampak yang dilaporkan di lokasi ini"),
-            factBlock("Dampak tingkat kejadian", ev.map((d) => dampakItem(d, tw, false)), null, "Disebut dalam laporan kejadian ini tanpa lokasi tertentu."),
-            factBlock("Kebutuhan di lokasi ini", kIni.map((x) => kebutuhanItem(x, tw, false)), "Belum ada kebutuhan yang dilaporkan di lokasi ini"),
-            factBlock("Kebutuhan tingkat kejadian", kEv.map((x) => kebutuhanItem(x, tw, false)), null, "Tidak dapat ditautkan ke lokasi tertentu."),
+            factBlock("Dampak di lokasi ini", dampakGroups(ini, tw, { scope: false }), ev.length ? `Tidak ada dampak yang dilaporkan khusus untuk ${L.nama} — lihat dampak tingkat kejadian di bawah.` : "Belum ada dampak yang dilaporkan di lokasi ini", undefined, ini.length, true),
+            factBlock("Dampak tingkat kejadian", dampakGroups(ev, tw, { scope: false }), null, "Disebut dalam laporan kejadian ini tanpa lokasi tertentu.", ev.length, true),
+            factBlock("Kebutuhan di lokasi ini", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_ini"), tw), kEv.length ? `Tidak ada kebutuhan yang dilaporkan khusus untuk ${L.nama} — lihat kebutuhan tingkat kejadian di bawah.` : "Belum ada kebutuhan yang dilaporkan di lokasi ini", undefined, kIni.length, true),
+            factBlock("Kebutuhan tingkat kejadian", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "kejadian"), tw), null, "Tidak dapat ditautkan ke lokasi tertentu.", kEv.length, true),
             lainBox,
-            factBlock("Penanganan", k.penanganan.map((l) => lembagaItem(l, tw)), "Belum ada penanganan yang dilaporkan"),
+            factBlock("Penanganan", k.penanganan.map((l) => lembagaBlock(l, tw)), "Belum ada penanganan yang dilaporkan"),
             k.evakuasi.length ? factBlock("Evakuasi", k.evakuasi.map((e) => h("li", { class: "fact" },
               h("span", { class: "fact-main" }, h("span", { class: "fact-what" },
                 e.tujuan.some((t) => t.gazetteer_id === L.gazetteer_id) ? "Lokasi ini menjadi tujuan evakuasi" : `Evakuasi ke ${e.tujuan.map((t) => t.nama).join(", ") || "tujuan tidak disebutkan"}`)),
@@ -346,7 +368,7 @@ export class Panel {
         })) : null,
       r.lembaga_dikerahkan.length ? section("Lembaga yang dikerahkan ke lokasi ini",
         h("p", { class: "psec-note" }, "Dicatat pada tingkat lokasi; tidak tertaut ke laporan atau kejadian tertentu."),
-        h("ul", { class: "facts" }, ...r.lembaga_dikerahkan.map((l) => lembagaItem(l, tw)))) : null,
+        h("ul", { class: "facts" }, ...r.lembaga_dikerahkan.map((l) => lembagaBlock(l, tw)))) : null,
       tweets), `lokasi:${L.gazetteer_id}`);
   }
 }

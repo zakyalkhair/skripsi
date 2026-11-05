@@ -239,7 +239,7 @@ test("10. rujukan lintas kab & dampak tanpa atribusi tetap benar", async ({ page
   await page.locator(".back").click();
   await page.locator('.card[data-event="DE05"] .linkish', { hasText: "Desa Kalirejo" }).click();
   const g = page.locator('.evgroup[data-event="DE05"]');
-  await expect(g.locator(".fblock", { hasText: "Dampak di lokasi ini" })).toContainText("Belum ada dampak yang dilaporkan di lokasi ini");
+  await expect(g.locator(".fblock", { hasText: "Dampak di lokasi ini" })).toContainText("Tidak ada dampak yang dilaporkan khusus untuk Desa Kalirejo");
   const ev = g.locator(".fblock", { hasText: "Dampak tingkat kejadian" });
   await expect(ev.locator(".fact-what")).toHaveText("rumah rusak");
   await expect(ev.locator(".fact-qty")).toHaveText("12 unit");

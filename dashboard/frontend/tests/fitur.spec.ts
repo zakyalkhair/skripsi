@@ -74,7 +74,7 @@ test("lokasi Kec. Bangil: fakta dikelompokkan per kejadian, angka per laporan ti
   // sumber fakta: tanggal + laporan, dapat dibuka hingga tweet aslinya
   const src = ini09.locator(".fsrc").first();
   await expect(src.locator("summary")).toContainText("9 Jan 2026");
-  await expect(src.locator("summary")).toContainText("EM21");
+  await expect(src.locator("summary")).toContainText("T19");
   await src.locator("summary").click();
   await expect(src.locator(".stw")).toContainText("Sekitar 350 rumah terendam di Bangil");
   await expect(src.locator(".stw-id")).toHaveText("ID T19");
