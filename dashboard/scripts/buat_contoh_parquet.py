@@ -28,10 +28,18 @@ MAKS_BMKG = 150  # laporan otomatis BMKG sangat banyak dan seragam
 TIAP_KEJADIAN = 40  # laporan per kejadian sebelum dipecah ke kejadian berikutnya di kab/kota yang sama
 
 DAMPAK = re.compile(r"(\d[\d.]*)\s*(rumah|warga|jiwa|orang|KK|hektare|hektar|ha|bangunan)\b(?:\s+(rusak|terendam|terbakar|mengungsi|meninggal))?", re.I)
-KELAS = {"rumah": ("rumah", "unit"), "bangunan": ("bangunan", "unit"), "warga": ("penduduk", "jiwa"), "jiwa": ("penduduk", "jiwa"),
-         "orang": ("penduduk", "jiwa"), "kk": ("penduduk", "KK"), "hektare": ("lahan", "hektare"), "hektar": ("lahan", "hektare"), "ha": ("lahan", "hektare")}
-KEBUTUHAN = {"air bersih": "logistik", "masker": "logistik", "sembako": "logistik", "selimut": "logistik", "tenda": "hunian",
-             "terpal": "hunian", "obat": "kesehatan", "relawan": "personel"}
+# Mengikuti skema: kelas = 6 enum, objek = label (di data nyata ada di log ekstraksi), kategori = 10 enum.
+KELAS = {"rumah": ("rumah", "rumah", "unit"), "bangunan": ("lainnya", "bangunan", "unit"), "warga": ("manusia", "warga", "jiwa"),
+         "jiwa": ("manusia", "warga", "jiwa"), "orang": ("manusia", "warga", "jiwa"), "kk": ("manusia", "keluarga", "KK"),
+         "hektare": ("sosial_ekonomi", "lahan", "hektare"), "hektar": ("sosial_ekonomi", "lahan", "hektare"), "ha": ("sosial_ekonomi", "lahan", "hektare")}
+STATUS_TIDAK_SAH = {("manusia", "terbakar"), ("manusia", "terendam"), ("manusia", "rusak"), ("rumah", "meninggal"), ("rumah", "mengungsi"),
+                    ("lainnya", "meninggal"), ("lainnya", "mengungsi"), ("sosial_ekonomi", "meninggal"), ("sosial_ekonomi", "mengungsi")}
+KEBUTUHAN = {"air bersih": "air_bersih_sanitasi", "masker": "kesehatan_obat", "sembako": "makanan", "selimut": "sandang_selimut",
+             "tenda": "hunian_tenda", "terpal": "hunian_tenda", "obat": "kesehatan_obat", "relawan": "evakuasi_sar"}
+SALUR = r"\b(disalurkan|dibagikan|membagikan|menyalurkan|dikirim|mengirim|tiba|datang)\b"
+AKSI = [(r"memadamkan|pemadaman|padamkan", "pemadaman"), (r"evakuasi|mengevakuasi|dievakuasi", "evakuasi warga"),
+        (r"membagikan|menyalurkan|disalurkan|dibagikan", "menyalurkan bantuan"), (r"mencari|pencarian", "pencarian korban"),
+        (r"posko|mendirikan", "mendirikan posko"), (r"memantau|pemantauan|meninjau", "pemantauan"), (r"membantu|bantu", "membantu warga")]
 ORG = {"BNPB": "nasional", "Basarnas": "nasional", "PMI": "nasional", "Manggala Agni": "nasional", "BPBD": "provinsi"}
 
 
@@ -145,28 +153,43 @@ def main() -> None:
         rels += [{"type": "REPORTS", "from": tid, "to": mid}, {"type": "CONSOLIDATED_INTO", "from": mid, "to": eid}]
         rels += [{"type": "MENTIONS", "from": mid, "to": g} for g in terpilih]
         lok1 = next((g for g in terpilih if not g.startswith("kab:")), None)
+        titik_lap = [g for g in terpilih if not g.startswith("kab:")]
+        lok_dampak = titik_lap[0] if len(titik_lap) == 1 else None  # atribut lokasi hanya bila tautan tunggal (eksplisit)
+        aids, hids = [], []
         for j, m in enumerate(list(DAMPAK.finditer(teks))[:2], 1):
             angka = m.group(1).replace(".", "")
             if not angka:
                 continue
-            kelas, sat = KELAS[m.group(2).lower()]
+            kelas, objek, sat = KELAS[m.group(2).lower()]
+            status = (m.group(3) or "terdampak").lower()
+            if (kelas, status) in STATUS_TIDAK_SAH:
+                continue  # validasi skema membuang pasangan kelas x status tidak sah
             aid = f"AOD{i:04d}-{j}"
-            nodes["AffectedObject"].append({"id": aid, "kelas": kelas, "status": (m.group(3) or "terdampak").lower(), "jumlah": int(angka), "satuan": sat})
+            nodes["AffectedObject"].append({"id": aid, "kelas": kelas, "objek": objek, "status": status, "jumlah": int(angka),
+                                            "satuan": sat, "lokasi": lok_dampak})
             rels.append({"type": "AFFECTED", "from": mid, "to": aid})
-            if lok1:
-                rels.append({"type": "LOCATED_IN", "from": aid, "to": lok1})
+            aids.append(aid)
         for item, kat in KEBUTUHAN.items():
             if re.search(rf"\b(butuh|dibutuhkan|kebutuhan|perlu)\b.*\b{item}\b", teks, re.I):
                 hid = f"HND{i:04d}-{item.replace(' ', '')}"
-                nodes["HumanitarianNeed"].append({"id": hid, "kategori": kat, "item": item, "status": "demanded", "lokasi": lok1})
+                status = "supplied" if re.search(SALUR, teks, re.I) else "demanded"
+                nodes["HumanitarianNeed"].append({"id": hid, "kategori": kat, "item": item, "status": status, "lokasi": lok1})
                 rels.append({"type": "REQUIRES", "from": mid, "to": hid})
+                hids.append((hid, status))
         for nama, tingkat in ORG.items():
-            if re.search(rf"\b{nama}\b", teks):
+            if re.search(rf"\b{re.escape(nama)}\b", teks):
                 kanon = f"{nama} {w['provinsi']}" if tingkat == "provinsi" else nama
                 if kanon not in org_id:
                     org_id[kanon] = f"ORGD{len(org_id) + 1:03d}"
                     nodes["Organization"].append({"id": org_id[kanon], "nama_kanonik": kanon, "wilayah": w["provinsi"] if tingkat == "provinsi" else "Indonesia", "tingkat": tingkat})
-                rels.append({"type": "HANDLES", "from": org_id[kanon], "to": mid})
+                aksi = next((a for pola, a in AKSI if re.search(pola, teks, re.I)), "menangani laporan")
+                props = {"aksi": aksi, "sumber": tid}
+                rels.append({"type": "HANDLES", "from": org_id[kanon], "to": mid, "props": props})
+                for hid, st in hids:  # lembaga yang menyalurkan kebutuhan pada tweet yang sama
+                    if st == "supplied":
+                        rels.append({"type": "HANDLES", "from": org_id[kanon], "to": hid, "props": {"aksi": f"menyalurkan {hid.split('-')[-1]}", "sumber": tid}})
+                if lok1 and aksi != "menangani laporan":
+                    rels.append({"type": "DEPLOYED_TO", "from": org_id[kanon], "to": lok1, "props": props})
     for (ev, kode), ke in kejadian.items():
         j = JENIS[ev[:2]]
         for k, (eid, tgl) in enumerate(ke["ids"].items(), 1):
