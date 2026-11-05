@@ -8,6 +8,10 @@ from ..config import Settings
 from ..domain import Filter, Graph
 
 
+
+# Naikkan bila bentuk respons berubah; harus sama dengan API_VERSI di frontend/src/api.ts.
+API_VERSI = 3
+
 class NotFound(Exception):
     pass
 
@@ -40,7 +44,7 @@ class Repository(ABC):
         return {k["kode_kab"] for k in service.kab_agregat(self.graph_all(), Filter())["kab"]}
 
     # ---- endpoint
-    def wilayah(self) -> dict:
+    def wilayah(self) -> dict:  # api_versi: frontend memeriksa agar server lama yang belum dimulai ulang terdeteksi
         ada = self.kab_dengan_data()
         prov: dict[str, str] = {}
         kab = []
@@ -48,7 +52,7 @@ class Repository(ABC):
             prov[w["kode_prov"]] = w["provinsi"]
             kab.append({**w, "ada_data": w["kode_kab"] in ada})
         return {"provinsi": [{"kode_prov": k, "nama": v} for k, v in sorted(prov.items())], "kab": kab,
-                "dataset": self.metadata()}
+                "dataset": self.metadata(), "api_versi": API_VERSI}
 
     def cek_kab(self, kode: str) -> dict:
         if kode not in self._kab_names:

@@ -7,7 +7,7 @@ import "./styles/timeline.css";
 import "./styles/chat.css";
 import "./styles/ui.css";
 
-import { api, ApiError, isAbort, type Cakupan, type Query } from "./api";
+import { api, API_VERSI, ApiError, isAbort, PESAN_VERSI, type Cakupan, type Query } from "./api";
 import { ChatView, type ChatCtxInfo } from "./chat/chat";
 import { setChatService, type ChatScope } from "./chat/service";
 import { h } from "./dom";
@@ -331,7 +331,9 @@ async function loadKab(fresh: boolean): Promise<void> {
     else announce("Kejadian yang disorot tidak sesuai filter baru; sorotan dihapus.");
   }
   cekSorotUrl = false;
-  if (store.view === "kab") renderKab();
+  if (store.view === "kab") {
+    try { renderKab(); } catch (e) { showError(e); } // galat tampilan panel tidak menghentikan penanda peta
+  }
   if (store.state.lokasi && !lokasiNama) {
     lokasiNama = t.titik.find((x) => x.gazetteer_id === store.state.lokasi)?.nama ?? null;
     if (lokasiNama) { renderCrumbs(); timeline.setScope(tlScope(store.state)); }
@@ -613,6 +615,7 @@ async function boot(): Promise<void> {
   try {
     const [w, kab, prov] = await Promise.all([api.wilayah(), api.geo("kabkota"), api.geo("provinsi")]);
     wil = w;
+    if (w.api_versi !== API_VERSI) toasts.show("Versi backend tidak cocok dengan frontend.", { kind: "err", ms: 0, detail: PESAN_VERSI });
     kabNames = new Map(w.kab.map((k) => [k.kode_kab, k]));
     provNames = new Map(w.provinsi.map((p) => [p.kode_prov, p.nama]));
     toolbar.setWilayah(w);

@@ -432,3 +432,18 @@ test("ponsel: lembar bawah menampilkan Tanya AI; kolom chat tetap terlihat", asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   await ctx.close();
 });
+
+// ------------------------------------------------------------------ server backend lama (belum dimulai ulang)
+test("backend versi lama: pesan jelas, tidak macet di kerangka muat", async ({ page }) => {
+  await page.route(/\/api\/wilayah$/, async (r) => { const res = await r.fetch(); const j = await res.json(); delete j.api_versi; await r.fulfill({ response: res, json: j }); });
+  await page.route(/\/api\/kab\/3514\/kejadian/, async (r) => {
+    const res = await r.fetch(); const j = await res.json();
+    delete j.tweets; for (const k of j.kejadian) delete k.laporan; // bentuk respons server lama
+    await r.fulfill({ response: res, json: j });
+  });
+  await open(page, [], {});
+  await expect(page.locator(".toast")).toContainText("Versi backend tidak cocok dengan frontend.");
+  await clickKab(page, "3514");
+  await expect(page.locator(".panel .pstate--err")).toContainText("Server backend masih versi lama");
+  await expect(page.locator(".panel .skel-wrap")).toHaveCount(0);
+});

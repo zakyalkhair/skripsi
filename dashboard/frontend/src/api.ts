@@ -1,6 +1,10 @@
 import type { Histogram, Jenis, KabAgregat, KabKejadian, KabTitik, Ringkasan, Wilayah } from "./types";
 import { JENIS } from "./jenis";
 
+/** Versi kontrak API yang diharapkan frontend (sama dengan API_VERSI di backend/app/repository/base.py). */
+export const API_VERSI = 3;
+export const PESAN_VERSI = "Server backend masih versi lama. Hentikan uvicorn (Ctrl+C), jalankan ulang, lalu muat ulang halaman.";
+
 export interface Query { jenis: Set<Jenis>; dari: string | null; sampai: string | null }
 
 /** jenis: semua dipilih -> parameter tidak dikirim (semua); kosong -> "jenis=" (tidak ada yang dipilih). */
@@ -48,9 +52,16 @@ export const api = {
   wilayah: () => get<Wilayah>("wilayah", "/api/wilayah"),
   agregat: (q: Query) => get<KabAgregat>("agregat", `/api/kab-agregat${qs(q)}`),
   agregatProv: (q: Query, prov: string) => get<KabAgregat>("agregat-prov", `/api/kab-agregat${qs(q, { prov })}`),
-  kejadian: (kode: string, q: Query) => get<KabKejadian>("kejadian", `/api/kab/${kode}/kejadian${qs(q)}`),
+  kejadian: (kode: string, q: Query) => get<KabKejadian>("kejadian", `/api/kab/${kode}/kejadian${qs(q)}`).then((d) => {
+    // respons server lama (tanpa sumber laporan per kejadian) ditolak dengan pesan jelas, bukan macet
+    if (!d.tweets || d.kejadian.some((k) => !Array.isArray(k.laporan))) throw new ApiError(409, PESAN_VERSI);
+    return d;
+  }),
   titik: (kode: string, q: Query) => get<KabTitik>("titik", `/api/kab/${kode}/titik${qs(q)}`),
-  ringkasan: (gid: string, q: Query) => get<Ringkasan>("ringkasan", `/api/titik/${encodeURIComponent(gid)}/ringkasan${qs(q)}`),
+  ringkasan: (gid: string, q: Query) => get<Ringkasan>("ringkasan", `/api/titik/${encodeURIComponent(gid)}/ringkasan${qs(q)}`).then((d) => {
+    if (!d.tweet_map || !Array.isArray(d.lembaga_dikerahkan)) throw new ApiError(409, PESAN_VERSI);
+    return d;
+  }),
   histogram: (q: Query, scope: Cakupan) => get<Histogram>("histogram", `/api/histogram${qs({ jenis: q.jenis }, scopeParams(scope))}`),
   eksporUrl: (q: Query, scope: Cakupan) => `/api/ekspor${qs(q, scopeParams(scope))}`,
   geo: (name: string) => fetch(`${import.meta.env.BASE_URL}geo/${name}.geojson`).then((r) => {

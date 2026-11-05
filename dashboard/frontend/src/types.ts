@@ -7,6 +7,7 @@ export interface Wilayah {
   provinsi: { kode_prov: string; nama: string }[];
   kab: { kode_kab: string; nama: string; kode_prov: string; provinsi: string; ada_data: boolean }[];
   dataset: { sumber: string; label: string; keterangan: string | null; contoh: boolean; rentang: { awal: string | null; akhir: string | null } };
+  api_versi?: number;
 }
 
 export interface KabAgregat {

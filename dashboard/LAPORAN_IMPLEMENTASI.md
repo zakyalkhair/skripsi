@@ -104,7 +104,7 @@
   tahap 3: pengelompokan per kejadian (Bangil: 350 & 90 unit terpisah), atribusi lokasi_ini/lokasi_lain/kejadian,
   relasi evakuasi, sumber per fakta, histogram per cakupan (lokasi Semeru 3, kab 3507 = 6, prov 35 = 33),
   agregat provinsi, ZIP ekspor (BOM, isi, 404 bila kosong), pelindung injeksi formula.
-- Playwright (Chromium headless): **36 lulus** (termasuk uji chip jenis) — 17 uji lama (disesuaikan dengan teks baru) + 18 uji tahap 3:
+- Playwright (Chromium headless): **37 lulus** (termasuk uji chip jenis & deteksi backend versi lama) — 17 uji lama (disesuaikan dengan teks baru) + 18 uji tahap 3:
   kursor penunjuk, zoom nasional, Bangil & kartu berpusat-kejadian, linimasa per cakupan & keadaan kosong,
   tampilan provinsi, cincin lokasi rujukan + tooltip, jarak warna (termasuk simulasi deuteranopia/protanopia),
   URL pulih/Back/Forward/muat ulang/parameter tidak valid, URL tanpa status transien, salin tautan + cadangan,

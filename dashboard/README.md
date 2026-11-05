@@ -21,13 +21,16 @@ npm install
 npm run dev                                         # http://localhost:5173 (proxy /api -> :8000)
 ```
 
+> **Setelah `git pull`, selalu mulai ulang backend** (Ctrl+C lalu jalankan `uvicorn` lagi; atau pakai `--reload`).
+> Server lama yang masih berjalan memberi respons bentuk lama: dasbor menampilkan "Versi backend tidak cocok".
+
 Build statis: `npm run build` → `frontend/dist/` (sajikan bersama backend; `/api` harus satu origin atau atur `CORS_ORIGINS`).
 
 ## Uji
 
 ```bash
 cd dashboard/backend && .venv/bin/python -m pytest -q          # 19 uji API (hitungan distinct, atribusi, cakupan, ekspor ZIP)
-cd dashboard/frontend && npx playwright test                   # 36 uji browser; menyalakan backend + vite otomatis
+cd dashboard/frontend && npx playwright test                   # 37 uji browser; menyalakan backend + vite otomatis
 ```
 Playwright memakai Chromium terpasang di `/opt/pw-browsers` bila ada, atau `PW_CHROMIUM=/path/chrome`,
 atau browser bawaan Playwright (`npx playwright install chromium`).
