@@ -240,10 +240,11 @@ test("10. rujukan lintas kab & dampak tanpa atribusi tetap benar", async ({ page
   await page.locator('.card[data-event="DE05"] .linkish', { hasText: "Desa Kalirejo" }).click();
   const g = page.locator('.evgroup[data-event="DE05"]');
   await expect(g.locator(".fblock", { hasText: "Dampak di lokasi ini" })).toContainText("Tidak ada dampak yang dilaporkan khusus untuk Desa Kalirejo");
-  const ev = g.locator(".fblock", { hasText: "Dampak tingkat kejadian" });
+  const blk = (t: string) => g.locator(".fblock").filter({ has: page.locator(".fblock-t", { hasText: new RegExp(`^${t}`) }) });
+  const ev = blk("Dampak tingkat kejadian");
   await expect(ev.locator(".fact-what")).toHaveText("rumah rusak");
   await expect(ev.locator(".fact-qty")).toHaveText("12 unit");
-  await expect(g.locator(".fblock", { hasText: "Kebutuhan tingkat kejadian" })).toContainText("terpal");
+  await expect(blk("Kebutuhan tingkat kejadian")).toContainText("terpal");
   await page.getByRole("button", { name: "Kembali ke peta nasional" }).click();
   await expect(current(page)).toHaveText("Indonesia");
 });
