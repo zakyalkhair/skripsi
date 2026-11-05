@@ -5,23 +5,27 @@ import { isDefaultFilter } from "../store";
 import type { Jenis, Wilayah } from "../types";
 import { Combobox } from "./combobox";
 import { DateRange } from "./daterange";
-import { ico, iconSvg } from "./icons";
+import { ico } from "./icons";
 
 const SINGKAT: Record<Jenis, string> = { banjir: "Banjir", longsor: "Longsor", cuaca: "Cuaca", karhutla: "Karhutla", gempa: "Gempa", erupsi: "Erupsi" };
 
 /** Bilah filter mengambang: jenis bencana · wilayah · periode · atur ulang. */
 export function buildToolbar(store: Store, onKab: (kode: string | null) => void) {
-  const box = (j: Jenis | "all") => h("span", { class: "chip-box", style: j === "all" ? null : `--c: var(--j-${j})`, "aria-hidden": "true" });
+  // Chip teks saja: warna jenis (token --j-*) hanya muncul pada chip terpilih. data-text dipakai CSS untuk
+  // mencadangkan lebar huruf tebal sehingga memilih/melepas tidak menggeser tata letak.
+  const label = (cls: string, t: string, hidden = false) => h("span", { class: cls, "data-text": t, "aria-hidden": hidden ? "true" : null }, t);
   const chips = JENIS.map((j) =>
     h("button", { type: "button", class: "chip", "data-jenis": j, "aria-pressed": "true", title: LABEL[j], "aria-label": LABEL[j],
+      style: `--c: var(--j-${j})`,
       onclick: () => {
         const next = new Set(store.state.jenis);
         next.has(j) ? next.delete(j) : next.add(j);
         store.set({ jenis: next });
-      } }, box(j), h("span", { class: "chip-t" }, h("span", { class: "chip-l" }, LABEL_PENDEK[j]), h("span", { class: "chip-s", "aria-hidden": "true" }, SINGKAT[j]))));
-  const semua = h("button", { type: "button", class: "chip chip--all", "aria-pressed": "true",
-    onclick: () => store.set({ jenis: store.state.jenis.size === JENIS.length ? new Set() : new Set(JENIS) }) },
-    box("all"), h("span", { class: "chip-t" }, "Semua"));
+      } }, label("chip-l", LABEL_PENDEK[j]), label("chip-s", SINGKAT[j], true)));
+  // "Semua" selalu memilih semua jenis (tidak mengosongkan); pilihan kosong tetap didukung lewat chip satuan.
+  const semua = h("button", { type: "button", class: "chip chip--all", "aria-pressed": "true", "aria-label": "Semua jenis bencana",
+    title: "Pilih semua jenis bencana", onclick: () => { if (store.state.jenis.size !== JENIS.length) store.set({ jenis: new Set(JENIS) }); } },
+    label("chip-a", "Semua"));
   const combo = new Combobox("kab-combo", "Kabupaten/kota", "Cari kab/kota…", onKab);
   const date = new DateRange((dari, sampai) => store.set({ dari, sampai }));
   const reset = h("button", { type: "button", class: "tb-reset", disabled: true,
@@ -49,10 +53,7 @@ export function buildToolbar(store: Store, onKab: (kode: string | null) => void)
     for (const c of chips) c.setAttribute("aria-pressed", String(s.jenis.has(c.dataset.jenis as Jenis)));
     const all = s.jenis.size === JENIS.length, none = s.jenis.size === 0;
     semua.setAttribute("aria-pressed", String(all));
-    semua.setAttribute("aria-label", all ? "Semua jenis dipilih; klik untuk mengosongkan" : "Pilih semua jenis");
     semua.classList.toggle("is-partial", !all && !none);
-    semua.querySelector(".chip-box")!.innerHTML = all ? iconSvg("check", 12) : !none ? iconSvg("dash", 12) : "";
-    for (const c of chips) c.querySelector(".chip-box")!.innerHTML = s.jenis.has(c.dataset.jenis as Jenis) ? iconSvg("check", 12) : "";
     const n = (s.jenis.size < JENIS.length ? 1 : 0) + (s.dari || s.sampai ? 1 : 0);
     reset.disabled = isDefaultFilter(s);
     reset.setAttribute("aria-label", n ? `Atur ulang filter (${n} aktif)` : "Atur ulang filter");

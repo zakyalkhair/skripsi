@@ -27,7 +27,7 @@ Build statis: `npm run build` → `frontend/dist/` (sajikan bersama backend; `/a
 
 ```bash
 cd dashboard/backend && .venv/bin/python -m pytest -q          # 19 uji API (hitungan distinct, atribusi, cakupan, ekspor ZIP)
-cd dashboard/frontend && npx playwright test                   # 35 uji browser; menyalakan backend + vite otomatis
+cd dashboard/frontend && npx playwright test                   # 36 uji browser; menyalakan backend + vite otomatis
 ```
 Playwright memakai Chromium terpasang di `/opt/pw-browsers` bila ada, atau `PW_CHROMIUM=/path/chrome`,
 atau browser bawaan Playwright (`npx playwright install chromium`).

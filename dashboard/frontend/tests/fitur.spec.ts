@@ -178,9 +178,37 @@ test("warna jenis: terpusat di token, cuaca ekstrem vs erupsi jelas berbeda (jug
   expect(de("cuaca", "erupsi", "deutan")).toBeGreaterThan(40);
   expect(de("cuaca", "erupsi", "protan")).toBeGreaterThan(30);
   // warna yang sama dipakai chip, linimasa, dan legenda (satu sumber)
-  const chip = await page.locator('.chip[data-jenis="cuaca"] .chip-box').evaluate((e) => getComputedStyle(e).backgroundColor);
+  const chipC = await page.locator('.chip[data-jenis="cuaca"]').evaluate((e) => getComputedStyle(e).getPropertyValue("--c").trim());
+  expect(chipC).toBe(hex.cuaca);
   const tl = await page.locator('.tl-bar[fill="var(--j-cuaca)"]').first().evaluate((e) => getComputedStyle(e).fill);
-  expect(chip).toBe(tl);
+  expect(tl).toBe(`rgb(${rgb(hex.cuaca).join(", ")})`);
+});
+
+// ------------------------------------------------------------------ chip jenis teks saja
+test("chip jenis: teks saja, aktif berwarna jenis, nonaktif netral, Semua hanya aktif bila semua aktif", async ({ page }) => {
+  await open(page, [], { path: "/?jenis=banjir,erupsi" });
+  const done = () => page.locator(".tb-jenis").evaluate((e) => Promise.all(e.getAnimations({ subtree: true }).map((a) => a.finished)));
+  await done();
+  await expect(page.locator(".tb-jenis svg, .tb-jenis .chip-box")).toHaveCount(0); // tanpa kotak centang / tanda centang
+  await expect(page.locator(".chip--all")).toHaveAttribute("aria-pressed", "false");
+  const bg = (j: string) => page.locator(`.chip[data-jenis="${j}"]`).evaluate((e) => getComputedStyle(e).backgroundColor);
+  const [banjir, erupsi, longsor, gempa] = [await bg("banjir"), await bg("erupsi"), await bg("longsor"), await bg("gempa")];
+  expect(banjir).not.toBe(erupsi);
+  expect(longsor).toBe(gempa); // nonaktif: netral & seragam
+  expect(banjir).not.toBe(longsor);
+  const wt = (j: string) => page.locator(`.chip[data-jenis="${j}"]`).evaluate((e) => Number(getComputedStyle(e).fontWeight));
+  expect(await wt("banjir")).toBeGreaterThan(await wt("longsor")); // tidak bergantung pada warna saja
+  const lon = page.locator('.chip[data-jenis="longsor"]');
+  const w0 = (await lon.boundingBox())!.width;
+  await lon.click();
+  await expect(lon).toHaveAttribute("aria-pressed", "true");
+  expect(Math.abs((await lon.boundingBox())!.width - w0)).toBeLessThan(0.6); // tanpa pergeseran tata letak
+  expect(await lon.evaluate((e) => getComputedStyle(e).cursor)).toBe("pointer");
+  await page.locator(".chip--all").click();
+  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
+  await page.locator(".chip--all").click(); // tetap semua, tidak mengosongkan
+  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
+  await expect(page).toHaveURL(/127\.0\.0\.1:5173\/$/);
 });
 
 // ------------------------------------------------------------------ D8 URL
@@ -260,8 +288,8 @@ test("Ekspor Data (CSV): ZIP berisi CSV ternormalisasi + manifest; tanpa data = 
   expect(man.filter.jenis).toEqual(["banjir"]);
   await expect(page.locator(".toast").last()).toContainText("Data diekspor.");
   // tanpa jenis = tidak ada data
-  await page.locator(".chip--all").click(); // sebagian -> semua
-  await page.locator(".chip--all").click(); // semua -> kosong
+  await page.goto("/?kab=3514&jenis="); // jenis kosong (didukung eksplisit)
+  await expect(page.locator("body")).toHaveAttribute("data-ready", "true");
   await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Ekspor", exact: true }).click();
   await page.getByRole("menuitem", { name: /Ekspor Data \(CSV\)/ }).click();

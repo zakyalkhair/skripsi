@@ -146,7 +146,8 @@ test("6. kartu kejadian: klik menyorot, klik lagi melepas, pindah kartu memindah
 
 test("7. filter jenis konsisten di peta & panel; dropdown = klik peta", async ({ page }) => {
   await open(page);
-  await page.locator(".chip--all").click();
+  for (const j of ["banjir", "longsor", "cuaca", "karhutla", "gempa", "erupsi"]) await page.locator(`.chip[data-jenis="${j}"]`).click();
+  await expect(page.locator(".chip--all")).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".map-empty")).toBeHidden(); // panel terbuka sudah menampilkan pesan
   await expect(page.locator(".panel")).toContainText("Belum ada jenis bencana yang dipilih");
   await expect(kpi(page, "Kejadian bencana")).toHaveText("0");
