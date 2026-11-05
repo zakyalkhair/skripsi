@@ -1,0 +1,58 @@
+:root {
+  /* permukaan & tinta (netral sedikit hangat agar peta tetap fokus) */
+  --bg: #eeede8;
+  --surface: #fbfaf7;
+  --surface-2: #f4f3ee;
+  --surface-3: #e9e7e0;
+  --ink: #161b1d;
+  --ink-2: #3f474a;
+  --ink-3: #6c7477;
+  --ink-4: #969d9f;
+  --line: #dedcd4;
+  --line-2: #c8c5bb;
+  --focus: #1f5fd1;
+  --select: #121619;
+
+  /* warna kategorikal jenis bencana (satu sumber; dipakai chip, kartu, penanda, histogram) */
+  --j-banjir: #2a6fc4;
+  --j-longsor: #9b6a1c;
+  --j-cuaca: #7b52c4;
+  --j-karhutla: #d4561f;
+  --j-gempa: #128578;
+  --j-erupsi: #b02a68;
+
+  /* skala sekuensial choropleth: jumlah kejadian unik (batu tulis -> tinta) */
+  --ch-0: #e4e2dc;
+  --ch-1: #cfd6e0;
+  --ch-2: #a7b5c8;
+  --ch-3: #7a8ead;
+  --ch-4: #51668b;
+  --ch-5: #2c3e60;
+  --ch-na: transparent;
+
+  /* tipografi */
+  --f-ui: "Barlow", system-ui, sans-serif;
+  --f-cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --t-11: 0.6875rem; --t-12: 0.75rem; --t-13: 0.8125rem; --t-14: 0.875rem; --t-15: 0.9375rem;
+  --t-16: 1rem; --t-18: 1.125rem; --t-20: 1.25rem; --t-24: 1.5rem; --t-30: 1.875rem;
+
+  /* ruang & bentuk */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px;
+  --r-1: 4px; --r-2: 6px; --r-3: 10px;
+  --shadow-1: 0 1px 2px rgba(20, 24, 26, 0.06), 0 1px 1px rgba(20, 24, 26, 0.04);
+  --shadow-2: 0 6px 20px -6px rgba(20, 24, 26, 0.22), 0 2px 6px rgba(20, 24, 26, 0.08);
+
+  /* gerak */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-hover: 150ms; --d-chip: 190ms; --d-tip: 130ms; --d-card: 240ms; --d-panel: 300ms; --d-marker: 380ms; --d-fill: 380ms;
+
+  --hdr-h: 56px;
+  --panel-w: clamp(340px, 29vw, 440px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --d-hover: 0ms; --d-chip: 0ms; --d-tip: 0ms; --d-card: 0ms; --d-panel: 0ms; --d-marker: 0ms; --d-fill: 0ms; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
+}

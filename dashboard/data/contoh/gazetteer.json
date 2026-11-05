@@ -1,0 +1,102 @@
+{
+ "kab:3507": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3507"
+ },
+ "kab:3508": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3508"
+ },
+ "kab:3509": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3509"
+ },
+ "kab:3513": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3513"
+ },
+ "kab:3514": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3514"
+ },
+ "kab:3515": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3515"
+ },
+ "kab:3579": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3579"
+ },
+ "contoh:gunung/semeru": {
+  "tingkat": "gunung",
+  "kode_kab": "3508"
+ },
+ "contoh:desa/supiturang": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "contoh:desa/sumberwuluh": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "contoh:kec/candipuro": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3508"
+ },
+ "contoh:jembatan/gladak-perak": {
+  "tingkat": "jembatan",
+  "kode_kab": "3508"
+ },
+ "contoh:kec/ampelgading": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3507"
+ },
+ "contoh:kec/dampit": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3507"
+ },
+ "contoh:desa/kalirejo": {
+  "tingkat": "desa",
+  "kode_kab": "3507"
+ },
+ "contoh:desa/sumberbrantas": {
+  "tingkat": "desa",
+  "kode_kab": "3579"
+ },
+ "contoh:desa/bulukerto": {
+  "tingkat": "desa",
+  "kode_kab": "3579"
+ },
+ "contoh:kec/bangil": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3514"
+ },
+ "contoh:kec/beji": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3514"
+ },
+ "contoh:gunung/arjuno": {
+  "tingkat": "gunung",
+  "kode_kab": "3514"
+ },
+ "contoh:desa/ngadisari": {
+  "tingkat": "desa",
+  "kode_kab": "3513"
+ },
+ "contoh:kec/sukapura": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3513"
+ },
+ "contoh:kec/puger": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3509"
+ },
+ "contoh:kec/panti": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3509"
+ },
+ "contoh:kec/porong": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3515"
+ }
+}
