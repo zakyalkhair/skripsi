@@ -324,6 +324,7 @@ test("Ekspor Peta (PNG): dengan ubin CORS peta dasar disertakan", async ({ page 
 // ------------------------------------------------------------------ E11–13 asisten
 test("asisten: tombol mengambang, tab, keadaan belum tersedia, riwayat bertahan", async ({ page }) => {
   await open(page);
+  await page.evaluate(() => (window as unknown as { __psb: Psb }).__psb.setChatService(null)); // tanpa layanan
   // panel terbuka: tab tersedia, tombol mengambang tersembunyi
   await expect(page.locator(".ptab")).toHaveCount(2);
   await expect(page.locator(".fab-ai")).toBeHidden();
@@ -378,6 +379,12 @@ test("asisten: 'Tanyakan tentang kejadian ini' memberi konteks kejadian", async 
   await expect(page.locator(".chat-ev")).toContainText("Kejadian: Erupsi Gunung Semeru — Kab. Lumajang");
   await expect(page.locator(".chat-ctx-v")).toContainText("Kab. Lumajang");
   await expect(page.locator(".chat-ex-b").first()).toContainText("Erupsi Gunung Semeru");
+  // layanan bawaan sementara: ringkasan dummy dari data nyata dasbor, dengan sitasi tweet asli
+  await expect(page.locator(".chat-status")).toHaveText("Mode dummy");
+  await page.locator(".chat-ex-b").first().click();
+  await expect(page.locator(".msg--bot").last()).toContainText("Jawaban contoh (dummy)");
+  await expect(page.locator(".msg--bot").last()).toContainText("Erupsi Gunung Semeru");
+  await expect(page.locator(".cite").first()).toContainText("Kejadian DE01");
   await page.locator(".chat-ev-x").click();
   await expect(page.locator(".chat-ev")).toBeHidden();
 });
@@ -434,7 +441,7 @@ test("ponsel: lembar bawah menampilkan Tanya AI; kolom chat tetap terlihat", asy
 });
 
 // ------------------------------------------------------------------ server backend lama (belum dimulai ulang)
-test("backend versi lama: pesan jelas, tidak macet di kerangka muat", async ({ page }) => {
+test("backend versi lama: peringatan, tetapi kartu & penanda tetap tampil", async ({ page }) => {
   await page.route(/\/api\/wilayah$/, async (r) => { const res = await r.fetch(); const j = await res.json(); delete j.api_versi; await r.fulfill({ response: res, json: j }); });
   await page.route(/\/api\/kab\/3514\/kejadian/, async (r) => {
     const res = await r.fetch(); const j = await res.json();
@@ -443,7 +450,7 @@ test("backend versi lama: pesan jelas, tidak macet di kerangka muat", async ({ p
   });
   await open(page, [], {});
   await expect(page.locator(".toast")).toContainText("Versi backend tidak cocok dengan frontend.");
-  await clickKab(page, "3514");
-  await expect(page.locator(".panel .pstate--err")).toContainText("Server backend masih versi lama");
+  await enterKab(page, "3514", "Kab. Pasuruan");
+  await expect(page.locator(".card")).toHaveCount(3);
   await expect(page.locator(".panel .skel-wrap")).toHaveCount(0);
 });

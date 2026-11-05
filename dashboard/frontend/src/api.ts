@@ -3,7 +3,10 @@ import { JENIS } from "./jenis";
 
 /** Versi kontrak API yang diharapkan frontend (sama dengan API_VERSI di backend/app/repository/base.py). */
 export const API_VERSI = 3;
-export const PESAN_VERSI = "Server backend masih versi lama. Hentikan uvicorn (Ctrl+C), jalankan ulang, lalu muat ulang halaman.";
+export const PESAN_VERSI = "Server backend masih versi lama: sebagian rincian (sumber laporan per kejadian) tidak tersedia. Pastikan proses uvicorn lama di port 8000 sudah berhenti, lalu jalankan ulang.";
+/** Respons server lama dilengkapi nilai kosong agar dasbor tetap berjalan (tidak ada data yang dikarang). */
+let lama = false;
+export const backendLama = () => lama;
 
 export interface Query { jenis: Set<Jenis>; dari: string | null; sampai: string | null }
 
@@ -53,13 +56,19 @@ export const api = {
   agregat: (q: Query) => get<KabAgregat>("agregat", `/api/kab-agregat${qs(q)}`),
   agregatProv: (q: Query, prov: string) => get<KabAgregat>("agregat-prov", `/api/kab-agregat${qs(q, { prov })}`),
   kejadian: (kode: string, q: Query) => get<KabKejadian>("kejadian", `/api/kab/${kode}/kejadian${qs(q)}`).then((d) => {
-    // respons server lama (tanpa sumber laporan per kejadian) ditolak dengan pesan jelas, bukan macet
-    if (!d.tweets || d.kejadian.some((k) => !Array.isArray(k.laporan))) throw new ApiError(409, PESAN_VERSI);
+    if (!d.tweets || d.kejadian.some((k) => !Array.isArray(k.laporan))) lama = true;
+    d.tweets ??= {};
+    for (const k of d.kejadian) { k.laporan ??= []; k.dampak ??= []; k.kebutuhan ??= []; k.lembaga ??= []; }
     return d;
   }),
   titik: (kode: string, q: Query) => get<KabTitik>("titik", `/api/kab/${kode}/titik${qs(q)}`),
   ringkasan: (gid: string, q: Query) => get<Ringkasan>("ringkasan", `/api/titik/${encodeURIComponent(gid)}/ringkasan${qs(q)}`).then((d) => {
-    if (!d.tweet_map || !Array.isArray(d.lembaga_dikerahkan)) throw new ApiError(409, PESAN_VERSI);
+    if (!d.tweet_map || !Array.isArray(d.lembaga_dikerahkan)) lama = true;
+    d.tweet_map ??= {}; d.lembaga_dikerahkan ??= [];
+    for (const k of d.kejadian) {
+      k.laporan ??= []; k.dampak ??= []; k.kebutuhan ??= []; k.penanganan ??= []; k.evakuasi ??= [];
+      k.jumlah_laporan_kejadian ??= k.laporan.length;
+    }
     return d;
   }),
   histogram: (q: Query, scope: Cakupan) => get<Histogram>("histogram", `/api/histogram${qs({ jenis: q.jenis }, scopeParams(scope))}`),

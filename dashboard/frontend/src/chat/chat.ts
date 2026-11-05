@@ -112,7 +112,9 @@ export class ChatView {
   private renderStatus(): void {
     const ok = chatService().available;
     this.statusPill.className = `chat-status${ok ? " is-ok" : ""}`;
-    this.statusPill.textContent = ok ? "Terhubung" : "Belum terhubung";
+    const dummy = chatService().name.startsWith("dummy");
+    this.statusPill.className = `chat-status${ok && !dummy ? " is-ok" : ""}`;
+    this.statusPill.textContent = dummy ? "Mode dummy" : ok ? "Terhubung" : "Belum terhubung";
     this.statusPill.title = ok ? `Layanan: ${chatService().name}` : "Backend belum menyediakan layanan tanya jawab (GraphRAG)";
   }
 

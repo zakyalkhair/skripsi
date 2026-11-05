@@ -10,6 +10,7 @@ import "./styles/ui.css";
 import { api, API_VERSI, ApiError, isAbort, PESAN_VERSI, type Cakupan, type Query } from "./api";
 import { ChatView, type ChatCtxInfo } from "./chat/chat";
 import { setChatService, type ChatScope } from "./chat/service";
+import { demoChatService } from "./chat/demo";
 import { h } from "./dom";
 import { downloadData, saveBlob } from "./export/data";
 import { exportPng, type Crop } from "./export/png";
@@ -615,7 +616,8 @@ async function boot(): Promise<void> {
   try {
     const [w, kab, prov] = await Promise.all([api.wilayah(), api.geo("kabkota"), api.geo("provinsi")]);
     wil = w;
-    if (w.api_versi !== API_VERSI) toasts.show("Versi backend tidak cocok dengan frontend.", { kind: "err", ms: 0, detail: PESAN_VERSI });
+    if (w.api_versi !== API_VERSI) toasts.show("Versi backend tidak cocok dengan frontend.", { kind: "info", ms: 9000, detail: PESAN_VERSI });
+    setChatService(demoChatService()); // ringkasan dummy sampai endpoint GraphRAG tersedia
     kabNames = new Map(w.kab.map((k) => [k.kode_kab, k]));
     provNames = new Map(w.provinsi.map((p) => [p.kode_prov, p.nama]));
     toolbar.setWilayah(w);
