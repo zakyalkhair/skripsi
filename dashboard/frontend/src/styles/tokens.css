@@ -1,0 +1,56 @@
+:root {
+  /* permukaan hangat & tinta */
+  --bg: #e9e5de;
+  --surface: #fdfcfa;
+  --glass: rgba(253, 252, 250, 0.94);
+  --surface-2: #f5f2ec;
+  --surface-3: #ece7df;
+  --ink: #1d1a17;
+  --ink-2: #47413b;
+  --ink-3: #79716a;
+  --ink-4: #a59d95;
+  --line: rgba(45, 36, 28, 0.09);
+  --line-2: rgba(45, 36, 28, 0.16);
+  --line-3: rgba(45, 36, 28, 0.3);
+  --focus: #2b5cd6;
+  --tint: #faf3ee;
+
+  /* Warna kategorikal jenis bencana — SATU-SATUNYA sumber warna jenis (peta, linimasa, legenda, ekspor PNG).
+     Palet kalem sesuai desain Figma "opsi ikon + warna": air, tanah, langit kelabu, api, batuan, lava.
+     Beberapa pasangan (banjir–cuaca) mirip bagi buta warna, karena itu warna TIDAK PERNAH menjadi satu-satunya
+     penanda: setiap jenis selalu disertai ikon (penanda, legenda, kartu) atau label teks (chip, tooltip). */
+  --j-banjir: #3d6e8f;
+  --j-longsor: #8a5a3c;
+  --j-cuaca: #5f7a86;
+  --j-karhutla: #c0612b;
+  --j-gempa: #9a7b3a;
+  --j-erupsi: #7e2f35;
+
+  /* skala merah sekuensial = JUMLAH kejadian unik (bukan keparahan); diisi transparan di atas peta */
+  --ch-1: #f1b29e;
+  --ch-2: #e47e65;
+  --ch-3: #cd4b35;
+  --ch-4: #a6281b;
+  --ch-5: #6d140e;
+  --ch-0: #b3a99c;
+  --ch-op: 0.55;
+  --land: #fbf9f5;
+
+  /* tipografi: satu keluarga */
+  --f: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* bentuk, bayangan */
+  --r-s: 6px; --r-m: 8px; --r-l: 12px;
+  --sh-1: 0 1px 2px rgba(30, 22, 14, 0.06), 0 0 0 1px rgba(30, 22, 14, 0.06);
+  --sh-2: 0 10px 28px -12px rgba(30, 22, 14, 0.28), 0 2px 6px -2px rgba(30, 22, 14, 0.08), 0 0 0 1px rgba(30, 22, 14, 0.06);
+
+  /* gerak */
+  --e-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --e-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-hover: 140ms; --d-sel: 200ms; --d-panel: 280ms; --d-mk: 300ms; --d-fill: 360ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --d-hover: 0ms; --d-sel: 0ms; --d-panel: 0ms; --d-mk: 0ms; --d-fill: 0ms; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
+}

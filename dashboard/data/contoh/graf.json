@@ -1,0 +1,1782 @@
+{
+ "metadata": {
+  "label": "Data Contoh",
+  "keterangan": "Data ilustratif untuk menguji dashboard; bukan pemantauan bencana nyata."
+ },
+ "nodes": {
+  "Tweet": [
+   {
+    "tweet_id": "T01",
+    "upload": "2026-01-12T06:42:00+07:00",
+    "text": "Gunung Semeru erupsi pagi ini, abu vulkanik terlihat dari Supiturang sampai Ampelgading. Warga diminta menjauhi aliran sungai.",
+    "url": null
+   },
+   {
+    "tweet_id": "T02",
+    "upload": "2026-01-12T09:15:00+07:00",
+    "text": "Sebagian warga Supiturang mulai mengungsi ke Kecamatan Candipuro, sekitar 120 jiwa. Masker sangat dibutuhkan.",
+    "url": null
+   },
+   {
+    "tweet_id": "T03",
+    "upload": "2026-01-14T17:20:00+07:00",
+    "text": "Kolom abu Semeru kembali naik sore ini, pengamatan dari pos pantau.",
+    "url": null
+   },
+   {
+    "tweet_id": "T04",
+    "upload": "2026-01-20T08:05:00+07:00",
+    "text": "Material erupsi menimbun 8 rumah di Desa Sumberwuluh. Petugas BPBD Lumajang sudah di lokasi.",
+    "url": null
+   },
+   {
+    "tweet_id": "T05",
+    "upload": "2026-01-27T13:30:00+07:00",
+    "text": "Posko pengungsian Semeru butuh tenda tambahan, masker dari BNPB sudah datang ke Supiturang.",
+    "url": null
+   },
+   {
+    "tweet_id": "T06",
+    "upload": "2026-02-03T16:10:00+07:00",
+    "text": "Banjir lahar dingin melintas Sumberwuluh menuju Jembatan Gladak Perak, warga jangan mendekat.",
+    "url": null
+   },
+   {
+    "tweet_id": "T07",
+    "upload": "2026-02-04T07:55:00+07:00",
+    "text": "Jembatan Gladak Perak putus diterjang lahar, akses Candipuro terganggu.",
+    "url": null
+   },
+   {
+    "tweet_id": "T08",
+    "upload": "2026-02-05T10:40:00+07:00",
+    "text": "Arus lalu lintas di Candipuro dialihkan setelah banjir lahar kemarin.",
+    "url": null
+   },
+   {
+    "tweet_id": "T09",
+    "upload": "2026-01-15T11:00:00+07:00",
+    "text": "Hujan abu tipis di Ampelgading, warga diimbau memakai masker.",
+    "url": null
+   },
+   {
+    "tweet_id": "T10",
+    "upload": "2026-02-10T05:50:00+07:00",
+    "text": "Longsor menutup jalan desa di Dampit setelah hujan deras semalam.",
+    "url": null
+   },
+   {
+    "tweet_id": "T11",
+    "upload": "2026-02-11T12:25:00+07:00",
+    "text": "Pembersihan material longsor Dampit masih berlangsung.",
+    "url": null
+   },
+   {
+    "tweet_id": "T12",
+    "upload": "2026-03-02T15:45:00+07:00",
+    "text": "Angin kencang di Kalirejo Lawang, 12 rumah dilaporkan rusak. Warga butuh terpal.",
+    "url": null
+   },
+   {
+    "tweet_id": "T13",
+    "upload": "2026-03-03T09:10:00+07:00",
+    "text": "Cuaca ekstrem melanda Kabupaten Malang, PMI turun membantu warga terdampak.",
+    "url": null
+   },
+   {
+    "tweet_id": "T14",
+    "upload": "2026-01-22T20:05:00+07:00",
+    "text": "Longsor di Sumberbrantas menutup jalan, dan pagi tadi longsor susulan terjadi di titik yang sama.",
+    "url": null
+   },
+   {
+    "tweet_id": "T15",
+    "upload": "2026-02-17T14:30:00+07:00",
+    "text": "Banjir di Bumiaji, air masuk ke permukiman Sumberbrantas dan Bulukerto.",
+    "url": null
+   },
+   {
+    "tweet_id": "T16",
+    "upload": "2026-03-09T16:50:00+07:00",
+    "text": "Angin kencang merobohkan pohon di Sumberbrantas.",
+    "url": null
+   },
+   {
+    "tweet_id": "T17",
+    "upload": "2026-03-09T17:05:00+07:00",
+    "text": "Angin kencang juga terasa di Bulukerto, beberapa atap rumah rusak.",
+    "url": null
+   },
+   {
+    "tweet_id": "T18",
+    "upload": "2026-01-08T04:30:00+07:00",
+    "text": "Banjir mulai masuk permukiman Bangil dini hari ini.",
+    "url": null
+   },
+   {
+    "tweet_id": "T19",
+    "upload": "2026-01-09T08:20:00+07:00",
+    "text": "Sekitar 350 rumah terendam di Bangil, banjir meluas ke Beji. Warga butuh air bersih.",
+    "url": null
+   },
+   {
+    "tweet_id": "T20",
+    "upload": "2026-01-10T10:00:00+07:00",
+    "text": "BPBD Pasuruan masih mengevakuasi warga Bangil yang terjebak banjir.",
+    "url": null
+   },
+   {
+    "tweet_id": "T21",
+    "upload": "2026-03-12T19:40:00+07:00",
+    "text": "Bangil banjir lagi malam ini setelah hujan deras.",
+    "url": null
+   },
+   {
+    "tweet_id": "T22",
+    "upload": "2026-03-13T07:15:00+07:00",
+    "text": "Sekitar 90 rumah terendam di Bangil akibat banjir kedua bulan ini.",
+    "url": null
+   },
+   {
+    "tweet_id": "T23",
+    "upload": "2026-03-16T13:05:00+07:00",
+    "text": "Kebakaran lahan di lereng Gunung Arjuno, asap terlihat dari Prigen. Relawan pemadam dibutuhkan.",
+    "url": null
+   },
+   {
+    "tweet_id": "T24",
+    "upload": "2026-03-18T09:35:00+07:00",
+    "text": "Tim Manggala Agni memadamkan api di Arjuno, sekitar 40 hektare lahan terbakar.",
+    "url": null
+   },
+   {
+    "tweet_id": "T25",
+    "upload": "2026-02-06T18:20:00+07:00",
+    "text": "Longsor di Sukapura menutup akses ke Ngadisari.",
+    "url": null
+   },
+   {
+    "tweet_id": "T26",
+    "upload": "2026-02-20T02:14:00+07:00",
+    "text": "Gempa terasa cukup kuat di Puger dini hari, warga berhamburan keluar rumah.",
+    "url": null
+   },
+   {
+    "tweet_id": "T27",
+    "upload": "2026-02-20T02:30:00+07:00",
+    "text": "Gempa dirasakan di Jember, pusat gempa di laut sekitar 90 km barat daya. 3 bangunan rusak ringan.",
+    "url": null
+   },
+   {
+    "tweet_id": "T28",
+    "upload": "2026-01-30T22:10:00+07:00",
+    "text": "Banjir bandang menerjang Panti malam ini, Basarnas menuju lokasi.",
+    "url": null
+   },
+   {
+    "tweet_id": "T29",
+    "upload": "2026-01-31T07:45:00+07:00",
+    "text": "Dua warga Panti meninggal akibat banjir bandang. Obat-obatan dibutuhkan di posko.",
+    "url": null
+   },
+   {
+    "tweet_id": "T30",
+    "upload": "2026-03-05T06:30:00+07:00",
+    "text": "Banjir merendam rumah warga di Porong.",
+    "url": null
+   },
+   {
+    "tweet_id": "T31",
+    "upload": "2026-03-06T08:00:00+07:00",
+    "text": "Genangan banjir di Porong belum surut pagi ini.",
+    "url": null
+   }
+  ],
+  "EventMention": [
+   {
+    "mention_id": "EM01",
+    "jenis": "erupsi",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-01-12"
+   },
+   {
+    "mention_id": "EM02",
+    "jenis": "erupsi",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-01-12"
+   },
+   {
+    "mention_id": "EM03",
+    "jenis": "erupsi",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-01-14"
+   },
+   {
+    "mention_id": "EM04",
+    "jenis": "erupsi",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-01-20"
+   },
+   {
+    "mention_id": "EM05",
+    "jenis": "erupsi",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-01-27"
+   },
+   {
+    "mention_id": "EM06",
+    "jenis": "banjir",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-02-03"
+   },
+   {
+    "mention_id": "EM07",
+    "jenis": "banjir",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-02-04"
+   },
+   {
+    "mention_id": "EM08",
+    "jenis": "banjir",
+    "kode_kab": "3508",
+    "tanggal_lokal": "2026-02-05"
+   },
+   {
+    "mention_id": "EM09",
+    "jenis": "erupsi",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-01-12"
+   },
+   {
+    "mention_id": "EM10",
+    "jenis": "erupsi",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-01-15"
+   },
+   {
+    "mention_id": "EM11",
+    "jenis": "longsor",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-02-10"
+   },
+   {
+    "mention_id": "EM12",
+    "jenis": "longsor",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-02-11"
+   },
+   {
+    "mention_id": "EM13",
+    "jenis": "cuaca",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-03-02"
+   },
+   {
+    "mention_id": "EM14",
+    "jenis": "cuaca",
+    "kode_kab": "3507",
+    "tanggal_lokal": "2026-03-03"
+   },
+   {
+    "mention_id": "EM15",
+    "jenis": "longsor",
+    "kode_kab": "3579",
+    "tanggal_lokal": "2026-01-22"
+   },
+   {
+    "mention_id": "EM16",
+    "jenis": "longsor",
+    "kode_kab": "3579",
+    "tanggal_lokal": "2026-01-23"
+   },
+   {
+    "mention_id": "EM17",
+    "jenis": "banjir",
+    "kode_kab": "3579",
+    "tanggal_lokal": "2026-02-17"
+   },
+   {
+    "mention_id": "EM18",
+    "jenis": "cuaca",
+    "kode_kab": "3579",
+    "tanggal_lokal": "2026-03-09"
+   },
+   {
+    "mention_id": "EM19",
+    "jenis": "cuaca",
+    "kode_kab": "3579",
+    "tanggal_lokal": "2026-03-09"
+   },
+   {
+    "mention_id": "EM20",
+    "jenis": "banjir",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-01-08"
+   },
+   {
+    "mention_id": "EM21",
+    "jenis": "banjir",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-01-09"
+   },
+   {
+    "mention_id": "EM22",
+    "jenis": "banjir",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-01-10"
+   },
+   {
+    "mention_id": "EM23",
+    "jenis": "banjir",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-03-12"
+   },
+   {
+    "mention_id": "EM24",
+    "jenis": "banjir",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-03-13"
+   },
+   {
+    "mention_id": "EM25",
+    "jenis": "karhutla",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-03-16"
+   },
+   {
+    "mention_id": "EM26",
+    "jenis": "karhutla",
+    "kode_kab": "3514",
+    "tanggal_lokal": "2026-03-18"
+   },
+   {
+    "mention_id": "EM27",
+    "jenis": "longsor",
+    "kode_kab": "3513",
+    "tanggal_lokal": "2026-02-06"
+   },
+   {
+    "mention_id": "EM28",
+    "jenis": "gempa",
+    "kode_kab": "3509",
+    "tanggal_lokal": "2026-02-20"
+   },
+   {
+    "mention_id": "EM29",
+    "jenis": "gempa",
+    "kode_kab": "3509",
+    "tanggal_lokal": "2026-02-20"
+   },
+   {
+    "mention_id": "EM30",
+    "jenis": "banjir",
+    "kode_kab": "3509",
+    "tanggal_lokal": "2026-01-30"
+   },
+   {
+    "mention_id": "EM31",
+    "jenis": "banjir",
+    "kode_kab": "3509",
+    "tanggal_lokal": "2026-01-31"
+   },
+   {
+    "mention_id": "EM32",
+    "jenis": "banjir",
+    "kode_kab": "3515",
+    "tanggal_lokal": "2026-03-05"
+   },
+   {
+    "mention_id": "EM33",
+    "jenis": "banjir",
+    "kode_kab": "3515",
+    "tanggal_lokal": "2026-03-06"
+   }
+  ],
+  "DisasterEvent": [
+   {
+    "event_id": "DE01",
+    "nama": "Erupsi Gunung Semeru — Kab. Lumajang",
+    "jenis": "erupsi",
+    "start_time": "2026-01-12",
+    "end_time": "2026-01-27",
+    "status": "ya"
+   },
+   {
+    "event_id": "DE02",
+    "nama": "Banjir Lahar Candipuro",
+    "jenis": "banjir",
+    "start_time": "2026-02-03",
+    "end_time": "2026-02-05",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE03",
+    "nama": "Erupsi Gunung Semeru — Kab. Malang",
+    "jenis": "erupsi",
+    "start_time": "2026-01-12",
+    "end_time": "2026-01-15",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE04",
+    "nama": "Tanah Longsor Dampit",
+    "jenis": "longsor",
+    "start_time": "2026-02-10",
+    "end_time": "2026-02-11",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE05",
+    "nama": "Cuaca Ekstrem Lawang",
+    "jenis": "cuaca",
+    "start_time": "2026-03-02",
+    "end_time": "2026-03-03",
+    "status": "ya"
+   },
+   {
+    "event_id": "DE06",
+    "nama": "Tanah Longsor Sumberbrantas",
+    "jenis": "longsor",
+    "start_time": "2026-01-22",
+    "end_time": "2026-01-23",
+    "status": "ya"
+   },
+   {
+    "event_id": "DE07",
+    "nama": "Banjir Bumiaji",
+    "jenis": "banjir",
+    "start_time": "2026-02-17",
+    "end_time": "2026-02-17",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE08",
+    "nama": "Angin Kencang Kota Batu",
+    "jenis": "cuaca",
+    "start_time": "2026-03-09",
+    "end_time": "2026-03-09",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE09",
+    "nama": "Banjir Bangil (Januari)",
+    "jenis": "banjir",
+    "start_time": "2026-01-08",
+    "end_time": "2026-01-10",
+    "status": "ya"
+   },
+   {
+    "event_id": "DE10",
+    "nama": "Banjir Bangil (Maret)",
+    "jenis": "banjir",
+    "start_time": "2026-03-12",
+    "end_time": "2026-03-13",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE11",
+    "nama": "Kebakaran Lahan Gunung Arjuno",
+    "jenis": "karhutla",
+    "start_time": "2026-03-16",
+    "end_time": "2026-03-18",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE12",
+    "nama": "Tanah Longsor Sukapura",
+    "jenis": "longsor",
+    "start_time": "2026-02-06",
+    "end_time": "2026-02-06",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE13",
+    "nama": "Gempabumi Dirasakan di Jember",
+    "jenis": "gempa",
+    "start_time": "2026-02-20",
+    "end_time": "2026-02-20",
+    "status": "tidak"
+   },
+   {
+    "event_id": "DE14",
+    "nama": "Banjir Bandang Panti",
+    "jenis": "banjir",
+    "start_time": "2026-01-30",
+    "end_time": "2026-01-31",
+    "status": "ya"
+   },
+   {
+    "event_id": "DE15",
+    "nama": "Banjir Porong",
+    "jenis": "banjir",
+    "start_time": "2026-03-05",
+    "end_time": "2026-03-06",
+    "status": "tidak"
+   }
+  ],
+  "Location": [
+   {
+    "gazetteer_id": "kab:3507",
+    "nama": "Kab. Malang",
+    "admin_path": "Jawa Timur > Kab. Malang",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3508",
+    "nama": "Kab. Lumajang",
+    "admin_path": "Jawa Timur > Kab. Lumajang",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3509",
+    "nama": "Kab. Jember",
+    "admin_path": "Jawa Timur > Kab. Jember",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3513",
+    "nama": "Kab. Probolinggo",
+    "admin_path": "Jawa Timur > Kab. Probolinggo",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3514",
+    "nama": "Kab. Pasuruan",
+    "admin_path": "Jawa Timur > Kab. Pasuruan",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3515",
+    "nama": "Kab. Sidoarjo",
+    "admin_path": "Jawa Timur > Kab. Sidoarjo",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "kab:3579",
+    "nama": "Kota Batu",
+    "admin_path": "Jawa Timur > Kota Batu",
+    "coordinates": null
+   },
+   {
+    "gazetteer_id": "contoh:gunung/semeru",
+    "nama": "Gunung Semeru",
+    "admin_path": "Jawa Timur > Kab. Lumajang > Kec. Pronojiwo > Gunung Semeru",
+    "coordinates": {
+     "latitude": -8.1077,
+     "longitude": 112.9224
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/supiturang",
+    "nama": "Desa Supiturang",
+    "admin_path": "Jawa Timur > Kab. Lumajang > Kec. Pronojiwo > Desa Supiturang",
+    "coordinates": {
+     "latitude": -8.17,
+     "longitude": 112.959
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/sumberwuluh",
+    "nama": "Desa Sumberwuluh",
+    "admin_path": "Jawa Timur > Kab. Lumajang > Kec. Candipuro > Desa Sumberwuluh",
+    "coordinates": {
+     "latitude": -8.153,
+     "longitude": 113.006
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/candipuro",
+    "nama": "Kec. Candipuro",
+    "admin_path": "Jawa Timur > Kab. Lumajang > Kec. Candipuro",
+    "coordinates": {
+     "latitude": -8.165,
+     "longitude": 113.045
+    }
+   },
+   {
+    "gazetteer_id": "contoh:jembatan/gladak-perak",
+    "nama": "Jembatan Gladak Perak",
+    "admin_path": "Jawa Timur > Kab. Lumajang > Kec. Candipuro > Jembatan Gladak Perak",
+    "coordinates": {
+     "latitude": -8.218,
+     "longitude": 112.988
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/ampelgading",
+    "nama": "Kec. Ampelgading",
+    "admin_path": "Jawa Timur > Kab. Malang > Kec. Ampelgading",
+    "coordinates": {
+     "latitude": -8.24,
+     "longitude": 112.87
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/dampit",
+    "nama": "Kec. Dampit",
+    "admin_path": "Jawa Timur > Kab. Malang > Kec. Dampit",
+    "coordinates": {
+     "latitude": -8.211,
+     "longitude": 112.749
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/kalirejo",
+    "nama": "Desa Kalirejo",
+    "admin_path": "Jawa Timur > Kab. Malang > Kec. Lawang > Desa Kalirejo",
+    "coordinates": {
+     "latitude": -7.833,
+     "longitude": 112.7
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/sumberbrantas",
+    "nama": "Desa Sumberbrantas",
+    "admin_path": "Jawa Timur > Kota Batu > Kec. Bumiaji > Desa Sumberbrantas",
+    "coordinates": {
+     "latitude": -7.758,
+     "longitude": 112.531
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/bulukerto",
+    "nama": "Desa Bulukerto",
+    "admin_path": "Jawa Timur > Kota Batu > Kec. Bumiaji > Desa Bulukerto",
+    "coordinates": {
+     "latitude": -7.82,
+     "longitude": 112.53
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/bangil",
+    "nama": "Kec. Bangil",
+    "admin_path": "Jawa Timur > Kab. Pasuruan > Kec. Bangil",
+    "coordinates": {
+     "latitude": -7.599,
+     "longitude": 112.78
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/beji",
+    "nama": "Kec. Beji",
+    "admin_path": "Jawa Timur > Kab. Pasuruan > Kec. Beji",
+    "coordinates": {
+     "latitude": -7.598,
+     "longitude": 112.713
+    }
+   },
+   {
+    "gazetteer_id": "contoh:gunung/arjuno",
+    "nama": "Gunung Arjuno",
+    "admin_path": "Jawa Timur > Kab. Pasuruan > Kec. Prigen > Gunung Arjuno",
+    "coordinates": {
+     "latitude": -7.7647,
+     "longitude": 112.5894
+    }
+   },
+   {
+    "gazetteer_id": "contoh:desa/ngadisari",
+    "nama": "Desa Ngadisari",
+    "admin_path": "Jawa Timur > Kab. Probolinggo > Kec. Sukapura > Desa Ngadisari",
+    "coordinates": {
+     "latitude": -7.929,
+     "longitude": 112.954
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/sukapura",
+    "nama": "Kec. Sukapura",
+    "admin_path": "Jawa Timur > Kab. Probolinggo > Kec. Sukapura",
+    "coordinates": {
+     "latitude": -7.906,
+     "longitude": 113.034
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/puger",
+    "nama": "Kec. Puger",
+    "admin_path": "Jawa Timur > Kab. Jember > Kec. Puger",
+    "coordinates": {
+     "latitude": -8.367,
+     "longitude": 113.467
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/panti",
+    "nama": "Kec. Panti",
+    "admin_path": "Jawa Timur > Kab. Jember > Kec. Panti",
+    "coordinates": {
+     "latitude": -8.15,
+     "longitude": 113.617
+    }
+   },
+   {
+    "gazetteer_id": "contoh:kec/porong",
+    "nama": "Kec. Porong",
+    "admin_path": "Jawa Timur > Kab. Sidoarjo > Kec. Porong",
+    "coordinates": {
+     "latitude": -7.537,
+     "longitude": 112.683
+    }
+   }
+  ],
+  "AffectedObject": [
+   {
+    "id": "AO01",
+    "kelas": "manusia",
+    "status": "mengungsi",
+    "jumlah": 120,
+    "satuan": "jiwa",
+    "lokasi": "contoh:desa/supiturang",
+    "objek": "warga"
+   },
+   {
+    "id": "AO02",
+    "kelas": "rumah",
+    "status": "tertimbun",
+    "jumlah": 8,
+    "satuan": "unit",
+    "lokasi": "contoh:desa/sumberwuluh",
+    "objek": "rumah"
+   },
+   {
+    "id": "AO03",
+    "kelas": "prasarana_vital",
+    "status": "putus",
+    "jumlah": 1,
+    "satuan": "unit",
+    "lokasi": "contoh:jembatan/gladak-perak",
+    "objek": "jembatan"
+   },
+   {
+    "id": "AO04",
+    "kelas": "rumah",
+    "status": "rusak",
+    "jumlah": 12,
+    "satuan": "unit",
+    "lokasi": null,
+    "objek": "rumah"
+   },
+   {
+    "id": "AO05",
+    "kelas": "prasarana_vital",
+    "status": "tertutup",
+    "jumlah": null,
+    "satuan": null,
+    "lokasi": "contoh:desa/sumberbrantas",
+    "objek": "jalan"
+   },
+   {
+    "id": "AO06",
+    "kelas": "rumah",
+    "status": "terendam",
+    "jumlah": 350,
+    "satuan": "unit",
+    "lokasi": "contoh:kec/bangil",
+    "objek": "rumah"
+   },
+   {
+    "id": "AO07",
+    "kelas": "rumah",
+    "status": "terendam",
+    "jumlah": 90,
+    "satuan": "unit",
+    "lokasi": "contoh:kec/bangil",
+    "objek": "rumah"
+   },
+   {
+    "id": "AO08",
+    "kelas": "sosial_ekonomi",
+    "status": "terbakar",
+    "jumlah": 40,
+    "satuan": "hektare",
+    "lokasi": "contoh:gunung/arjuno",
+    "objek": "lahan"
+   },
+   {
+    "id": "AO09",
+    "kelas": "lainnya",
+    "status": "rusak ringan",
+    "jumlah": 3,
+    "satuan": "unit",
+    "lokasi": null,
+    "objek": "bangunan"
+   },
+   {
+    "id": "AO10",
+    "kelas": "manusia",
+    "status": "meninggal",
+    "jumlah": 2,
+    "satuan": "jiwa",
+    "lokasi": "contoh:kec/panti",
+    "objek": "warga"
+   },
+   {
+    "id": "AO11",
+    "kelas": "rumah",
+    "status": "terendam",
+    "jumlah": null,
+    "satuan": null,
+    "lokasi": "contoh:kec/porong"
+   }
+  ],
+  "HumanitarianNeed": [
+   {
+    "id": "HN01",
+    "kategori": "kesehatan_obat",
+    "item": "masker",
+    "status": "demanded",
+    "lokasi": "contoh:desa/supiturang"
+   },
+   {
+    "id": "HN02",
+    "kategori": "hunian_tenda",
+    "item": "tenda pengungsian",
+    "status": "demanded",
+    "lokasi": "contoh:kec/candipuro"
+   },
+   {
+    "id": "HN03",
+    "kategori": "kesehatan_obat",
+    "item": "masker",
+    "status": "supplied",
+    "lokasi": "contoh:desa/supiturang"
+   },
+   {
+    "id": "HN04",
+    "kategori": "hunian_tenda",
+    "item": "terpal",
+    "status": "demanded",
+    "lokasi": null
+   },
+   {
+    "id": "HN05",
+    "kategori": "air_bersih_sanitasi",
+    "item": "air bersih",
+    "status": "demanded",
+    "lokasi": "contoh:kec/bangil"
+   },
+   {
+    "id": "HN06",
+    "kategori": "lainnya",
+    "item": "relawan pemadam",
+    "status": "demanded",
+    "lokasi": "contoh:gunung/arjuno"
+   },
+   {
+    "id": "HN07",
+    "kategori": "kesehatan_obat",
+    "item": "obat-obatan",
+    "status": "demanded",
+    "lokasi": "contoh:kec/panti"
+   }
+  ],
+  "Organization": [
+   {
+    "id": "ORG01",
+    "nama_kanonik": "BPBD Kabupaten Lumajang",
+    "wilayah": "Kab. Lumajang",
+    "tingkat": "kabupaten"
+   },
+   {
+    "id": "ORG02",
+    "nama_kanonik": "BNPB",
+    "wilayah": "Indonesia",
+    "tingkat": "nasional"
+   },
+   {
+    "id": "ORG03",
+    "nama_kanonik": "Basarnas Surabaya",
+    "wilayah": "Jawa Timur",
+    "tingkat": "provinsi"
+   },
+   {
+    "id": "ORG04",
+    "nama_kanonik": "BPBD Kabupaten Pasuruan",
+    "wilayah": "Kab. Pasuruan",
+    "tingkat": "kabupaten"
+   },
+   {
+    "id": "ORG05",
+    "nama_kanonik": "Manggala Agni Daops Malang",
+    "wilayah": "Jawa Timur",
+    "tingkat": "provinsi"
+   },
+   {
+    "id": "ORG06",
+    "nama_kanonik": "Kementerian Lingkungan Hidup dan Kehutanan",
+    "wilayah": "Indonesia",
+    "tingkat": "nasional"
+   },
+   {
+    "id": "ORG07",
+    "nama_kanonik": "BPBD Kota Batu",
+    "wilayah": "Kota Batu",
+    "tingkat": "kabupaten"
+   },
+   {
+    "id": "ORG08",
+    "nama_kanonik": "PMI Kabupaten Malang",
+    "wilayah": "Kab. Malang",
+    "tingkat": "kabupaten"
+   }
+  ]
+ },
+ "relationships": [
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:gunung/semeru",
+   "to": "kab:3508"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/supiturang",
+   "to": "kab:3508"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/sumberwuluh",
+   "to": "kab:3508"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/candipuro",
+   "to": "kab:3508"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:jembatan/gladak-perak",
+   "to": "kab:3508"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/ampelgading",
+   "to": "kab:3507"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/dampit",
+   "to": "kab:3507"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/kalirejo",
+   "to": "kab:3507"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/sumberbrantas",
+   "to": "kab:3579"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/bulukerto",
+   "to": "kab:3579"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/bangil",
+   "to": "kab:3514"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/beji",
+   "to": "kab:3514"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:gunung/arjuno",
+   "to": "kab:3514"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:desa/ngadisari",
+   "to": "kab:3513"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/sukapura",
+   "to": "kab:3513"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/puger",
+   "to": "kab:3509"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/panti",
+   "to": "kab:3509"
+  },
+  {
+   "type": "LOCATED_IN",
+   "from": "contoh:kec/porong",
+   "to": "kab:3515"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM01",
+   "to": "DE01"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T01",
+   "to": "EM01"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM01",
+   "to": "contoh:gunung/semeru"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM01",
+   "to": "contoh:desa/supiturang"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM02",
+   "to": "DE01"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T02",
+   "to": "EM02"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM02",
+   "to": "contoh:desa/supiturang"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM03",
+   "to": "DE01"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T03",
+   "to": "EM03"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM03",
+   "to": "contoh:gunung/semeru"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM04",
+   "to": "DE01"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T04",
+   "to": "EM04"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM04",
+   "to": "contoh:desa/sumberwuluh"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM05",
+   "to": "DE01"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T05",
+   "to": "EM05"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM05",
+   "to": "contoh:desa/supiturang"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM06",
+   "to": "DE02"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T06",
+   "to": "EM06"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM06",
+   "to": "contoh:desa/sumberwuluh"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM06",
+   "to": "contoh:jembatan/gladak-perak"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM07",
+   "to": "DE02"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T07",
+   "to": "EM07"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM07",
+   "to": "contoh:jembatan/gladak-perak"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM07",
+   "to": "contoh:kec/candipuro"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM08",
+   "to": "DE02"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T08",
+   "to": "EM08"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM08",
+   "to": "contoh:kec/candipuro"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM09",
+   "to": "DE03"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T01",
+   "to": "EM09"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM09",
+   "to": "contoh:gunung/semeru"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM09",
+   "to": "contoh:kec/ampelgading"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM10",
+   "to": "DE03"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T09",
+   "to": "EM10"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM10",
+   "to": "contoh:kec/ampelgading"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM11",
+   "to": "DE04"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T10",
+   "to": "EM11"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM11",
+   "to": "contoh:kec/dampit"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM12",
+   "to": "DE04"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T11",
+   "to": "EM12"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM12",
+   "to": "contoh:kec/dampit"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM13",
+   "to": "DE05"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T12",
+   "to": "EM13"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM13",
+   "to": "contoh:desa/kalirejo"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM14",
+   "to": "DE05"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T13",
+   "to": "EM14"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM14",
+   "to": "kab:3507"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM15",
+   "to": "DE06"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T14",
+   "to": "EM15"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM15",
+   "to": "contoh:desa/sumberbrantas"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM16",
+   "to": "DE06"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T14",
+   "to": "EM16"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM16",
+   "to": "contoh:desa/sumberbrantas"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM17",
+   "to": "DE07"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T15",
+   "to": "EM17"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM17",
+   "to": "contoh:desa/sumberbrantas"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM17",
+   "to": "contoh:desa/bulukerto"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM18",
+   "to": "DE08"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T16",
+   "to": "EM18"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM18",
+   "to": "contoh:desa/sumberbrantas"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM19",
+   "to": "DE08"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T17",
+   "to": "EM19"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM19",
+   "to": "contoh:desa/bulukerto"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM20",
+   "to": "DE09"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T18",
+   "to": "EM20"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM20",
+   "to": "contoh:kec/bangil"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM21",
+   "to": "DE09"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T19",
+   "to": "EM21"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM21",
+   "to": "contoh:kec/bangil"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM21",
+   "to": "contoh:kec/beji"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM22",
+   "to": "DE09"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T20",
+   "to": "EM22"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM22",
+   "to": "contoh:kec/bangil"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM23",
+   "to": "DE10"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T21",
+   "to": "EM23"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM23",
+   "to": "contoh:kec/bangil"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM24",
+   "to": "DE10"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T22",
+   "to": "EM24"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM24",
+   "to": "contoh:kec/bangil"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM25",
+   "to": "DE11"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T23",
+   "to": "EM25"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM25",
+   "to": "contoh:gunung/arjuno"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM26",
+   "to": "DE11"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T24",
+   "to": "EM26"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM26",
+   "to": "contoh:gunung/arjuno"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM27",
+   "to": "DE12"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T25",
+   "to": "EM27"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM27",
+   "to": "contoh:kec/sukapura"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM27",
+   "to": "contoh:desa/ngadisari"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM28",
+   "to": "DE13"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T26",
+   "to": "EM28"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM28",
+   "to": "contoh:kec/puger"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM29",
+   "to": "DE13"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T27",
+   "to": "EM29"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM29",
+   "to": "kab:3509"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM30",
+   "to": "DE14"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T28",
+   "to": "EM30"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM30",
+   "to": "contoh:kec/panti"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM31",
+   "to": "DE14"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T29",
+   "to": "EM31"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM31",
+   "to": "contoh:kec/panti"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM32",
+   "to": "DE15"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T30",
+   "to": "EM32"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM32",
+   "to": "contoh:kec/porong"
+  },
+  {
+   "type": "CONSOLIDATED_INTO",
+   "from": "EM33",
+   "to": "DE15"
+  },
+  {
+   "type": "REPORTS",
+   "from": "T31",
+   "to": "EM33"
+  },
+  {
+   "type": "MENTIONS",
+   "from": "EM33",
+   "to": "contoh:kec/porong"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM02",
+   "to": "AO01"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM04",
+   "to": "AO02"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM07",
+   "to": "AO03"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM13",
+   "to": "AO04"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM15",
+   "to": "AO05"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM21",
+   "to": "AO06"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM24",
+   "to": "AO07"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM26",
+   "to": "AO08"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM29",
+   "to": "AO09"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM31",
+   "to": "AO10"
+  },
+  {
+   "type": "AFFECTED",
+   "from": "EM32",
+   "to": "AO11"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM02",
+   "to": "HN01"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM05",
+   "to": "HN02"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM05",
+   "to": "HN03"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM13",
+   "to": "HN04"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM21",
+   "to": "HN05"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM25",
+   "to": "HN06"
+  },
+  {
+   "type": "REQUIRES",
+   "from": "EM31",
+   "to": "HN07"
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG01",
+   "to": "EM02",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T02"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG01",
+   "to": "EM04",
+   "props": {
+    "aksi": "pencarian korban",
+    "sumber": "T04"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG01",
+   "to": "HN03",
+   "props": {
+    "aksi": "membagikan masker",
+    "sumber": "T05"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG01",
+   "to": "contoh:desa/supiturang",
+   "props": {
+    "aksi": "membuka posko pengungsian",
+    "sumber": "T02"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG02",
+   "to": "EM05",
+   "props": {
+    "aksi": "mengirim bantuan logistik",
+    "sumber": "T05"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG02",
+   "to": "contoh:desa/supiturang",
+   "props": {
+    "aksi": "pemantauan",
+    "sumber": "T05"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG03",
+   "to": "EM30",
+   "props": {
+    "aksi": "pencarian dan penyelamatan",
+    "sumber": "T28"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG03",
+   "to": "contoh:kec/panti",
+   "props": {
+    "aksi": "pencarian korban",
+    "sumber": "T28"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG04",
+   "to": "EM22",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T20"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG04",
+   "to": "contoh:kec/bangil",
+   "props": {
+    "aksi": "evakuasi warga",
+    "sumber": "T20"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG05",
+   "to": "EM26",
+   "props": {
+    "aksi": "pemadaman darat",
+    "sumber": "T24"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG05",
+   "to": "contoh:gunung/arjuno",
+   "props": {
+    "aksi": "pemadaman darat",
+    "sumber": "T24"
+   }
+  },
+  {
+   "type": "PART_OF",
+   "from": "ORG05",
+   "to": "ORG06"
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG07",
+   "to": "EM15",
+   "props": {
+    "aksi": "pembersihan material longsor",
+    "sumber": "T14"
+   }
+  },
+  {
+   "type": "DEPLOYED_TO",
+   "from": "ORG07",
+   "to": "contoh:desa/sumberbrantas",
+   "props": {
+    "aksi": "pembersihan material longsor",
+    "sumber": "T14"
+   }
+  },
+  {
+   "type": "HANDLES",
+   "from": "ORG08",
+   "to": "EM14",
+   "props": {
+    "aksi": "membantu warga terdampak",
+    "sumber": "T13"
+   }
+  },
+  {
+   "type": "EVACUATED_TO",
+   "from": "EM02",
+   "to": "contoh:kec/candipuro"
+  }
+ ]
+}

@@ -1,0 +1,187 @@
+.map { position: absolute; inset: 0; background: #e8e5df; font-family: var(--f); }
+.leaflet-container { font-family: var(--f); background: #e8e5df; }
+.basemap { filter: grayscale(1) sepia(0.1) contrast(0.9) brightness(1.06); opacity: 0.8; transition: opacity 500ms var(--e-out); }
+body[data-view="kab"] .basemap, body[data-view="lokasi"] .basemap { opacity: 0.95; }
+
+/* ---------------------------------------------------------------- choropleth: jumlah kejadian unik */
+path.kab { stroke: rgba(255, 255, 255, 0.7); stroke-width: 0.5px; fill: transparent; fill-opacity: var(--ch-op);
+  transition: fill var(--d-fill) var(--e-out), fill-opacity var(--d-fill) var(--e-out), stroke var(--d-hover); }
+path.kab[data-k="0"] { fill: var(--ch-0); fill-opacity: 0.32; }
+path.kab[data-k="1"] { fill: var(--ch-1); }
+path.kab[data-k="2"] { fill: var(--ch-2); }
+path.kab[data-k="3"] { fill: var(--ch-3); }
+path.kab[data-k="4"] { fill: var(--ch-4); }
+path.kab[data-k="5"] { fill: var(--ch-5); }
+/* di luar cakupan: daratan netral tipis (bukan nol), agar bentuk kepulauan tetap terbaca */
+path.kab[data-k="na"] { fill: var(--land); fill-opacity: 0.55; stroke: rgba(70, 58, 46, 0.1); stroke-width: 0.4px; }
+path.kab.is-dim { fill-opacity: calc(var(--ch-op) * 0.34); }
+path.kab.is-dim[data-k="0"] { fill-opacity: 0.12; }
+path.kab.is-dim[data-k="na"] { fill-opacity: 0.25; }
+path.kab.is-selected { fill-opacity: 0.1; cursor: default; }
+path.prov { stroke: rgba(62, 50, 40, 0.3); stroke-width: 0.7px; stroke-linejoin: round; fill: none; }
+body[data-view="kab"] path.prov, body[data-view="lokasi"] path.prov { stroke: rgba(62, 50, 40, 0.22); }
+/* hover & seleksi digambar di lapisan terpisah (tanpa pointer-events) — tidak berebut gaya dengan poligon */
+path.kab-hover { stroke: var(--ink); stroke-width: 1.5px; stroke-linejoin: round; fill: none; }
+path.kab-sel-halo { stroke: rgba(255, 255, 255, 0.92); stroke-width: 5px; stroke-linejoin: round; fill: none; }
+path.kab-sel-line { stroke: var(--ink); stroke-width: 2px; stroke-linejoin: round; fill: none; animation: selIn var(--d-sel) var(--e-out); }
+@keyframes selIn { from { stroke-opacity: 0; } }
+
+/* ---------------------------------------------------------------- remah roti */
+.crumbs-wrap { position: absolute; z-index: 1160; top: var(--over-top); left: var(--gap); display: flex; align-items: center; gap: 8px; max-width: calc(100% - var(--ctrl-right) - 60px); }
+.crumbs ol { display: flex; align-items: center; flex-wrap: wrap; margin: 0; padding: 3px; list-style: none; background: var(--glass); border-radius: var(--r-m);
+  box-shadow: var(--sh-1); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.crumbs li { display: flex; align-items: center; min-width: 0; }
+.crumbs li + li::before { content: "/"; color: var(--ink-4); margin: 0 1px; font-size: 12px; }
+.crumb { border: 0; background: transparent; padding: 4px 8px; border-radius: var(--r-s); font-size: 13px; font-weight: 550; color: var(--ink-3);
+  max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: crumbIn var(--d-panel) var(--e-out); }
+button.crumb:hover { background: var(--surface-3); color: var(--ink); }
+.crumb[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.crumb--static { cursor: default; }
+@keyframes crumbIn { from { opacity: 0; transform: translateX(-4px); } }
+.busy { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(45, 36, 28, 0.15); border-top-color: var(--ink-2);
+  animation: spin 0.8s linear infinite, fadeIn 200ms 160ms both; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } }
+
+.map-empty { position: absolute; z-index: 1160; top: calc(var(--over-top) + 52px); left: calc((100% - var(--ctrl-right) + var(--gap)) / 2);
+  transform: translateX(-50%); width: min(400px, calc(100% - 32px)); padding: 12px 14px; animation: pop var(--d-panel) var(--e-out); }
+@media (min-width: 821px) { .workspace:not(.panel-collapsed) .map-empty { display: none; } }
+
+/* ---------------------------------------------------------------- kontrol peta (kanan atas area peta terlihat) */
+.workspace .leaflet-top.leaflet-right { top: var(--over-top); right: var(--ctrl-right); transition: right var(--d-panel) var(--e-out), top var(--d-panel) var(--e-out); }
+.workspace.panel-collapsed .leaflet-top.leaflet-right { top: calc(var(--over-top) + 52px); }
+.workspace .leaflet-bottom.leaflet-right { right: var(--tl-right); bottom: calc(var(--bottom-space) - var(--gap) + 2px); transition: right var(--d-panel) var(--e-out), bottom var(--d-panel) var(--e-out); }
+.workspace .leaflet-top .leaflet-control, .workspace .leaflet-bottom .leaflet-control { margin: 0; }
+.mapnav { display: flex; flex-direction: column; padding: 3px; border-radius: 10px; background: var(--glass); box-shadow: var(--sh-2);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.mapnav-btn { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 7px; background: transparent; color: var(--ink-2);
+  transition: background var(--d-hover), color var(--d-hover); }
+.mapnav-btn:hover:not(:disabled) { background: var(--surface-3); color: var(--ink); }
+.mapnav-btn:disabled { color: var(--ink-4); }
+.mapnav-sep { height: 1px; margin: 3px 6px; background: var(--line); }
+.leaflet-control-attribution { font-size: 10px; padding: 1px 6px !important; border-radius: 6px 0 0 0; background: rgba(253, 252, 250, 0.78) !important; color: var(--ink-3); }
+.leaflet-control-attribution a { color: var(--ink-2); }
+
+/* ---------------------------------------------------------------- legenda */
+.legend-wrap { position: absolute; z-index: 1150; left: var(--gap); bottom: var(--bottom-space); transition: bottom var(--d-panel) var(--e-out); }
+.legend { width: 252px; max-height: calc(100% - var(--over-top) - var(--bottom-space) - 64px); overflow-y: auto; max-width: calc(100vw - 32px); padding: 11px 12px 12px 14px; transform-origin: 0 100%;
+  transition: opacity var(--d-panel) var(--e-out), transform var(--d-panel) var(--e-out), visibility 0s; }
+.legend-wrap.is-collapsed .legend { opacity: 0; transform: translateY(8px) scale(0.98); visibility: hidden; transition: opacity var(--d-panel) var(--e-out), transform var(--d-panel) var(--e-out), visibility 0s linear var(--d-panel); }
+.lg-pill { position: absolute; left: 0; bottom: 0; opacity: 0; transform: translateY(6px); pointer-events: none; white-space: nowrap; transition: opacity var(--d-sel), transform var(--d-sel) var(--e-out); }
+.legend-wrap.is-collapsed .lg-pill { opacity: 1; transform: none; pointer-events: auto; transition-delay: 80ms; }
+.lg-pill-sw { width: 30px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, var(--ch-1), var(--ch-3), var(--ch-5)); opacity: 0.85; }
+.lg-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 9px; }
+.lg-title { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.3; }
+.lg-unit { margin: 0; font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
+.lg-min { margin: -5px -6px 0 0; width: 28px; height: 28px; }
+.lg-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.lg-step { display: flex; flex-direction: column; gap: 4px; }
+/* swatch digambar dengan opasitas yang sama di atas warna dasar peta */
+.lg-sw { position: relative; display: block; height: 12px; border-radius: 3px; background: #ebe8e2; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(45, 36, 28, 0.06); }
+.lg-sw::after { content: ""; position: absolute; inset: 0; opacity: var(--ch-op); }
+.lg-sw[data-k="1"]::after { background: var(--ch-1); } .lg-sw[data-k="2"]::after { background: var(--ch-2); } .lg-sw[data-k="3"]::after { background: var(--ch-3); }
+.lg-sw[data-k="4"]::after { background: var(--ch-4); } .lg-sw[data-k="5"]::after { background: var(--ch-5); }
+.lg-sw--0, .lg-sw--na { width: 16px; height: 10px; }
+.lg-sw--0::after { background: var(--ch-0); opacity: 0.32; }
+.lg-sw--na { background: transparent; box-shadow: inset 0 0 0 1px rgba(70, 58, 46, 0.28); }
+.lg-n { font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
+.lg-extra { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); }
+.lg-item { display: inline-flex; align-items: center; gap: 6px; }
+.lg-note { margin: 9px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--ink-3); }
+.lg-ctx { display: none; margin: 6px 0 0; padding-top: 7px; border-top: 1px solid var(--line); font-size: 11.5px; font-weight: 600; line-height: 1.35; color: var(--ink-2); }
+.lg-markers { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); display: grid; gap: 7px; animation: fadeIn var(--d-panel) var(--e-out); }
+.lg-sub { margin: 0 0 1px; font-size: 12px; font-weight: 700; color: var(--ink); }
+.lg-mk { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+.lg-mini { flex: none; display: grid; place-items: center; width: 20px; height: 20px; }
+.lg-mini svg { display: block; overflow: visible; }
+.lg-jenis { display: grid; grid-template-columns: 1.3fr 1fr; gap: 6px 10px; }
+.lg-jn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 11.5px; font-weight: 550; color: var(--ink-2); }
+.lg-jic { flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--jc); color: #fff; }
+.lg-mini--pil { width: 70px; min-width: 70px; height: 22px; justify-items: start; align-items: center; }
+.lg-mini--pil .pm-mk { width: auto; height: 22px; padding: 2px 6px 2px 2px; gap: 4px; border-width: 1.2px; filter: none; }
+.lg-mini--pil .pm-ic { width: 16px; height: 16px; }
+.lg-mini--pil .pm-ic + .pm-ic { margin-left: -3px; }
+.lg-mini--pil .pm-ic svg { width: 10px; height: 10px; }
+.lg-mini--pil .pm-ic--plus { width: 20px; font-size: 8.5px; }
+.lg-mini--pil .pm-count { font-size: 10.5px; }
+.lg-markers .lg-sub + .lg-jenis { margin-top: -1px; }
+.legend.is-kab .lg-extra, .legend.is-kab .lg-note { display: none; }
+
+/* ---------------------------------------------------------------- penanda lokasi */
+.pm-marker { background: none; border: 0; cursor: pointer; }
+.pm-marker:focus-visible { outline: none; }
+/* pil: lingkar ikon jenis (warna jenis, ikon putih) + angka laporan */
+.pm-mk { position: relative; display: flex; align-items: center; gap: 5px; box-sizing: border-box; width: 100%; height: 30px; padding: 3px 8px 3px 3px;
+  border-radius: 999px; background: #fff; border: 1.5px solid var(--ink); transform-origin: 50% 50%;
+  transition: transform var(--d-sel) var(--e-out), opacity var(--d-sel) var(--e-out), filter var(--d-sel); filter: drop-shadow(0 2px 4px rgba(20, 14, 8, 0.25)); }
+.pm-ics { display: flex; }
+.pm-ic { display: grid; place-items: center; flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 11px; background: var(--jc); color: #fff;
+  border: 1.5px solid #fff; }
+.pm-ic + .pm-ic { margin-left: -7px; }
+.pm-ic svg { display: block; }
+.pm-ic--plus { width: 26px; background: #ece7df; color: var(--ink); font: 700 11px/1 var(--f); }
+.pm-count { font: 700 13px/1 var(--f); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* lokasi rujukan (di luar kab/kota terpilih): garis tepi putus-putus */
+.pm-mk.is-luar { border-style: dashed; background: rgba(255, 255, 255, 0.85); }
+.pm-marker:hover .pm-mk, .pm-marker:focus-visible .pm-mk { transform: scale(1.08); }
+.pm-marker:focus-visible .pm-mk::after { content: ""; position: absolute; inset: -5px; border-radius: 999px; box-shadow: 0 0 0 2px var(--focus); }
+.pm-marker.is-selected { z-index: 1000 !important; }
+.pm-marker.is-selected .pm-mk { background: var(--ink); transform: scale(1.1); filter: drop-shadow(0 4px 8px rgba(20, 14, 8, 0.35)); }
+.pm-marker.is-selected .pm-count { color: #fff; }
+.pm-marker.is-redup .pm-mk { opacity: 0.3; filter: grayscale(0.8); transform: scale(0.9); }
+.pm-marker.is-redup.is-selected .pm-mk { opacity: 1; filter: drop-shadow(0 4px 8px rgba(20, 14, 8, 0.35)); transform: scale(1.1); } /* pilihan tidak pernah diredupkan */
+.pm-marker.is-sorot .pm-mk { transform: scale(1.1); }
+.pm-entering .pm-mk[style] { animation: mkIn var(--d-mk) var(--e-out) both; animation-delay: calc(var(--i, 0) * 28ms + 40ms); }
+@keyframes mkIn { from { opacity: 0; transform: scale(0.55); } }
+.pm-leaving .pm-marker, .pm-leaving .pm-cluster-wrap { opacity: 0; transition: opacity 160ms ease-out; }
+
+.pm-cluster-wrap { background: none; cursor: pointer; }
+.pm-cluster { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%;
+  background: var(--ink); color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.92), 0 3px 8px rgba(20, 14, 8, 0.3);
+  transition: transform var(--d-sel) var(--e-out), opacity var(--d-sel); }
+.pm-cluster b { font-size: 14px; font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; }
+.pm-cluster small { font-size: 8.5px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.78; margin-top: 1px; }
+.pm-cluster-wrap:hover .pm-cluster { transform: scale(1.07); }
+.pm-cluster-wrap.is-redup .pm-cluster { opacity: 0.35; }
+.pm-cluster-wrap.is-sorot .pm-cluster { box-shadow: 0 0 0 3px #fff, 0 0 0 5.5px var(--ink), 0 3px 8px rgba(20, 14, 8, 0.3); }
+.pm-entering .pm-cluster { animation: mkIn var(--d-mk) var(--e-out) both 80ms; }
+.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow { transition: transform 0.28s var(--e-out), opacity 0.28s ease-in; }
+
+/* ---------------------------------------------------------------- tooltip peta tunggal */
+.maptip { position: absolute; left: 0; top: 0; z-index: 1700; pointer-events: none; max-width: 260px; min-width: 150px; padding: 9px 11px 10px;
+  border-radius: 10px; background: rgba(29, 26, 23, 0.96); color: #f3efe9; font-size: 12.5px; line-height: 1.4;
+  box-shadow: 0 10px 24px -8px rgba(20, 14, 8, 0.45); will-change: transform; }
+.maptip.is-in { animation: tipIn 130ms var(--e-out); }
+@keyframes tipIn { from { opacity: 0; } }
+.tt-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+.tt-sub { margin-bottom: 5px; font-size: 11.5px; color: #b9afa4; }
+.tt-row { display: flex; justify-content: space-between; gap: 14px; padding: 1px 0; }
+.tt-row b { font-weight: 750; color: #fff; font-variant-numeric: tabular-nums; }
+.tt-muted { color: #c9bfb3; font-size: 12px; }
+.tt-hint { margin-top: 5px; font-size: 11px; font-weight: 600; color: #a99f94; }
+.tt-jenis { display: flex; flex-wrap: wrap; gap: 3px 10px; margin-top: 4px; }
+.tt-j { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; }
+.tt-j i { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.25); }
+.tt-j b { margin-left: auto; padding-left: 10px; font-weight: 700; }
+.tt-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.12); color: #e2d8c6; font-size: 11.5px; line-height: 1.45; }
+.tt-tag { display: block; margin-bottom: 2px; font-size: 10.5px; font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; color: #f0c98b; }
+
+@media (max-width: 820px) {
+  .workspace .leaflet-top.leaflet-right, .workspace.panel-collapsed .leaflet-top.leaflet-right { right: var(--gap); top: var(--over-top); }
+  .workspace .leaflet-bottom.leaflet-right { right: 0; bottom: calc(60px + var(--gap) * 2 + var(--pill-h)); }
+  .crumbs-wrap { max-width: calc(100% - 70px); }
+  .crumb { max-width: 140px; padding: 4px 6px; font-size: 12.5px; }
+  .legend-wrap { bottom: calc(60px + var(--gap)); }
+  .map-empty { left: 50%; top: calc(var(--over-top) + 48px); }
+}
+.tt-lead { margin: 2px 0 4px; font-size: 13px; color: #fff; }
+.tt-lead b { font-weight: 800; }
+
+/* ---------------------------------------------------------------- pratinjau hover (ui/preview.ts) */
+path.prov-pv { stroke: var(--ink); stroke-width: 2px; stroke-linejoin: round; fill: none; animation: fadeIn var(--d-sel) var(--e-out); }
+.lg-step, .lg-jn { cursor: default; border-radius: 4px; transition: background-color var(--d-hover, 120ms); }
+.lg-step:hover .lg-sw, .lg-step:focus-visible .lg-sw { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.lg-step:hover .lg-n { color: var(--ink); }
+.lg-jn:hover { color: var(--ink); }
+.lg-jn:hover .lg-jic { transform: scale(1.12); }
+.lg-jic { transition: transform var(--d-sel) var(--e-out); }
