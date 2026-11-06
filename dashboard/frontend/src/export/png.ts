@@ -10,9 +10,10 @@
  */
 import { JENIS, LABEL_PENDEK, warna } from "../jenis";
 import { KELAS, LEGENDA_PENANDA } from "../map/legend";
-import { countLabel, GUNUNG_PATH, LUAR_R, ringSegments } from "../map/marker";
+import { countLabel, ikonTampil, markerWidth, MK_H } from "../map/marker";
+import { drawIcon, type IconName } from "../ui/icons";
 import type { MapView } from "../map/map";
-import type { Titik } from "../types";
+import type { Jenis, Titik } from "../types";
 
 export interface PngMeta {
   wilayah: string;
@@ -106,63 +107,41 @@ function drawPane(ctx: CanvasRenderingContext2D, pane: HTMLElement | undefined, 
 
 function circle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
 
-/** Penanda lokasi pada kanvas — bentuk & warna sama dengan penanda peta (marker.ts). */
-function drawMarker(ctx: CanvasRenderingContext2D, t: Titik, x: number, y: number, st: { sel: boolean; sorot: boolean; redup: boolean }): void {
+/** Pil penanda pada kanvas (x,y = tengah) — sama dengan markerHtml (marker.ts). */
+function drawPil(ctx: CanvasRenderingContext2D, t: Pick<Titik, "jenis" | "jumlah_laporan" | "di_luar_kab">, x: number, y: number,
+  o: { sel?: boolean; skala?: number; bayang?: boolean } = {}): void {
   const ink = css("--ink", "#1d1a17");
-  const s = st.sel ? 1.2 : st.sorot ? 1.14 : st.redup ? 0.88 : 1;
+  const k = o.skala ?? 1, w = markerWidth(t as Titik), hgt = MK_H;
   ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(s, s);
-  ctx.globalAlpha = st.redup && !st.sel ? 0.3 : 1;
-  if (t.di_luar_kab) {
-    circle(ctx, 0, 0, LUAR_R);
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fill();
-    ctx.setLineDash([3.2, 2.4]);
-    ctx.lineWidth = 1.6;
-    ctx.strokeStyle = ink;
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  ctx.shadowColor = "rgba(20,14,8,0.3)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-  if (t.tingkat === "gunung") {
-    ctx.save();
-    ctx.translate(-17, -17);
-    const tri = new Path2D(GUNUNG_PATH);
-    ctx.fillStyle = "#fff"; ctx.fill(tri);
-    ctx.shadowColor = "transparent";
-    ctx.save();
-    ctx.clip(tri);
-    t.jenis.forEach((j, i) => { ctx.fillStyle = warna(j); ctx.fillRect(4 + (i * 27) / t.jenis.length, 0, 27 / t.jenis.length + 0.5, 34); });
-    ctx.restore();
-    ctx.lineWidth = 2.2; ctx.strokeStyle = "#fdfcfa"; ctx.lineJoin = "round"; ctx.stroke(tri);
-    ctx.beginPath(); ctx.moveTo(12.6, 12.4); ctx.lineTo(17, 9.2); ctx.lineTo(21.4, 12.4);
-    ctx.lineWidth = 1.6; ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineCap = "round"; ctx.stroke();
-    const label = countLabel(t.jumlah_laporan);
-    ctx.font = font(700, 10);
-    const bw = Math.max(17, ctx.measureText(label).width + 8);
-    const bx = 34 + 5 - bw, by = -3;
-    ctx.beginPath(); ctx.roundRect(bx - 1.5, by - 1.5, bw + 3, 20, 10); ctx.fillStyle = "#fff"; ctx.fill();
-    ctx.beginPath(); ctx.roundRect(bx, by, bw, 17, 8.5); ctx.fillStyle = ink; ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, bx + bw / 2, by + 9);
-    ctx.restore();
-  } else {
-    circle(ctx, 0, 0, 16); ctx.fillStyle = "#fff"; ctx.fill();
-    ctx.shadowColor = "transparent";
-    ctx.lineWidth = 5;
-    if (t.jenis.length <= 1) { circle(ctx, 0, 0, 12.5); ctx.strokeStyle = warna(t.jenis[0] ?? "banjir"); ctx.stroke(); }
-    else ringSegments(t.jenis.length).forEach(([a, b], i) => {
-      ctx.beginPath(); ctx.arc(0, 0, 12.5, a - Math.PI / 2, b - Math.PI / 2); ctx.strokeStyle = warna(t.jenis[i]); ctx.stroke();
-    });
-    circle(ctx, 0, 0, 9.5); ctx.fillStyle = "#fff"; ctx.fill();
-    ctx.fillStyle = ink; ctx.font = font(750, 10.5); ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(countLabel(t.jumlah_laporan), 0, 0.5);
-  }
+  ctx.translate(x, y); ctx.scale(k, k); ctx.translate(-w / 2, -hgt / 2);
+  if (o.bayang !== false) { ctx.shadowColor = "rgba(20,14,8,0.25)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2; }
+  ctx.beginPath(); ctx.roundRect(0.75, 0.75, w - 1.5, hgt - 1.5, hgt / 2);
+  ctx.fillStyle = o.sel ? ink : t.di_luar_kab ? "rgba(255,255,255,0.85)" : "#fff"; ctx.fill();
   ctx.shadowColor = "transparent";
-  if (st.sel) {
-    circle(ctx, 0, 0, 23); ctx.lineWidth = 2.5; ctx.strokeStyle = ink; ctx.stroke();
-    circle(ctx, 0, 0, 25.5); ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.stroke();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = ink; ctx.setLineDash(t.di_luar_kab ? [4, 3] : []); ctx.stroke(); ctx.setLineDash([]);
+  const { tampil, sisa } = ikonTampil(t.jenis);
+  let cx = 4;
+  for (const j of tampil) {
+    ctx.beginPath(); ctx.arc(cx + 13, hgt / 2, 12.25, 0, Math.PI * 2); ctx.fillStyle = warna(j); ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#fff"; ctx.stroke();
+    drawIcon(ctx, `j_${j}` as IconName, cx + 5.5, hgt / 2 - 7.5, 15, "#fff");
+    cx += 18;
   }
+  if (sisa) {
+    ctx.beginPath(); ctx.roundRect(cx, hgt / 2 - 13, 30, 26, 13); ctx.fillStyle = "#ece7df"; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = ink; ctx.font = font(700, 11); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(`+${sisa}`, cx + 15, hgt / 2 + 0.5);
+    cx += 30;
+  } else cx += 8;
+  ctx.fillStyle = o.sel ? "#fff" : ink; ctx.font = font(700, 14); ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(countLabel(t.jumlah_laporan), cx + 6, hgt / 2 + 0.5);
+  ctx.restore();
+}
+
+function drawMarker(ctx: CanvasRenderingContext2D, t: Titik, x: number, y: number, st: { sel: boolean; sorot: boolean; redup: boolean }): void {
+  ctx.save();
+  ctx.globalAlpha = st.redup && !st.sel ? 0.3 : 1;
+  drawPil(ctx, t, x, y, { sel: st.sel, skala: st.sel || st.sorot ? 1.1 : st.redup ? 0.9 : 1 });
   ctx.restore();
 }
 
@@ -206,30 +185,23 @@ function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, 
   if (meta.kabMode) {
     const mk = (label: string, drawIc: (cx: number, cy: number) => void) => {
       ctx.font = font(500, 11);
-      const lines = wrap(ctx, label, w - pad * 2 - 26);
-      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad + 9, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 26, y + 14 + i * 14, 500, 11, ink2)); } });
+      const lines = wrap(ctx, label, w - pad * 2 - 76);
+      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 76, y + 14 + i * 14, 500, 11, ink2)); } });
     };
     rows.push({ h: 22, draw: (y) => text("Penanda lokasi", x0 + pad, y + 16, 700, 11.5, ink) });
-    const ringIc = (cx: number, cy: number, luar = false) => {
-      if (luar) { circle(ctx, cx, cy, 9); ctx.setLineDash([2.6, 2]); ctx.lineWidth = 1.3; ctx.strokeStyle = ink; ctx.stroke(); ctx.setLineDash([]); }
-      circle(ctx, cx, cy, luar ? 6.4 : 7.5); ctx.fillStyle = "#fff"; ctx.fill();
-      circle(ctx, cx, cy, luar ? 4.8 : 5.8); ctx.lineWidth = luar ? 2.2 : 2.8; ctx.strokeStyle = ink2; ctx.stroke();
-    };
-    mk(LEGENDA_PENANDA.satu, (cx, cy) => ringIc(cx, cy));
-    mk(LEGENDA_PENANDA.segmen, (cx, cy) => {
-      circle(ctx, cx, cy, 7.5); ctx.fillStyle = "#fff"; ctx.fill();
-      ctx.lineWidth = 2.8;
-      ringSegments(3).forEach(([a, b], i) => { ctx.beginPath(); ctx.arc(cx, cy, 5.8, a - Math.PI / 2, b - Math.PI / 2); ctx.strokeStyle = warna(JENIS[i]); ctx.stroke(); });
-    });
-    mk(LEGENDA_PENANDA.gunung, (cx, cy) => { ctx.beginPath(); ctx.moveTo(cx, cy - 7); ctx.lineTo(cx + 7.5, cy + 6); ctx.lineTo(cx - 7.5, cy + 6); ctx.closePath(); ctx.fillStyle = ink2; ctx.fill(); });
-    mk(LEGENDA_PENANDA.luar, (cx, cy) => ringIc(cx, cy, true));
+    const pil = (jenis: Jenis[], n: number, luar = false) => (cx: number, cy: number) =>
+      drawPil(ctx, { jenis, jumlah_laporan: n, di_luar_kab: luar }, cx + (markerWidth({ jenis, jumlah_laporan: n } as Titik) * 0.62) / 2, cy, { skala: 0.62, bayang: false });
+    mk(LEGENDA_PENANDA.satu, pil(["karhutla"], 12));
+    mk(LEGENDA_PENANDA.ikon, pil(["karhutla", "banjir"], 9));
+    mk(LEGENDA_PENANDA.banyak, pil(["karhutla", "banjir", "longsor", "gempa"], 31));
+    mk(LEGENDA_PENANDA.luar, pil(["banjir"], 3, true));
     rows.push({ h: 22, draw: (y) => text("Jenis bencana", x0 + pad, y + 16, 700, 11.5, ink) });
     for (let i = 0; i < JENIS.length; i += 2) {
       const pair = JENIS.slice(i, i + 2);
-      rows.push({ h: 17, draw: (y) => pair.forEach((j, k) => {
+      rows.push({ h: 19, draw: (y) => pair.forEach((j, k) => {
         const cx = x0 + pad + k * 118;
-        circle(ctx, cx + 4, y + 9, 4); ctx.fillStyle = warna(j); ctx.fill();
-        text(LABEL_PENDEK[j], cx + 13, y + 13, 550, 11, ink2);
+        circle(ctx, cx + 6, y + 8, 7); ctx.fillStyle = warna(j); ctx.fill(); drawIcon(ctx, `j_${j}` as IconName, cx + 1.5, y + 3.5, 9, "#fff");
+        text(LABEL_PENDEK[j], cx + 17, y + 12, 550, 11, ink2);
       }) });
     }
   }

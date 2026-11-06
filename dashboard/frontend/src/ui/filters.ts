@@ -54,6 +54,7 @@ export function buildToolbar(store: Store, onKab: (kode: string | null) => void)
     const all = s.jenis.size === JENIS.length, none = s.jenis.size === 0;
     semua.setAttribute("aria-pressed", String(all));
     semua.classList.toggle("is-partial", !all && !none);
+    gJenis.classList.toggle("is-all", all);
     const n = (s.jenis.size < JENIS.length ? 1 : 0) + (s.dari || s.sampai ? 1 : 0);
     reset.disabled = isDefaultFilter(s);
     reset.setAttribute("aria-label", n ? `Atur ulang filter (${n} aktif)` : "Atur ulang filter");

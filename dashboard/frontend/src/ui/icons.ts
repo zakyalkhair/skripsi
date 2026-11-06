@@ -56,6 +56,21 @@ const P = {
 
 export type IconName = keyof typeof P;
 
+/** Gambar ikon garis ke kanvas (ekspor PNG); viewBox 20×20, path/circle/rect seperti SVG. */
+export function drawIcon(ctx: CanvasRenderingContext2D, name: IconName, x: number, y: number, size: number, color: string): void {
+  const k = size / 20;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(k, k);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const num = (el: string, a: string) => parseFloat(new RegExp(`${a}="([-\\d.]+)"`).exec(el)?.[1] ?? "0");
+  for (const el of P[name].match(/<(path|circle|rect)[^>]*>/g) ?? []) {
+    if (el.startsWith("<path")) ctx.stroke(new Path2D(/d="([^"]+)"/.exec(el)![1]));
+    else if (el.startsWith("<circle")) { ctx.beginPath(); ctx.arc(num(el, "cx"), num(el, "cy"), num(el, "r"), 0, Math.PI * 2); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.roundRect(num(el, "x"), num(el, "y"), num(el, "width"), num(el, "height"), num(el, "rx")); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+
 export function iconSvg(name: IconName, size = 16, cls = ""): string {
   return `<svg class="ic${cls ? ` ${cls}` : ""}" viewBox="0 0 20 20" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${P[name]}</svg>`;
 }

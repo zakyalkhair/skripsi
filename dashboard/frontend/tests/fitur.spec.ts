@@ -153,19 +153,18 @@ test("lokasi rujukan: bentuk & warna tetap, cincin putus-putus, tooltip berbasis
   await open(page);
   await enterKab(page, "3507", "Kab. Malang");
   const semeru = page.locator('.pm-marker[data-gid="contoh:gunung/semeru"]');
-  await expect(semeru.locator(".pm-mk")).toHaveClass(/pm-mk--gunung/); // bentuk asli (gunung) tetap
-  await expect(semeru.locator(".pm-luar-ring")).toHaveCount(1);
-  expect(await semeru.locator(".pm-luar-ring").evaluate((e) => getComputedStyle(e).strokeDasharray)).not.toBe("none");
+  await expect(semeru.locator(".pm-mk")).toHaveClass(/is-luar/);
+  expect(await semeru.locator(".pm-mk").evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe("dashed");
   await expect(semeru).toHaveAttribute("aria-label", /Lokasi rujukan\. Lokasi berada di Kab\. Lumajang, tetapi dirujuk dalam laporan terkait Kab\. Malang\./);
   await semeru.hover();
   await expect(page.locator(".maptip")).toContainText("Lokasi berada di Kab. Lumajang, tetapi dirujuk dalam laporan terkait Kab. Malang.");
   // lokasi di dalam kab tidak bercincin
-  await expect(page.locator('.pm-marker:not([data-gid="contoh:gunung/semeru"]) .pm-luar-ring')).toHaveCount(0);
+  await expect(page.locator('.pm-marker:not([data-gid="contoh:gunung/semeru"]) .pm-mk.is-luar')).toHaveCount(0);
   await expect(page.locator(".lg-mk--luar")).toContainText("bukan lokasi kejadian");
 });
 
 // ------------------------------------------------------------------ C7 warna
-test("warna jenis: terpusat di token, cuaca ekstrem vs erupsi jelas berbeda (juga buta warna)", async ({ page }) => {
+test("warna jenis: terpusat di token, palet kalem tetap terbedakan, ikon putih terbaca", async ({ page }) => {
   await open(page);
   const hex = await page.evaluate(() => Object.fromEntries(["banjir", "longsor", "cuaca", "karhutla", "gempa", "erupsi"].map((j) =>
     [j, getComputedStyle(document.documentElement).getPropertyValue(`--j-${j}`).trim()])));
@@ -185,10 +184,13 @@ test("warna jenis: terpusat di token, cuaca ekstrem vs erupsi jelas berbeda (jug
   };
   const de = (a: string, b: string, k?: string) => { const x = lab(sim(rgb(hex[a]), k)), y = lab(sim(rgb(hex[b]), k)); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); };
   const names = Object.keys(hex);
-  for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) expect(de(names[i], names[j]), `${names[i]}–${names[j]}`).toBeGreaterThan(30);
-  expect(de("cuaca", "erupsi")).toBeGreaterThan(60);
-  expect(de("cuaca", "erupsi", "deutan")).toBeGreaterThan(40);
-  expect(de("cuaca", "erupsi", "protan")).toBeGreaterThan(30);
+  for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) expect(de(names[i], names[j]), `${names[i]}–${names[j]}`).toBeGreaterThan(12);
+  expect(de("cuaca", "erupsi")).toBeGreaterThan(45);
+  expect(de("cuaca", "erupsi", "deutan")).toBeGreaterThan(25);
+  expect(de("cuaca", "erupsi", "protan")).toBeGreaterThan(25);
+  // ikon putih di atas warna jenis: kontras ≥ 3:1 untuk grafis, WCAG 1.4.11 (warna bukan satu-satunya penanda — ikon selalu ada)
+  const lum = (h: string) => { const [r, g, b] = rgb(h).map(lin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  for (const j of names) expect(1.05 / (lum(hex[j]) + 0.05), j).toBeGreaterThan(3);
   // warna yang sama dipakai chip, linimasa, dan legenda (satu sumber)
   const chipC = await page.locator('.chip[data-jenis="cuaca"]').evaluate((e) => getComputedStyle(e).getPropertyValue("--c").trim());
   expect(chipC).toBe(hex.cuaca);
@@ -197,7 +199,7 @@ test("warna jenis: terpusat di token, cuaca ekstrem vs erupsi jelas berbeda (jug
 });
 
 // ------------------------------------------------------------------ chip jenis teks saja
-test("chip jenis: teks saja, aktif berwarna jenis, nonaktif netral, Semua hanya aktif bila semua aktif", async ({ page }) => {
+test("chip jenis: teks saja & netral (tanpa warna jenis), aktif ditandai tebal + garis, Semua hanya aktif bila semua aktif", async ({ page }) => {
   await open(page, [], { path: "/?jenis=banjir,erupsi" });
   const done = () => page.locator(".tb-jenis").evaluate((e) => Promise.all(e.getAnimations({ subtree: true }).map((a) => a.finished)));
   await done();
@@ -205,7 +207,7 @@ test("chip jenis: teks saja, aktif berwarna jenis, nonaktif netral, Semua hanya 
   await expect(page.locator(".chip--all")).toHaveAttribute("aria-pressed", "false");
   const bg = (j: string) => page.locator(`.chip[data-jenis="${j}"]`).evaluate((e) => getComputedStyle(e).backgroundColor);
   const [banjir, erupsi, longsor, gempa] = [await bg("banjir"), await bg("erupsi"), await bg("longsor"), await bg("gempa")];
-  expect(banjir).not.toBe(erupsi);
+  expect(banjir).toBe(erupsi); // aktif: netral, tidak memakai warna jenis
   expect(longsor).toBe(gempa); // nonaktif: netral & seragam
   expect(banjir).not.toBe(longsor);
   const wt = (j: string) => page.locator(`.chip[data-jenis="${j}"]`).evaluate((e) => Number(getComputedStyle(e).fontWeight));

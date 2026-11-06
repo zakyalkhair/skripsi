@@ -7,7 +7,7 @@ import { esc, reducedMotion } from "../dom";
 import { angka } from "../format";
 import { iconSvg } from "../ui/icons";
 import { kelasOf } from "./legend";
-import { markerAria, markerHtml, markerKey, markerTooltip } from "./marker";
+import { markerAria, markerHtml, markerKey, markerTooltip, markerWidth, MK_H } from "./marker";
 import { MapTip } from "./tip";
 
 /** Batas geografis Indonesia (Sabang–Merauke, Miangas–Rote) untuk tampilan awal. */
@@ -449,7 +449,7 @@ export class MapView {
     return L.divIcon({
       className: "pm-marker",
       html: i >= 0 ? html.replace('class="pm-mk', `style="--i:${Math.min(i, 14)}" class="pm-mk`) : html,
-      iconSize: L.point(34, 34), iconAnchor: L.point(17, 17),
+      iconSize: L.point(markerWidth(t), MK_H), iconAnchor: L.point(markerWidth(t) / 2, MK_H / 2),
     });
   }
 

@@ -16,17 +16,15 @@
   --tint: #faf3ee;
 
   /* Warna kategorikal jenis bencana — SATU-SATUNYA sumber warna jenis (peta, linimasa, legenda, ekspor PNG).
-     Turunan palet Okabe–Ito, diuji dengan simulasi buta warna (Machado 2009): ΔE2000 antar-pasangan
-     ≥ 12 untuk penglihatan normal, protanopia, deuteranopia, dan tritanopia; kontras ≥ 3:1 terhadap putih.
-     Cuaca ekstrem (biru langit) vs erupsi (ungu kemerahan): ΔE2000 ≈ 51 normal, ≈ 24 deuteranopia.
-     Warna tidak pernah menjadi satu-satunya penanda: label jenis selalu menyertai (chip, kartu, tooltip, legenda). */
-  /* Palet kalem (desain Figma "opsi ikon + warna"): air, tanah, langit kelabu, api, batuan, lava. */
-  --j-banjir: #24507e;
-  --j-longsor: #7a4a2e;
-  --j-cuaca: #5299b3;
-  --j-karhutla: #c8622a;
-  --j-gempa: #5e7a3a;
-  --j-erupsi: #6e2038;
+     Palet kalem sesuai desain Figma "opsi ikon + warna": air, tanah, langit kelabu, api, batuan, lava.
+     Beberapa pasangan (banjir–cuaca) mirip bagi buta warna, karena itu warna TIDAK PERNAH menjadi satu-satunya
+     penanda: setiap jenis selalu disertai ikon (penanda, legenda, kartu) atau label teks (chip, tooltip). */
+  --j-banjir: #3d6e8f;
+  --j-longsor: #8a5a3c;
+  --j-cuaca: #5f7a86;
+  --j-karhutla: #c0612b;
+  --j-gempa: #9a7b3a;
+  --j-erupsi: #7e2f35;
 
   /* skala merah sekuensial = JUMLAH kejadian unik (bukan keparahan); diisi transparan di atas peta */
   --ch-1: #f1b29e;
