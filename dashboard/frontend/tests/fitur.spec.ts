@@ -160,7 +160,7 @@ test("lokasi rujukan: bentuk & warna tetap, cincin putus-putus, tooltip berbasis
   await expect(page.locator(".maptip")).toContainText("Lokasi berada di Kab. Lumajang, tetapi dirujuk dalam laporan terkait Kab. Malang.");
   // lokasi di dalam kab tidak bercincin
   await expect(page.locator('.pm-marker:not([data-gid="contoh:gunung/semeru"]) .pm-mk.is-luar')).toHaveCount(0);
-  await expect(page.locator(".lg-mk--luar")).toContainText("bukan lokasi kejadian");
+  await expect(page.locator(".lg-mk--luar")).toContainText("bukan tempat kejadian");
 });
 
 // ------------------------------------------------------------------ C7 warna

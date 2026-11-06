@@ -160,7 +160,7 @@ function drawCluster(ctx: CanvasRenderingContext2D, n: string, x: number, y: num
 
 /** Legenda di pojok kiri bawah area peta; tinggi dihitung dari isinya. */
 function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, meta: PngMeta): void {
-  const pad = 12, w = 260;
+  const pad = 12, w = 320;
   const rows: { h: number; draw: (y: number) => void }[] = [];
   const ink = css("--ink", "#1d1a17"), ink2 = css("--ink-2", "#47413b"), ink3 = css("--ink-3", "#79716a");
   const chOp = parseFloat(css("--ch-op", "0.55"));
@@ -185,8 +185,8 @@ function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, 
   if (meta.kabMode) {
     const mk = (label: string, drawIc: (cx: number, cy: number) => void) => {
       ctx.font = font(500, 11);
-      const lines = wrap(ctx, label, w - pad * 2 - 76);
-      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 76, y + 14 + i * 14, 500, 11, ink2)); } });
+      const lines = wrap(ctx, label, w - pad * 2 - 88);
+      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 88, y + 14 + i * 14, 500, 11, ink2)); } });
     };
     rows.push({ h: 22, draw: (y) => text("Penanda lokasi", x0 + pad, y + 16, 700, 11.5, ink) });
     const pil = (jenis: Jenis[], n: number, luar = false) => (cx: number, cy: number) =>
@@ -199,7 +199,7 @@ function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, 
     for (let i = 0; i < JENIS.length; i += 2) {
       const pair = JENIS.slice(i, i + 2);
       rows.push({ h: 19, draw: (y) => pair.forEach((j, k) => {
-        const cx = x0 + pad + k * 118;
+        const cx = x0 + pad + k * 150;
         circle(ctx, cx + 6, y + 8, 7); ctx.fillStyle = warna(j); ctx.fill(); drawIcon(ctx, `j_${j}` as IconName, cx + 1.5, y + 3.5, 9, "#fff");
         text(LABEL_PENDEK[j], cx + 17, y + 12, 550, 11, ink2);
       }) });

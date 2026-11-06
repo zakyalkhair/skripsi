@@ -16,10 +16,10 @@ export const kelasOf = (n: number): number => (n <= 0 ? 0 : KELAS.find((c) => n 
 
 /** Teks legenda penanda — dipakai juga oleh ekspor PNG agar keduanya selalu sama. */
 export const LEGENDA_PENANDA = {
-  satu: "Satu penanda = satu lokasi; angka = jumlah laporan yang menyebutnya",
-  ikon: "Ikon berwarna = jenis bencana yang dilaporkan",
-  banyak: "4 jenis atau lebih: 2 ikon + jumlah jenis lainnya",
-  luar: "Garis putus-putus = lokasi rujukan di kab/kota lain (bukan lokasi kejadian)",
+  satu: "Satu penanda = satu lokasi. Angka = jumlah laporan yang menyebut lokasi itu.",
+  ikon: "Ikon & warna menunjukkan jenis bencana di lokasi itu.",
+  banyak: "Jika ada 4 jenis atau lebih: tampil 2 ikon, sisanya ditulis +N.",
+  luar: "Garis putus-putus: lokasi di kab/kota lain yang ikut disebut laporan (bukan tempat kejadian).",
 };
 
 export interface Legend { el: HTMLElement; update(ctx: string, kabMode: boolean): void; setOpen(open: boolean): void }
