@@ -138,7 +138,8 @@ const panel = new Panel({
   onAllDates: () => store.set({ dari: null, sampai: null }),
   onAllJenis: () => store.set({ jenis: new Set(JENIS) }),
   onAsk: (ev) => askEvent(ev),
-  onJenis: (j) => store.set({ jenis: new Set([j]) }),
+  // klik jenis yang sudah satu-satunya aktif = lepas filter (kembali ke semua jenis)
+  onJenis: (j) => { const cur = store.state.jenis; store.set({ jenis: cur.size === 1 && cur.has(j) ? new Set(JENIS) : new Set([j]) }); },
   onTab: (t) => onTab(t),
   onPreviewProv: (k) => { if (pvSiap) mapView.previewProv(k); },
   onPreviewJenis: (j) => pvJenis(j),

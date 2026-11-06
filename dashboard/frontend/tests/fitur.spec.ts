@@ -220,9 +220,11 @@ test("chip jenis: teks saja & netral (tanpa warna jenis), aktif ditandai tebal +
   expect(await lon.evaluate((e) => getComputedStyle(e).cursor)).toBe("pointer");
   await page.locator(".chip--all").click();
   await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
-  await page.locator(".chip--all").click(); // tetap semua, tidak mengosongkan
-  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
   await expect(page).toHaveURL(/127\.0\.0\.1:5173\/$/);
+  await page.locator(".chip--all").click(); // semua aktif → klik lagi = lepas semua
+  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(0);
+  await page.locator(".chip--all").click();
+  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
 });
 
 // ------------------------------------------------------------------ D8 URL
@@ -484,6 +486,11 @@ test("pratinjau hover: provinsi, jenis, kelas legenda, kartu ↔ penanda; tanpa 
   await expect(page.locator("path.prov-pv")).toHaveCount(0);
   await expect.poll(rules).toBe("");
   // baris jenis → linimasa & komposisi dipudarkan untuk jenis lain
+  // klik baris jenis = filter; klik lagi = kembali ke semua jenis
+  await page.locator(".jrow").first().click();
+  await expect(page.locator('.chip[aria-pressed="true"]:not(.chip--all)')).toHaveCount(1);
+  await page.locator(".jrow:not(.is-pudar)").first().click();
+  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(7);
   await page.locator(".jrow").first().hover();
   await expect.poll(rules).toContain(".tl-bar:not(");
   await page.mouse.move(5, 300);

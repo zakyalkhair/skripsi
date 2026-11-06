@@ -22,9 +22,9 @@ export function buildToolbar(store: Store, onKab: (kode: string | null) => void)
         next.has(j) ? next.delete(j) : next.add(j);
         store.set({ jenis: next });
       } }, label("chip-l", LABEL_PENDEK[j]), label("chip-s", SINGKAT[j], true)));
-  // "Semua" selalu memilih semua jenis (tidak mengosongkan); pilihan kosong tetap didukung lewat chip satuan.
+  // "Semua": bila belum semua aktif → pilih semua; bila sudah semua aktif → lepas semua (pilihan kosong).
   const semua = h("button", { type: "button", class: "chip chip--all", "aria-pressed": "true", "aria-label": "Semua jenis bencana",
-    title: "Pilih semua jenis bencana", onclick: () => { if (store.state.jenis.size !== JENIS.length) store.set({ jenis: new Set(JENIS) }); } },
+    title: "Pilih / lepas semua jenis bencana", onclick: () => store.set({ jenis: store.state.jenis.size === JENIS.length ? new Set() : new Set(JENIS) }) },
     label("chip-a", "Semua"));
   const combo = new Combobox("kab-combo", "Kabupaten/kota", "Cari kab/kota…", onKab);
   const date = new DateRange((dari, sampai) => store.set({ dari, sampai }));
