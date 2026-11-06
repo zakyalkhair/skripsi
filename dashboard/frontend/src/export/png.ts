@@ -120,21 +120,21 @@ function drawPil(ctx: CanvasRenderingContext2D, t: Pick<Titik, "jenis" | "jumlah
   ctx.shadowColor = "transparent";
   ctx.lineWidth = 1.5; ctx.strokeStyle = ink; ctx.setLineDash(t.di_luar_kab ? [4, 3] : []); ctx.stroke(); ctx.setLineDash([]);
   const { tampil, sisa } = ikonTampil(t.jenis);
-  let cx = 4;
+  let cx = 3;
   for (const j of tampil) {
-    ctx.beginPath(); ctx.arc(cx + 13, hgt / 2, 12.25, 0, Math.PI * 2); ctx.fillStyle = warna(j); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 11, hgt / 2, 10.25, 0, Math.PI * 2); ctx.fillStyle = warna(j); ctx.fill();
     ctx.lineWidth = 1.5; ctx.strokeStyle = "#fff"; ctx.stroke();
-    drawIcon(ctx, `j_${j}` as IconName, cx + 5.5, hgt / 2 - 7.5, 15, "#fff");
-    cx += 18;
+    drawIcon(ctx, `j_${j}` as IconName, cx + 4.5, hgt / 2 - 6.5, 13, "#fff");
+    cx += 15;
   }
   if (sisa) {
-    ctx.beginPath(); ctx.roundRect(cx, hgt / 2 - 13, 30, 26, 13); ctx.fillStyle = "#ece7df"; ctx.fill();
+    ctx.beginPath(); ctx.roundRect(cx, hgt / 2 - 11, 26, 22, 11); ctx.fillStyle = "#ece7df"; ctx.fill();
     ctx.lineWidth = 1.5; ctx.strokeStyle = "#fff"; ctx.stroke();
-    ctx.fillStyle = ink; ctx.font = font(700, 11); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(`+${sisa}`, cx + 15, hgt / 2 + 0.5);
-    cx += 30;
-  } else cx += 8;
-  ctx.fillStyle = o.sel ? "#fff" : ink; ctx.font = font(700, 14); ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  ctx.fillText(countLabel(t.jumlah_laporan), cx + 6, hgt / 2 + 0.5);
+    ctx.fillStyle = ink; ctx.font = font(700, 11); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(`+${sisa}`, cx + 13, hgt / 2 + 0.5);
+    cx += 26;
+  } else cx += 7;
+  ctx.fillStyle = o.sel ? "#fff" : ink; ctx.font = font(700, 13); ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(countLabel(t.jumlah_laporan), cx + 5, hgt / 2 + 0.5);
   ctx.restore();
 }
 
@@ -160,7 +160,7 @@ function drawCluster(ctx: CanvasRenderingContext2D, n: string, x: number, y: num
 
 /** Legenda di pojok kiri bawah area peta; tinggi dihitung dari isinya. */
 function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, meta: PngMeta): void {
-  const pad = 12, w = 320;
+  const pad = 12, w = 260;
   const rows: { h: number; draw: (y: number) => void }[] = [];
   const ink = css("--ink", "#1d1a17"), ink2 = css("--ink-2", "#47413b"), ink3 = css("--ink-3", "#79716a");
   const chOp = parseFloat(css("--ch-op", "0.55"));
@@ -185,12 +185,12 @@ function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, 
   if (meta.kabMode) {
     const mk = (label: string, drawIc: (cx: number, cy: number) => void) => {
       ctx.font = font(500, 11);
-      const lines = wrap(ctx, label, w - pad * 2 - 88);
-      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 88, y + 14 + i * 14, 500, 11, ink2)); } });
+      const lines = wrap(ctx, label, w - pad * 2 - 70);
+      rows.push({ h: 6 + lines.length * 14, draw: (y) => { drawIc(x0 + pad, y + 10); lines.forEach((ln, i) => text(ln, x0 + pad + 70, y + 14 + i * 14, 500, 11, ink2)); } });
     };
     rows.push({ h: 22, draw: (y) => text("Penanda lokasi", x0 + pad, y + 16, 700, 11.5, ink) });
     const pil = (jenis: Jenis[], n: number, luar = false) => (cx: number, cy: number) =>
-      drawPil(ctx, { jenis, jumlah_laporan: n, di_luar_kab: luar }, cx + (markerWidth({ jenis, jumlah_laporan: n } as Titik) * 0.62) / 2, cy, { skala: 0.62, bayang: false });
+      drawPil(ctx, { jenis, jumlah_laporan: n, di_luar_kab: luar }, cx + (markerWidth({ jenis, jumlah_laporan: n } as Titik) * 0.7) / 2, cy, { skala: 0.7, bayang: false });
     mk(LEGENDA_PENANDA.satu, pil(["karhutla"], 12));
     mk(LEGENDA_PENANDA.ikon, pil(["karhutla", "banjir"], 9));
     mk(LEGENDA_PENANDA.banyak, pil(["karhutla", "banjir", "longsor", "gempa"], 31));
@@ -199,7 +199,7 @@ function drawLegend(ctx: CanvasRenderingContext2D, x0: number, yBottom: number, 
     for (let i = 0; i < JENIS.length; i += 2) {
       const pair = JENIS.slice(i, i + 2);
       rows.push({ h: 19, draw: (y) => pair.forEach((j, k) => {
-        const cx = x0 + pad + k * 150;
+        const cx = x0 + pad + k * 118;
         circle(ctx, cx + 6, y + 8, 7); ctx.fillStyle = warna(j); ctx.fill(); drawIcon(ctx, `j_${j}` as IconName, cx + 1.5, y + 3.5, 9, "#fff");
         text(LABEL_PENDEK[j], cx + 17, y + 12, 550, 11, ink2);
       }) });

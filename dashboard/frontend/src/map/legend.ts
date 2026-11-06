@@ -16,10 +16,10 @@ export const kelasOf = (n: number): number => (n <= 0 ? 0 : KELAS.find((c) => n 
 
 /** Teks legenda penanda — dipakai juga oleh ekspor PNG agar keduanya selalu sama. */
 export const LEGENDA_PENANDA = {
-  satu: "Satu penanda = satu lokasi. Angka = jumlah laporan yang menyebut lokasi itu.",
-  ikon: "Ikon & warna menunjukkan jenis bencana di lokasi itu.",
-  banyak: "Jika ada 4 jenis atau lebih: tampil 2 ikon, sisanya ditulis +N.",
-  luar: "Garis putus-putus: lokasi di kab/kota lain yang ikut disebut laporan (bukan tempat kejadian).",
+  satu: "Satu lokasi; angka = jumlah laporan",
+  ikon: "Ikon & warna = jenis bencana",
+  banyak: "≥4 jenis: 2 ikon + sisanya",
+  luar: "Lokasi rujukan di kab/kota lain (bukan lokasi kejadian)",
 };
 
 export interface Legend { el: HTMLElement; update(ctx: string, kabMode: boolean): void; setOpen(open: boolean): void }
@@ -34,7 +34,7 @@ function mini(jenis: Jenis[], n: number, luar = false): HTMLElement {
 export function buildLegend(onToggle: (open: boolean) => void): Legend {
   const ctx = h("p", { class: "lg-ctx" });
   const jenis = h("div", { class: "lg-jenis", role: "list", "aria-label": "Warna jenis bencana" },
-    ...JENIS.map((j) => h("span", { class: "lg-jn", role: "listitem" }, h("span", { class: "lg-jic", style: `--jc: var(--j-${j})`, "aria-hidden": "true" }, ico(`j_${j}` as IconName, 13)), LABEL_PENDEK[j])));
+    ...JENIS.map((j) => h("span", { class: "lg-jn", role: "listitem" }, h("span", { class: "lg-jic", style: `--jc: var(--j-${j})`, "aria-hidden": "true" }, ico(`j_${j}` as IconName, 12)), LABEL_PENDEK[j])));
   const markers = h("div", { class: "lg-markers", hidden: true },
     h("p", { class: "lg-sub" }, "Penanda lokasi"),
     h("div", { class: "lg-mk" }, mini(["karhutla"], 12), LEGENDA_PENANDA.satu),

@@ -107,7 +107,8 @@ export class MapView {
     });
 
     this.cluster = L.markerClusterGroup({
-      maxClusterRadius: 36, showCoverageOnHover: false, spiderfyOnMaxZoom: true, zoomToBoundsOnClick: true,
+      maxClusterRadius: 50, // penanda pil ±50px lebarnya: cegah tumpang tindih
+      showCoverageOnHover: false, spiderfyOnMaxZoom: true, zoomToBoundsOnClick: true,
       animate: !rm, spiderfyDistanceMultiplier: 1.5, removeOutsideVisibleBounds: true,
       iconCreateFunction: (c) => {
         const kids = c.getAllChildMarkers();

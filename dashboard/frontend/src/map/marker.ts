@@ -7,8 +7,8 @@ import { iconSvg, type IconName } from "../ui/icons";
 
 /** Penanda lokasi berbentuk pil (desain Figma "opsi ikon + warna"): lingkar ikon jenis berwarna + angka laporan.
  *  ≤3 jenis: semua ikon tampil; ≥4 jenis: 2 ikon pertama + chip "+N". */
-const IC = 26, OVERLAP = 8, PAD = 4, GAP = 6, PAD_R = 10, PLUS_W = 30;
-export const MK_H = 36;
+export const IC = 22, OVERLAP = 7, PAD = 3, GAP = 5, PAD_R = 8, PLUS_W = 26;
+export const MK_H = 30;
 
 export function ikonTampil(jenis: Jenis[]): { tampil: Jenis[]; sisa: number } {
   return jenis.length <= 3 ? { tampil: jenis, sisa: 0 } : { tampil: jenis.slice(0, 2), sisa: jenis.length - 2 };
@@ -21,7 +21,7 @@ export function markerWidth(t: Titik): number {
   const { tampil, sisa } = ikonTampil(t.jenis.length ? t.jenis : ["banjir"]);
   const n = tampil.length + (sisa ? 1 : 0);
   const icons = IC * n - OVERLAP * (n - 1) + (sisa ? PLUS_W - IC : 0);
-  return PAD + icons + GAP + countLabel(t.jumlah_laporan).length * 8.6 + PAD_R;
+  return PAD + icons + GAP + countLabel(t.jumlah_laporan).length * 7.8 + PAD_R;
 }
 
 export function markerKey(t: Titik): string {
@@ -30,7 +30,7 @@ export function markerKey(t: Titik): string {
 
 export function markerHtml(t: Titik): string {
   const { tampil, sisa } = ikonTampil(t.jenis);
-  const ics = tampil.map((j) => `<span class="pm-ic" style="--jc:var(--j-${j})">${iconSvg(`j_${j}` as IconName, 15)}</span>`).join("")
+  const ics = tampil.map((j) => `<span class="pm-ic" style="--jc:var(--j-${j})">${iconSvg(`j_${j}` as IconName, 13)}</span>`).join("")
     + (sisa ? `<span class="pm-ic pm-ic--plus">+${sisa}</span>` : "");
   const cls = `pm-mk${t.tingkat === "gunung" ? " pm-mk--gunung" : ""}${t.di_luar_kab ? " is-luar" : ""}`;
   return `<span class="${cls}"><span class="pm-ics">${ics}</span><span class="pm-count">${countLabel(t.jumlah_laporan)}</span></span>`;
