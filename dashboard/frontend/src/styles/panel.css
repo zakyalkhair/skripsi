@@ -240,7 +240,7 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 /* ---------------------------------------------------------------- layar sempit: lembar bawah */
-@media (max-width: 1180px) { .workspace { --panel-w: 340px; } }
+@media (max-width: 1180px) { .workspace { --panel-w: 370px; } }
 @media (max-width: 820px) {
   .panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: min(62dvh, 560px); border-radius: 16px 16px 0 0; }
   .panel-collapsed .panel { transform: translateY(calc(100% - 60px)); opacity: 1; visibility: visible; transition: transform var(--d-panel) var(--e-out); }
@@ -342,7 +342,7 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .jrow { display: grid; grid-template-columns: 32px minmax(0, 1fr) 46px 14px; align-items: center; gap: 12px; width: calc(100% + 16px); margin: 0 -8px; padding: 9px 8px;
   border: 0; border-radius: var(--r-m); background: transparent; text-align: left; cursor: pointer; transition: background var(--d-hover); }
 .jrow:hover { background: var(--surface-2); }
-.jcard { padding: 14px 14px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.jcard { padding: 14px 12px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .jrow-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--jc); background: color-mix(in srgb, var(--jc) 14%, var(--surface)); }
 .jrow-mid { display: grid; gap: 6px; min-width: 0; }
 .jrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }

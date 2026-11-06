@@ -34,7 +34,7 @@ button:disabled { cursor: default; }
 
 /* ---------------------------------------------------------------- ruang kerja peta penuh */
 .workspace {
-  --gap: 12px; --panel-w: clamp(340px, 27vw, 400px); --tl-h: 148px; --pill-h: 36px;
+  --gap: 12px; --panel-w: clamp(380px, 31vw, 470px); --tl-h: 148px; --pill-h: 36px;
   --ctrl-right: calc(var(--panel-w) + var(--gap) * 2);
   --fab-w: 128px;
   --tl-right: var(--ctrl-right); /* tepi kanan linimasa & atribusi: tidak menabrak tombol Tanya AI */
