@@ -219,18 +219,18 @@ export class Panel {
     const pudar = (j: Jenis) => dipilih.size < JENIS.length && !dipilih.has(j);
     return h("section", { class: "psec jcard" },
       h("h3", { class: "psec-t" }, "Kejadian per jenis bencana"),
-      h("p", { class: "psec-note" }, "Jumlah kejadian unik pada rentang tanggal aktif · klik baris untuk memfilter peta"),
+      h("p", { class: "psec-note" }, "Jumlah kejadian unik pada rentang tanggal aktif · arahkan kursor ke baris untuk melihatnya di peta"),
       h("div", { class: "jcomp", "aria-hidden": "true" }, ...rows.filter((r) => r.kejadian).map((r) =>
         h("i", { class: pudar(r.j) ? "is-pudar" : "", style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
-      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, this.pv(h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}${pudar(r.j) ? " is-pudar" : ""}`,
-        onclick: () => this.hd.onJenis(r.j), "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan. Tampilkan jenis ini saja.` },
+      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, this.pv(h("div", { class: `jrow${r.kejadian ? "" : " is-nol"}${pudar(r.j) ? " is-pudar" : ""}`,
+        tabindex: "0", "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan.` },
         h("span", { class: "jrow-ic", style: `--jc:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
         h("span", { class: "jrow-mid" },
           h("span", { class: "jrow-top" }, h("b", {}, LABEL[r.j] === "Kebakaran Hutan dan Lahan" ? "Karhutla" : LABEL[r.j]),
             h("small", {}, r.kejadian ? `${angka(r.laporan)} laporan` : "belum dilaporkan")),
           h("span", { class: "jrow-bar" }, r.kejadian ? h("i", { style: `width:${(r.kejadian / max) * 100}%;background:var(--j-${r.j})` }) : null)),
         h("span", { class: "jrow-n" }, h("b", {}, angka(r.kejadian)), h("small", {}, r.kejadian && total ? `${Math.round((100 * r.kejadian) / total)}%` : "—")),
-        ico("chevRight", 14, "rank-go")), () => this.hd.onPreviewJenis?.(r.j), () => this.hd.onPreviewJenis?.(null))))),
+        ), () => this.hd.onPreviewJenis?.(r.j), () => this.hd.onPreviewJenis?.(null))))),
       h("p", { class: "fblock-note" }, "Satu kejadian dihitung pada satu jenis. Jenis tanpa laporan tetap ditampilkan agar terlihat tidak ada data, bukan nol kejadian sesungguhnya."));
   }
 

@@ -339,8 +339,8 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .jcomp i { display: block; min-width: 3px; transition: opacity var(--d-sel); }
 .jrows { list-style: none; margin: 0; padding: 0; }
 .jrows li + li { border-top: 1px solid var(--line); }
-.jrow { display: grid; grid-template-columns: 32px minmax(0, 1fr) 46px 14px; align-items: center; gap: 12px; width: calc(100% + 16px); margin: 0 -8px; padding: 9px 8px;
-  border: 0; border-radius: var(--r-m); background: transparent; text-align: left; cursor: pointer; transition: background var(--d-hover); }
+.jrow { cursor: default; display: grid; grid-template-columns: 32px minmax(0, 1fr) 46px; align-items: center; gap: 12px; width: calc(100% + 16px); margin: 0 -8px; padding: 9px 8px;
+  border: 0; border-radius: var(--r-m); background: transparent; text-align: left; transition: background var(--d-hover); }
 .jrow:hover { background: var(--surface-2); }
 .jcard { padding: 14px 12px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .jrow-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--jc); background: color-mix(in srgb, var(--jc) 14%, var(--surface)); }
