@@ -33,7 +33,8 @@ const kpi = (label: string, value: string | number, hint?: string) =>
     h("span", { class: "kpi-l" }, label));
 const section = (title: string, ...body: (Node | null | false)[]) => h("section", { class: "psec" }, h("h3", { class: "psec-t" }, title), ...body);
 const none = (t = "Tidak disebutkan") => h("p", { class: "muted small" }, t);
-const statusBadge = (st: string) => h("span", { class: `status status--${st === "ya" ? "ya" : "tidak"}`,
+// status ambang disembunyikan (desain)
+export const statusBadge = (st: string) => h("span", { class: `status status--${st === "ya" ? "ya" : "tidak"}`,
   title: "Status ambang bencana (ya/tidak) — bukan status berlangsung/selesai" }, STATUS_LABEL[st] ?? "Status tidak tersedia");
 
 const KRONO_NOTE = "Cadangan otomatis tanpa LLM: satu baris per tanggal dari cuplikan tweet (laporan situasi Modul 4.3 belum tersambung).";
@@ -276,7 +277,6 @@ export class Panel {
       h("dl", { class: "card-meta" },
         h("div", {}, h("dt", {}, "Mulai"), h("dd", {}, tgl(k.start_time))),
         h("div", {}, h("dt", {}, "Laporan terakhir"), h("dd", {}, tgl(k.end_time)))),
-      h("div", { class: "card-row" }, statusBadge(k.status)),
       h("p", { class: "card-counts" }, h("b", {}, angka(k.jumlah_laporan_periode)), " laporan · ", h("b", {}, angka(k.jumlah_tweet_periode)), " tweet unik"),
       periodeBeda ? h("p", { class: "card-scope" }, `Pada rentang ini; ${angka(k.jumlah_laporan_total)} laporan sepanjang data.`) : null,
       k.lokasi.length ? h("p", { class: "card-locs" }, ico("target", 13, "loc-ic"), ...k.lokasi.map((l, i) => [i ? ", " : "",
@@ -343,7 +343,7 @@ export class Panel {
             h("dl", { class: "card-meta" },
               h("div", {}, h("dt", {}, "Mulai"), h("dd", {}, tgl(k.start_time))),
               h("div", {}, h("dt", {}, "Laporan terakhir"), h("dd", {}, tgl(k.end_time)))),
-            h("div", { class: "evgroup-m" }, h("span", {}, k.nama_kab ?? "Kab/kota tidak tersedia"), statusBadge(k.status)),
+            h("div", { class: "evgroup-m" }, h("span", {}, k.nama_kab ?? "Kab/kota tidak tersedia")),
             rel ? h("p", { class: "evgroup-rel" }, `${rel}.`) : null,
             h("p", { class: "card-sum" }, `${ini.length} dampak | ${nKeb} kebutuhan | ${k.penanganan.length} lembaga di lokasi ini`),
             h("details", { class: "card-more" },

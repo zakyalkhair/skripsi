@@ -115,14 +115,14 @@ const locChip = (l: LokRef | null, ev = false) => l ? h("span", { class: "ftag f
 const srcChip = (s: Sumber, tw: TweetMap) => sumberToggle(s, tw);
 
 /** Dampak (desain Figma): label + jumlah, ikon kelas di kanan, chip lokasi & chip tanggal·tweet. Diurutkan per kelas. */
-export function dampakGroups(ds: Dampak[], tw: TweetMap, opts: { scope: boolean }): HTMLElement[] {
+export function dampakGroups(ds: Dampak[], tw: TweetMap, _opts: { scope: boolean }): HTMLElement[] {
   if (!ds.length) return [];
   const ord = Object.keys(KELAS_UI);
   const sorted = [...ds].sort((a, b) => ord.indexOf(a.kelas && a.kelas in KELAS_UI ? a.kelas : "lainnya") - ord.indexOf(b.kelas && b.kelas in KELAS_UI ? b.kelas : "lainnya"));
   return [h("ul", { class: "facts" }, ...sorted.map((d) => h("li", { class: "fact", "data-id": d.id, "data-kelas": d.kelas ?? "lainnya" },
     h("span", { class: "fact-main" }, h("span", { class: "fact-what" }, dampakText(d)), h("b", { class: `fact-qty${d.jumlah == null ? " is-na" : ""}` }, dampakQty(d)),
       h("span", { class: "fact-ic", title: KELAS_UI[d.kelas ?? ""] ?? "Lainnya" }, ico(kelasIc(d.kelas), 16))),
-    h("span", { class: "fact-meta" }, ...(d.lokasi.length ? d.lokasi.map((l) => locChip(l)) : [opts.scope || d.atribusi === "kejadian" ? locChip(null, true) : null]),
+    h("span", { class: "fact-meta" }, ...(d.lokasi.length ? d.lokasi.map((l) => locChip(l)) : []),
       ...(d.sumber ?? []).map((x) => srcChip(x, tw))))))];
 }
 
@@ -141,9 +141,9 @@ export function kebutuhanGroups(gs: KebGrup[], tw: TweetMap): HTMLElement[] {
       h("span", { class: "fact-main" }, h("span", { class: "fact-what" }, g.item ?? "item tidak disebutkan"),
         h("span", { class: "fact-right" }, one ? statusChip(one) : g.ringkas ? h("span", { class: "ftag ftag--count" }, g.ringkas) : null,
           h("span", { class: "fact-ic", title: KATEGORI_UI[g.kategori ?? ""] ?? "Lainnya" }, ico(katIc(g.kategori), 16)))),
-      ...(one ? [h("span", { class: "fact-meta" }, locChip(one.lokasi, true), ...one.sumber.map((x) => srcChip(x, tw)))]
+      ...(one ? [h("span", { class: "fact-meta" }, locChip(one.lokasi), ...one.sumber.map((x) => srcChip(x, tw)))]
         : g.baris.map((b) => h("div", { class: "need-row" }, statusChip(b),
-          h("span", { class: "fact-meta" }, locChip(b.lokasi, true), ...b.sumber.map((x) => srcChip(x, tw)))))));
+          h("span", { class: "fact-meta" }, locChip(b.lokasi), ...b.sumber.map((x) => srcChip(x, tw)))))));
   }))];
 }
 

@@ -330,3 +330,6 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .evgroup { margin-bottom: 0; }
 .ringkas { background: #f5eee2; box-shadow: none; }
 .ringkas-x { color: #4a3b26; }
+.kpis--lok { grid-template-columns: max-content max-content minmax(0, 1fr); }
+.kpis--lok .kpi { padding-right: 16px; }
+.kpis--lok .kpi-v, .kpis--lok .kpi:last-child .kpi-v { font-size: 22px; font-weight: 750; line-height: 1.05; letter-spacing: -0.025em; white-space: nowrap; overflow: visible; }
