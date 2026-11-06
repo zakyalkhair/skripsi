@@ -20,12 +20,13 @@
      ≥ 12 untuk penglihatan normal, protanopia, deuteranopia, dan tritanopia; kontras ≥ 3:1 terhadap putih.
      Cuaca ekstrem (biru langit) vs erupsi (ungu kemerahan): ΔE2000 ≈ 51 normal, ≈ 24 deuteranopia.
      Warna tidak pernah menjadi satu-satunya penanda: label jenis selalu menyertai (chip, kartu, tooltip, legenda). */
-  --j-banjir: #0958c1;
-  --j-longsor: #765128;
-  --j-cuaca: #159be8;
-  --j-karhutla: #ea7107;
-  --j-gempa: #03906d;
-  --j-erupsi: #a83876;
+  /* Palet kalem (desain Figma "opsi ikon + warna"): air, tanah, langit kelabu, api, batuan, lava. */
+  --j-banjir: #24507e;
+  --j-longsor: #7a4a2e;
+  --j-cuaca: #5299b3;
+  --j-karhutla: #c8622a;
+  --j-gempa: #5e7a3a;
+  --j-erupsi: #6e2038;
 
   /* skala merah sekuensial = JUMLAH kejadian unik (bukan keparahan); diisi transparan di atas peta */
   --ch-1: #f1b29e;

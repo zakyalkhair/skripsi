@@ -194,11 +194,11 @@ export class Panel {
         kpi("Tweet sumber unik", r.jumlah_tweet, "Tweet unik yang melaporkan laporan kejadian pada rentang tanggal"),
         kpi("Kab/kota", r.jumlah_kab, "Kab/kota dengan minimal satu kejadian yang sesuai filter")),
       r.jumlah_kejadian === 0 ? this.empty(ctx) : h("div", {},
+        r.per_jenis ? this.jenisCard(r.per_jenis, r.jumlah_kejadian) : null,
         provRows.length ? section("Provinsi",
           h("ul", { class: "provs" }, ...provRows.map(([kode, p]) => h("li", {}, h("button", { type: "button", class: "prov-btn", onclick: () => this.hd.onProv(kode) },
             h("span", { class: "prov-name" }, provNama.get(kode) ?? kode),
-            h("span", { class: "prov-n" }, `${angka(p.n)} kejadian | ${angka(p.kab)} kab/kota`), ico("chevRight", 14, "rank-go")))))) : null,
-        r.per_jenis ? this.jenisCard(r.per_jenis, r.jumlah_kejadian) : null)), "nasional");
+            h("span", { class: "prov-n" }, `${angka(p.n)} kejadian | ${angka(p.kab)} kab/kota`), ico("chevRight", 14, "rank-go")))))) : null)), "nasional");
   }
 
   /** Kartu "Kejadian per jenis bencana" (opsi desain Figma): ikon, laporan, batang, jumlah & persen; klik = filter jenis. */
@@ -212,7 +212,7 @@ export class Panel {
         h("i", { style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
       h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}`,
         onclick: () => this.hd.onJenis(r.j), "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan. Tampilkan jenis ini saja.` },
-        h("span", { class: "jrow-ic", style: `background:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
+        h("span", { class: "jrow-ic", style: `--jc:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
         h("span", { class: "jrow-mid" },
           h("span", { class: "jrow-top" }, h("b", {}, LABEL[r.j] === "Kebakaran Hutan dan Lahan" ? "Karhutla" : LABEL[r.j]),
             h("small", {}, r.kejadian ? `${angka(r.laporan)} laporan` : "belum dilaporkan")),
