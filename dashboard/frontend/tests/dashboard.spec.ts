@@ -8,7 +8,7 @@ test("1. tampilan awal: Indonesia utuh, choropleth benar, satu label lokasi, tan
   const n = await page.locator('path.kab:not([data-k="na"])').evaluateAll((els) =>
     Object.fromEntries(els.map((e) => [e.getAttribute("data-kode"), Number(e.getAttribute("data-n"))])));
   expect(n).toEqual({ "3507": 3, "3508": 2, "3509": 2, "3513": 1, "3514": 3, "3515": 1, "3579": 3 });
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("15");
+  await expect(kpi(page, "Kejadian")).toHaveText("15");
   await expect(kpi(page, "Tweet sumber unik")).toHaveText("31");
   await expect(kpi(page, "Kab/kota")).toHaveText("7");
   await expect(markers(page)).toHaveCount(0);
@@ -18,7 +18,7 @@ test("1. tampilan awal: Indonesia utuh, choropleth benar, satu label lokasi, tan
   });
   expect(b).toEqual([true, true, true, true]); // Aceh, Merauke, Rote, Kalimantan Utara terlihat
   await expect(page.locator(".crumbs")).toHaveText("Indonesia");
-  await expect(page.getByText("Seluruh Indonesia")).toHaveCount(0);
+  await expect(page.locator(".panel-body, .crumbs, .toolbar").getByText("Seluruh Indonesia")).toHaveCount(0);
   await expect(page.getByText("Ikhtisar nasional", { exact: false })).toHaveCount(0);
   expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain("Plus Jakarta Sans");
   expect(errors).toEqual([]);
@@ -93,7 +93,7 @@ test("5. klik penanda: pilih + zoom secukupnya; penanda dekat tidak memicu gerak
   const bulukerto = page.locator('.pm-marker[data-gid="contoh:desa/bulukerto"]');
   await bulukerto.hover();
   await expect(page.locator(".maptip")).toContainText("Desa Bulukerto");
-  await expect(page.locator(".maptip")).toContainText("Laporan yang menyebut lokasi ini");
+  await expect(page.locator(".maptip")).toContainText("Unggahan X yang dilaporkan");
   await bulukerto.click();
   await expect(page.locator(".panel .ptitle")).toHaveText("Desa Bulukerto");
   await settle(page);
@@ -109,14 +109,15 @@ test("5. klik penanda: pilih + zoom secukupnya; penanda dekat tidak memicu gerak
   expect(await zoom(page)).toBe(z1);
   expect(Math.abs(c1.lat - c2.lat) + Math.abs(c1.lng - c2.lng)).toBeLessThan(1e-6);
   await expect(kpi(page, "Laporan")).toHaveText("4");
-  await expect(kpi(page, "Tweet unik")).toHaveText("3"); // satu tweet melaporkan dua laporan
+  await expect(kpi(page, "Kejadian")).toHaveText("3");
   await expect(page.locator(".evgroup")).toHaveCount(3);
   await expect(page.locator(".tweet")).toHaveCount(3);
   await expect(page.locator(".tweet").first()).toContainText("Tautan sumber tidak tersedia");
-  await page.locator(".psec--fold > summary").click(); // bukti tweet bisa dilipat dan dibuka lagi
-  await expect(page.locator(".tweet").first()).toBeHidden();
+  await expect(page.locator(".tweet").first()).toBeHidden(); // daftar tweet terlipat secara bawaan (desain)
   await page.locator(".psec--fold > summary").click();
   await expect(page.locator(".tweet").first()).toBeVisible();
+  await page.locator(".psec--fold > summary").click();
+  await expect(page.locator(".tweet").first()).toBeHidden();
 });
 
 test("6. kartu kejadian: klik menyorot, klik lagi melepas, pindah kartu memindah sorotan", async ({ page }) => {
@@ -150,9 +151,9 @@ test("7. filter jenis konsisten di peta & panel; dropdown = klik peta", async ({
   await expect(page.locator(".chip--all")).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".map-empty")).toBeHidden(); // panel terbuka sudah menampilkan pesan
   await expect(page.locator(".panel")).toContainText("Belum ada jenis bencana yang dipilih");
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("0");
+  await expect(kpi(page, "Kejadian")).toHaveText("0");
   await page.locator('.chip[data-jenis="banjir"]').click();
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("6");
+  await expect(kpi(page, "Kejadian")).toHaveText("6");
   await expect(kabPath(page, "3507")).toHaveAttribute("data-k", "0");
   await expect(kabPath(page, "3514")).toHaveAttribute("data-n", "2");
   const input = page.getByRole("combobox", { name: "Kabupaten/kota" });
@@ -172,14 +173,14 @@ test("8. rentang tanggal atas & linimasa tersinkron; semantik irisan", async ({ 
   await open(page);
   await page.locator(".dr-trigger").click();
   await page.locator('.seg-btn[data-preset="7"]').click(); // 12–18 Mar 2026
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("2");
+  await expect(kpi(page, "Kejadian")).toHaveText("2");
   await expect(page.locator(".dr-label")).toHaveText("12 – 18 Mar 2026");
   await expect(page.locator(".tl-range")).toHaveText("12 – 18 Mar 2026");
   await expect(page.locator(".tl-week.is-out").first()).toBeVisible();
   await page.locator("#dr-dari").fill("2026-01-13");
   await page.locator("#dr-sampai").fill("2026-01-13");
   await page.locator("#dr-sampai").dispatchEvent("change");
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("2"); // DE01 & DE03 beririsan
+  await expect(kpi(page, "Kejadian")).toHaveText("2"); // DE01 & DE03 beririsan
   await expect(kpi(page, "Tweet sumber unik")).toHaveText("0");
   await page.keyboard.press("Escape");
   await expect(page.locator(".dr-pop")).toBeHidden();

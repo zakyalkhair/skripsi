@@ -166,3 +166,5 @@ button.crumb:hover { background: var(--surface-3); color: var(--ink); }
   .legend-wrap { bottom: calc(60px + var(--gap)); }
   .map-empty { left: 50%; top: calc(var(--over-top) + 48px); }
 }
+.tt-lead { margin: 2px 0 4px; font-size: 13px; color: #fff; }
+.tt-lead b { font-weight: 800; }

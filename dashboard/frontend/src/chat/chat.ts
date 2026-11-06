@@ -8,7 +8,7 @@ import {
 } from "./service";
 
 /** Konteks pertanyaan saat ini, disusun oleh pemanggil dari state peta (bukan dari isi percakapan). */
-export interface ChatCtxInfo { ctx: ChatContext; label: string; examples: string[] }
+export interface ChatCtxInfo { ctx: ChatContext; label: string; examples: string[]; terpilih?: string }
 
 type Status = "ok" | "loading" | "error" | "unavailable";
 interface Msg { id: number; role: "user" | "assistant"; text: string; status: Status; citations?: Citation[]; ctxLabel?: string; q?: string; ctx?: ChatContext }
@@ -42,7 +42,7 @@ export class ChatView {
     this.evChip = h("span", { class: "chat-ev", hidden: true });
     const radio = (v: ChatScope, label: string) => h("button", { type: "button", role: "radio", class: "seg-btn", "data-scope": v,
       "aria-checked": String(v === this.scope), tabindex: v === this.scope ? 0 : -1, onclick: () => this.setScope(v) }, label);
-    this.radios = [radio("terpilih", "Konteks terpilih"), radio("semua", "Seluruh data")];
+    this.radios = [radio("terpilih", "Konteks terpilih"), radio("semua", "Seluruh Indonesia")];
     const seg = h("div", { class: "seg chat-seg", role: "radiogroup", "aria-label": "Cakupan pertanyaan" }, ...this.radios);
     seg.addEventListener("keydown", (e) => {
       if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
@@ -53,12 +53,11 @@ export class ChatView {
     });
     const head = h("header", { class: "chat-h" },
       h("div", { class: "chat-title" },
-        h("span", { class: "chat-mark", "aria-hidden": "true" }, ico("sparkle", 16)),
+        h("span", { class: "chat-mark", "aria-hidden": "true" }, ico("sparkle", 30)),
         h("div", {}, h("h2", { class: "chat-t" }, "Asisten Situasi Bencana"), h("p", { class: "chat-sub" }, "Tanya jawab berdasarkan data bencana")),
         this.statusPill),
-      h("div", { class: "chat-ctx" }, h("span", { class: "chat-ctx-l" }, "Bertanya tentang:"), this.ctxLabel, this.evChip),
-      h("div", { class: "chat-scope" }, h("span", { class: "chat-scope-l", id: "chat-scope-l" }, "Cakupan"), seg,
-        h("span", { class: "chat-scope-n" }, "Tidak mengubah filter peta")));
+      h("div", { class: "chat-scope", title: "Cakupan pertanyaan — tidak mengubah filter peta" }, seg),
+      h("div", { class: "chat-ctx" }, h("span", { class: "chat-ctx-l" }, "Bertanya tentang"), h("span", { class: "chat-ctx-r" }, this.ctxLabel, this.evChip)));
     this.log = h("div", { class: "chat-log", role: "log", "aria-live": "polite", "aria-label": "Percakapan dengan asisten", tabindex: 0 });
     this.input = h("textarea", { class: "chat-input", rows: 1, placeholder: "Tanyakan tentang situasi bencana...", "aria-label": "Pertanyaan untuk asisten",
       maxlength: 1000, enterkeyhint: "send" });
@@ -101,6 +100,8 @@ export class ChatView {
   refresh(): void {
     const info = this.getCtx(this.scope, this.event);
     this.ctxLabel.textContent = info.label;
+    const t = this.getCtx("terpilih", this.event).terpilih;
+    if (t) this.radios[0].textContent = t;
     const evOn = !!this.event && this.scope === "terpilih";
     this.evChip.hidden = !evOn;
     if (evOn) this.evChip.replaceChildren(h("span", {}, `Kejadian: ${this.event!.nama}`),

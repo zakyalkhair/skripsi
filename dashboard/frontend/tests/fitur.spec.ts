@@ -65,6 +65,7 @@ test("lokasi Kec. Bangil: fakta dikelompokkan per kejadian, angka per laporan ti
   await expect(page.locator(".panel .ptitle")).toHaveText("Kec. Bangil");
   await expect(page.locator("#tabbtn-detail")).toHaveText("Detail Lokasi");
   const de09 = page.locator('.evgroup[data-event="DE09"]'), de10 = page.locator('.evgroup[data-event="DE10"]');
+  for (const g of [de09, de10]) await g.locator(".card-more > summary").click(); // "Detail kejadian"
   await expect(page.locator(".evgroup")).toHaveCount(2);
   const ini09 = de09.locator(".fblock", { hasText: "Dampak di lokasi ini" });
   await expect(ini09.locator(".fact-qty")).toHaveText("350 unit");
@@ -91,10 +92,10 @@ test("kartu kejadian kab/kota: dampak, kebutuhan, penanganan, sumber laporan per
   const dampak = c.locator(".fblock", { hasText: "Dampak kejadian" });
   await expect(dampak.locator(".fact")).not.toHaveCount(0);
   await expect(dampak.locator(".ftag").first()).toBeVisible(); // setiap fakta berlabel lokasi atau "Tingkat kejadian"
-  await expect(c.locator(".fblock", { hasText: "Sumber laporan" }).locator(".srcl-i")).toHaveCount(3);
-  const lap = c.locator(".srcl-i").first();
-  await lap.locator("summary").click();
-  await expect(lap.locator(".stw").first()).toContainText("ID T");
+  const sumber = c.locator(".tfold", { hasText: "Sumber laporan" });
+  await expect(sumber.locator(".tfold-l > li")).toHaveCount(3);
+  await sumber.locator("summary").click();
+  await expect(sumber.locator(".stw").first()).toContainText("ID T");
   await expect(c.locator(".ask-btn")).toHaveText("Tanyakan tentang kejadian ini");
 });
 
@@ -126,7 +127,7 @@ test("tampilan provinsi: remah roti, panel, peta diredupkan di luar provinsi", a
   await page.locator(".crumb", { hasText: "Jawa Timur" }).click();
   await expect(current(page)).toHaveText("Jawa Timur");
   await expect(page.locator(".panel .ptitle")).toHaveText("Jawa Timur");
-  await expect(kpi(page, "Kejadian bencana")).toHaveText("15");
+  await expect(kpi(page, "Kejadian")).toHaveText("15");
   await expect(page.locator(".panel .rank-btn")).toHaveCount(7);
   await expect.poll(() => lokasiUnik(page)).toBe(0);
   await expect(page.locator('path.kab[data-kode="3508"]')).not.toHaveClass(/is-dim/);
@@ -362,11 +363,11 @@ test("asisten: tombol mengambang, tab, keadaan belum tersedia, riwayat bertahan"
   await expect(page.locator(".panel .ptitle")).toHaveText("Sebaran kejadian bencana");
   await page.locator("#tabbtn-chat").click();
   await expect(page.locator(".msg--user")).toHaveCount(1);
-  // cakupan "Seluruh data" tidak mengubah filter peta
+  // cakupan "Seluruh Indonesia" tidak mengubah filter peta
   await page.locator('.chip[data-jenis="banjir"]').click();
   const url = page.url();
-  await page.getByRole("radio", { name: "Seluruh data" }).click();
-  await expect(page.locator(".chat-ctx-v")).toHaveText("Seluruh data (semua wilayah, jenis, dan periode)");
+  await page.getByRole("radio", { name: "Seluruh Indonesia" }).click();
+  await expect(page.locator(".chat-ctx-v")).toHaveText("Seluruh Indonesia | semua jenis | seluruh periode");
   expect(page.url()).toBe(url);
   await expect(page.locator('.chip[data-jenis="banjir"]')).toHaveAttribute("aria-pressed", "false");
 });
@@ -374,6 +375,7 @@ test("asisten: tombol mengambang, tab, keadaan belum tersedia, riwayat bertahan"
 test("asisten: 'Tanyakan tentang kejadian ini' memberi konteks kejadian", async ({ page }) => {
   await open(page);
   await enterKab(page, "3508", "Kab. Lumajang");
+  await page.locator('.card[data-event="DE01"] .card-more > summary').click();
   await page.locator('.card[data-event="DE01"] .ask-btn').click();
   await expect(page.locator("#tabbtn-chat")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".chat-ev")).toContainText("Kejadian: Erupsi Gunung Semeru — Kab. Lumajang");

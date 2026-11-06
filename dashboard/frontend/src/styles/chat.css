@@ -91,3 +91,10 @@
   .chat-log { padding: 12px 14px; }
   .chat-input { font-size: 16px; } /* mencegah zoom otomatis iOS */
 }
+/* desain Figma */
+.chat-mark { width: auto; height: auto; background: none; color: var(--ink); }
+.chat-ctx { display: grid; gap: 2px; }
+.chat-ctx-l { font-size: 12px; font-weight: 500; }
+.chat-ctx-r { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 14px; }
+.chat-ctx-v { font-weight: 700; }
+.msg--bot .msg-b { border-radius: 14px; }

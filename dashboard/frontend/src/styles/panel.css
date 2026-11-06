@@ -284,3 +284,49 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .ringkas { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--r-m); background: #f7efe6; box-shadow: inset 0 0 0 1px #ecdcc6; }
 .ringkas-l { display: flex; align-items: center; gap: 5px; margin: 0 0 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #8a6a3b; }
 .ringkas-x { margin: 0; font-size: 12.5px; line-height: 1.5; color: #4a3b26; }
+
+/* ---------------------------------------------------------------- penyesuaian desain Figma */
+.card-top { gap: 8px; }
+.card-badge { margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--surface-3); font-size: 11.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.card.is-sorot .card-badge { display: none; }
+.card-counts { margin: 8px 0 0; }
+.card-row { margin-top: 2px; }
+.card-sum { margin: 6px 0 0; color: var(--ink-3); }
+.card-more > summary { justify-content: space-between; padding: 6px 0 2px; font-size: 13px; font-weight: 650; color: var(--ink); }
+.more-chev { color: var(--ink-2); transition: transform var(--d-sel) var(--e-out); }
+.card-more[open] > summary .more-chev { transform: rotate(180deg); }
+.cards-hint { font-style: italic; font-size: 11.5px; }
+.fact-main { width: 100%; }
+.fact-ic, .fact-right { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.fact-ic { color: #2f8f5b; }
+.fact[data-kelas="pelayanan_dasar"] .fact-ic, .fact--need .fact-ic { color: #2b5cd6; }
+.fact[data-kelas="manusia"] .fact-ic { color: #b23b2b; }
+.ftag--loc { background: var(--surface); }
+.ftag--count { background: var(--surface-3); box-shadow: none; font-weight: 650; }
+.fsrc > summary, .dchip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 7px; border-radius: 6px; background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-2); font-size: 11.5px; }
+.fsrc-d, .dchip b { font-weight: 700; color: var(--ink); }
+.dchip span, .fsrc-id { color: var(--ink-3); font-weight: 500; }
+.fsrcs-l { display: none; }
+.org-n { font-weight: 700; }
+.aksi-row { border-top: 0; padding-top: 2px; gap: 4px; }
+.aksi-pill { justify-self: start; display: inline-block; padding: 1px 8px; border-radius: 6px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-2);
+  font-size: 11.5px; font-weight: 550; color: var(--ink-2); }
+.krono-box { padding: 12px 12px 10px; border-radius: var(--r-m); background: var(--surface-2); }
+.krono { border-left-color: #e3a49a; }
+.krono-i::before { box-shadow: inset 0 0 0 2.5px #d0473a; }
+.tfold { margin-top: 12px; border-radius: var(--r-m); box-shadow: inset 0 0 0 1px var(--line-2); background: var(--surface); }
+.tfold > summary { display: flex; align-items: center; gap: 8px; padding: 10px 12px; list-style: none; cursor: pointer; }
+.tfold > summary::-webkit-details-marker { display: none; }
+.tfold > summary .fsrc-chev { margin-left: auto; }
+.tfold-t { font-size: 13px; font-weight: 700; color: var(--ink); }
+.tfold-l { list-style: none; margin: 0; padding: 0 10px 10px; display: grid; gap: 6px; max-height: 360px; overflow-y: auto; }
+.tfold--card { margin-top: 12px; }
+.tfold--card .tweets { padding: 0 10px 10px; }
+.kpis--lok { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr); }
+.kpis--lok .kpi:last-child .kpi-v { font-size: 18px; white-space: nowrap; }
+.btn--block { width: 100%; justify-content: center; margin-top: 10px; }
+.rank-btn:hover { background: var(--surface-3); }
+.evgroup { margin-bottom: 0; }
+.ringkas { background: #f5eee2; box-shadow: none; }
+.ringkas-x { color: #4a3b26; }

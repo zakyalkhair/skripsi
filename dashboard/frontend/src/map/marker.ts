@@ -82,7 +82,7 @@ export function markerTooltip(t: Titik, kabTerpilih: string | null): string {
   const luar = t.di_luar_kab
     ? `<div class="tt-note"><span class="tt-tag">Lokasi rujukan</span>${esc(kalimatRujukan(t.nama_kab_lokasi, kabTerpilih))}</div>` : "";
   return `<div class="tt-title">${esc(t.nama)}</div>
-    <div class="tt-sub">${esc(TINGKAT_LABEL[t.tingkat] ?? t.tingkat)} · ${rentang(t.tanggal_awal, t.tanggal_akhir)}</div>
-    <div class="tt-row"><span>Laporan yang menyebut lokasi ini</span><b>${t.jumlah_laporan}</b></div>
+    <div class="tt-sub">${esc(TINGKAT_LABEL[t.tingkat] ?? t.tingkat)} | ${rentang(t.tanggal_awal, t.tanggal_akhir)}</div>
+    <div class="tt-lead"><b>${t.jumlah_laporan}</b> Unggahan X yang dilaporkan</div>
     <div class="tt-jenis">${jenis}</div>${luar}<div class="tt-hint">Klik untuk melihat rincian</div>`;
 }

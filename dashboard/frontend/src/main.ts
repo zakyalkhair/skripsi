@@ -249,7 +249,7 @@ const periodeText = (s: State) => (s.dari || s.sampai ? rentang(s.dari ?? wil.da
   : `seluruh periode (${rentang(wil.dataset.rentang.awal, wil.dataset.rentang.akhir)})`);
 function filterText(s: State): string {
   const d = s.dari || s.sampai ? rentang(s.dari ?? wil.dataset.rentang.awal, s.sampai ?? wil.dataset.rentang.akhir) : "seluruh periode";
-  return `${jenisText(s)} · ${d}`;
+  return `${jenisText(s)} | ${d}`;
 }
 const legendText = (s: State) => filterText(s);
 const emptyCtx = () => ({ jenisKosong: store.state.jenis.size === 0, adaTanggal: !!(store.state.dari || store.state.sampai) });
@@ -588,7 +588,7 @@ function chatCtx(scope: ChatScope, ev: EventRef | null): ChatCtxInfo {
   if (scope === "semua" || !wil)
     return {
       ctx: { scope: "semua", wilayah: { tingkat: "nasional", kode_prov: null, kode_kab: null, gazetteer_id: null, nama: null }, filter: { jenis: null, dari: null, sampai: null }, event_id: null },
-      label: "Seluruh data (semua wilayah, jenis, dan periode)",
+      label: "Seluruh Indonesia | semua jenis | seluruh periode", terpilih: undefined,
       examples: ["Wilayah mana yang paling banyak melaporkan kejadian bencana?", "Kejadian apa yang paling baru dilaporkan?", "Kebutuhan apa yang paling sering disebut dalam laporan?"],
     };
   const view = store.view;
@@ -604,7 +604,8 @@ function chatCtx(scope: ChatScope, ev: EventRef | null): ChatCtxInfo {
     : view === "kab" ? [`Kejadian apa saja yang dilaporkan di ${nama}?`, `Dampak apa saja yang dilaporkan di ${nama}?`, `Kebutuhan apa yang dilaporkan warga ${nama}?`]
     : view === "prov" ? [`Kab/kota mana di ${nama} yang paling banyak melaporkan kejadian?`, `Kejadian apa saja yang terjadi di ${nama}?`, `Kebutuhan apa yang paling sering dilaporkan di ${nama}?`]
     : ["Wilayah mana yang paling banyak melaporkan kejadian bencana?", "Kejadian apa yang paling baru dilaporkan?", "Kebutuhan apa yang paling sering disebut dalam laporan?"];
-  return { ctx, label: `${nama} · ${filterText(s)}`, examples };
+  return { ctx, label: `${nama} | ${filterText(s)}`, examples,
+    terpilih: view === "lokasi" ? "Lokasi ini" : view === "kab" ? "Kab/kota ini" : view === "prov" ? "Provinsi ini" : "Konteks terpilih" };
 }
 
 // ------------------------------------------------------------------ mulai
