@@ -83,10 +83,8 @@ button:disabled { cursor: default; }
   box-shadow: inset 0 0 0 1px var(--line-2);
   transition: background-color 160ms var(--e-out), color 160ms var(--e-out), box-shadow 160ms var(--e-out); }
 .chip:hover { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-3); color: var(--ink); }
-/* chip netral (tanpa warna jenis): terpilih = tebal + garis tinta; bila "Semua" aktif, chip jenis tampil polos */
+/* chip netral (tanpa warna jenis): aktif = tebal + garis tinta + latar abu; tidak aktif = putih */
 .chip[aria-pressed="true"] { font-weight: 650; background: var(--surface-2); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
-.tb-jenis.is-all .chip:not(.chip--all)[aria-pressed="true"] { font-weight: 550; background: transparent; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line-2); }
-.tb-jenis.is-all .chip:not(.chip--all)[aria-pressed="true"]:hover { background: var(--surface-2); color: var(--ink); }
 .chip--all[aria-pressed="true"] { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, var(--surface));
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 55%, var(--surface)); }
 .chip:active { transform: translateY(0.5px); }
@@ -188,4 +186,3 @@ button:disabled { cursor: default; }
 /* chip jenis: isyarat warna jenis tipis di bawah saat hover (chip tetap netral) */
 .chip[data-jenis]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1px var(--line-3); }
 .chip[data-jenis][aria-pressed="true"]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1.5px var(--ink); }
-.tb-jenis.is-all .chip[data-jenis][aria-pressed="true"]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1px var(--line-3); }
