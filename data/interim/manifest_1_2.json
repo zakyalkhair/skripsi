@@ -1,0 +1,12 @@
+{
+  "tahap": "1.2 preprocessing",
+  "dibuat_utc": "2026-10-07T13:00:33+00:00",
+  "python": "3.11.4",
+  "ftfy": "6.3.1",
+  "pandas": "3.0.6",
+  "unicode": "14.0.0",
+  "git_commit": "6923129410ebe79d964bf7a7165d6385bad9fc13",
+  "baris": 237088,
+  "lolos_ke_1_3": 137216,
+  "catatan": "text_raw = ftfy -> html.unescape -> NFKC -> rapikan spasi; posisi = indeks karakter Python"
+}

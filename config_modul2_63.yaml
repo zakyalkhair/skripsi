@@ -1,0 +1,22 @@
+# Modul 2 v2 (9 Okt 2026: perbaikan dari uji 20 tweet v1). Data PENGEMBANGAN 2025 saja (keputusan 8 Okt).
+# Jalankan dari folder skripsi:  python -m modul2 ekstrak --config config_modul2.yaml --limit 20
+prompt_versi: v2        # v1 = uji pertama 9 Okt (hasilnya disimpan terpisah)
+seed: 42
+acak: false          # ambil tweet secara acak berseed (bukan urut waktu)
+limit: null         # bisa diganti --limit di baris perintah
+
+paths:              # relatif terhadap folder file ini
+  input: dev_2025/data/processed/input_modul2_63.parquet   # dipakai yang label == informatif (wakil saja)
+  raw: dev_2025/data/interim/extraction_raw_63.jsonl
+  valid: dev_2025/data/processed/extraction_valid_63.jsonl
+  validation_log: dev_2025/reports/validation_log_63.csv
+  logs_dir: dev_2025/logs
+
+llm:
+  api: ollama                     # ollama (/api/chat, mencatat waktu & token) | openai (endpoint kompatibel)
+  base_url: http://localhost:11434
+  model: qwen2.5-cpu              # dibuat dari Modelfile.qwen2.5-cpu (suhu 0, konteks 8.192, CPU)
+  api_key_env: null
+  num_ctx: 12288   # prompt ±4,5 ribu token + jawaban hingga 4.096 (tahap 2)
+  max_tokens_tingkat: [1024, 4096]   # tahap 2 hanya bila jawaban terpotong
+  timeout_s: 1800

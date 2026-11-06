@@ -42,7 +42,7 @@ class PathsCfg(BaseModel):
 class CrawlCfg(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    only_pilot: bool
+    only_pilot: bool = False  # sisa skema per-kejadian; crawl nasional tidak memakainya
     max_tweets_per_query: int = Field(gt=0)
     use_system_certs: bool = True
     padding_hari_sebelum: int = Field(default=0, ge=0)
@@ -50,6 +50,8 @@ class CrawlCfg(BaseModel):
     sleep_between_queries_s: float = Field(ge=0)
     max_query_chars: int = Field(gt=50)
     lang_operator: str
+    # operator bahasa khusus per kata kunci (huruf kecil), menimpa lang_operator. Kode Indonesia di X = "in".
+    lang_operator_kata_kunci: dict[str, str] = Field(default_factory=dict)
     retweet_operator: str
     negative_keywords: list[str]
     jenis_tanpa_wilayah: list[str] = []  # jenis yang dikueri tanpa filter alias wilayah
@@ -264,6 +266,7 @@ FIELDS: dict[str, pa.DataType] = {
     "too_short": pa.bool_(),
     "cluster_id": pa.string(),
     "is_representatif": pa.bool_(),
+    "cocok_kata_kunci": pa.bool_(),
     "member_tweet_ids": _LIST_STR,
     "cluster_size": pa.int64(),
     "drop_reason": pa.string(),
@@ -277,19 +280,19 @@ FIELDS: dict[str, pa.DataType] = {
 
 CRAWLED_COLS = [
     "tweet_id", "created_at", "text", "lang", "hashtags", "urls", "is_reply",
-    "coordinates", "query_id", "event_id", "drop_reason",
+    "coordinates", "query_id", "event_id", "cocok_kata_kunci", "drop_reason",
 ]
 PREPROCESSED_COLS = CRAWLED_COLS[:3] + ["text_raw", "text_raw_sha256", "text_clean"] + CRAWLED_COLS[3:-1] + [
     "too_short", "drop_reason",
 ]
 FINAL_COLS = [
     "tweet_id", "created_at", "text", "text_raw", "text_raw_sha256", "text_clean", "lang", "hashtags", "urls",
-    "is_reply", "coordinates", "query_id", "event_id", "too_short", "cluster_id",
+    "is_reply", "coordinates", "query_id", "event_id", "cocok_kata_kunci", "too_short", "cluster_id",
     "is_representatif", "member_tweet_ids", "cluster_size", "drop_reason",
 ]
 DEDUP_COLS = FINAL_COLS
 INPUT_1_4_COLS = ["tweet_id", "created_at", "text_raw", "member_tweet_ids", "cluster_size", "event_id"]
-HASIL_1_4_COLS = INPUT_1_4_COLS + ["label", "label_sumber", "llm_status", "llm_model", "prompt_hash"]
+HASIL_1_4_COLS = INPUT_1_4_COLS + ["is_representatif", "label", "label_sumber", "llm_status", "llm_model", "prompt_hash"]
 
 
 def arrow_schema(cols: list[str]) -> pa.Schema:

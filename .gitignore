@@ -21,3 +21,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data_arsip_sebelum_B62/
+
+# Berkas besar / pribadi (8 Nov 2026)
+*.osm.pbf
+*.zip
+DRAFT TA.docx

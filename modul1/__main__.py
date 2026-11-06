@@ -41,9 +41,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p_f = sub.add_parser("filter", help="1.4 filter informatif (lanjut dari yang belum berlabel)")
     p_f.add_argument("--limit", type=int, default=None, help="kirim sampel acak N tweet saja (uji coba)")
+    p_f.add_argument("--ids", default=None, help="file CSV ber-kolom tweet_id (mis. file anotasi): hanya tweet itu")
     add_profil_arg(p_f)
     add_profil_arg(sub.add_parser("filter-finalize",
                                   help="1.4 tulis ulang keluaran dari label yang ada (tanpa API)"))
+    add_profil_arg(sub.add_parser("filter-ulang-gagal",
+                                  help="1.4 kirim ulang tweet gagal satu per permintaan, lalu finalisasi"))
     p_b = sub.add_parser("filter-bandingkan", help="1.4 kesepakatan label dua model (persen setuju, kappa)")
     p_b.add_argument("--a", required=True, help="nilai kolom model penilai A, mis. manual-claude-code")
     p_b.add_argument("--b", required=True, help="nilai kolom model penilai B, mis. gpt-oss:20b")
@@ -79,12 +82,24 @@ def _dispatch(args) -> int:
 
         apply_profil(cfg, args.profil)
         log = setup_logger("filter", cfg.paths.logs_dir)
-        filter_llm.run(cfg, filter_llm.make_client(cfg, log), args.limit, log)
+        ids = None
+        if args.ids:
+            import pandas as pd
+            ids = set(pd.read_csv(args.ids, dtype=str)["tweet_id"])
+        filter_llm.run(cfg, filter_llm.make_client(cfg, log), args.limit, log, ids=ids)
     elif args.cmd == "filter-finalize":
         from . import filter_llm
         from .io_utils import apply_profil
 
         filter_llm.finalize(apply_profil(cfg, args.profil))
+    elif args.cmd == "filter-ulang-gagal":
+        from . import filter_llm
+        from .io_utils import apply_profil, setup_logger
+
+        apply_profil(cfg, args.profil)
+        log = setup_logger("filter", cfg.paths.logs_dir)
+        filter_llm.ulang_gagal(cfg, filter_llm.make_client(cfg, log), log)
+        filter_llm.finalize(cfg, log)
     elif args.cmd == "filter-bandingkan":
         from . import filter_llm
 

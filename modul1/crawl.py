@@ -91,17 +91,17 @@ def build_queries(kejadian: list[Kejadian], cfg: Config) -> list[Kueri]:
             raise ValueError(f"Tidak ada kata kunci untuk jenis '{k.jenis}' ({k.event_id}) di config")
         aliases = _dedupe_ci(k.alias_wilayah)
         # until: di X bersifat eksklusif -> tambah 1 hari agar hari terakhir ikut
-        base_parts = [c.lang_operator, c.retweet_operator]
-        base_parts += [f"-{_quote(n)}" for n in c.negative_keywords]
+        neg_parts = [f"-{_quote(n)}" for n in c.negative_keywords]
         # jendela crawl = [tanggal_mulai - padding_sebelum, tanggal_selesai + padding_sesudah]
         since_all = k.tanggal_mulai - timedelta(days=c.padding_hari_sebelum)
         until_all = k.tanggal_selesai + timedelta(days=c.padding_hari_sesudah + 1)
         # alias kosong (kejadian.csv nasional per jenis) = tanpa filter wilayah
         tanpa_wilayah = k.jenis in c.jenis_tanpa_wilayah or not aliases
         for since, until in _windows(since_all, until_all, c.pecah_jendela_hari):
-            suffix_parts = base_parts + [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
-            suffix = " ".join(p for p in suffix_parts if p)
             for kw in _dedupe_ci(c.keywords[k.jenis]):
+                lang_op = c.lang_operator_kata_kunci.get(kw.lower(), c.lang_operator)
+                suffix_parts = [lang_op, c.retweet_operator] + neg_parts + [f"since:{since.isoformat()}", f"until:{until.isoformat()}"]
+                suffix = " ".join(p for p in suffix_parts if p)
                 chunks = [[]] if tanpa_wilayah else _chunk_aliases(aliases, _quote(kw), suffix, c.max_query_chars)
                 for chunk in chunks:
                     wilayah = f" ({' OR '.join(_quote(a) for a in chunk)})" if chunk else ""
@@ -420,6 +420,38 @@ def export_sample(df: pd.DataFrame, crawl_log: Path, out: Path, n: int, seed: in
     return len(rows)
 
 
+def keyword_flags(df: pd.DataFrame, crawl_log: Path) -> pd.Series:
+    """Tanda (bukan saringan): apakah teks/hashtag tweet memuat kata kunci salah satu kuerinya.
+
+    twscrape ikut mengembalikan tweet yang dikutip/dibalas; sebagian tidak memuat kata kunci. Tweet seperti
+    itu tetap diproses (pada data 2025 banyak yang tetap berisi laporan bencana), tetapi ditandai agar
+    jumlahnya bisa dilaporkan. None bila kata kunci kueri tidak diketahui (log tidak ada)."""
+    import unicodedata
+
+    if not crawl_log.exists():
+        return pd.Series([None] * len(df), index=df.index, dtype=object)
+    log = pd.read_csv(crawl_log, dtype=str, keep_default_na=False)
+    def kw_of(query: str) -> str:
+        # bagian sebelum operator negatif, tanpa operator ber-":" (mis. lang:in)
+        head = query.split(" -")[0]
+        return " ".join(w for w in head.split() if ":" not in w).strip().strip('"').lower()
+
+    q2kw = {r["query_id"]: kw_of(r["query"]) for r in log.to_dict("records")}
+
+    def norm(s: str) -> str:
+        return unicodedata.normalize("NFKC", s or "").lower()
+
+    out = []
+    for text, tags, qids in zip(df["text"], df["hashtags"], df["query_id"]):
+        kws = [q2kw[q] for q in (qids if qids is not None else []) if q in q2kw]
+        if not kws:
+            out.append(None)
+            continue
+        hay = norm(text) + " " + " ".join(norm(t) for t in (tags if tags is not None else []))
+        out.append(any(k in hay for k in kws))
+    return pd.Series(out, index=df.index, dtype=object)
+
+
 # --------------------------------------------------------------------------- run
 def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, pause: bool = False,
         api: Any = None) -> pd.DataFrame:
@@ -451,6 +483,9 @@ def run(cfg: Config, events: list[str] | None = None, skip_fetch: bool = False, 
     log.info("raw.jsonl: %d baris -> %d tweet unik (duplikat ID digabung: %d)", st["baris_raw"], st["tweet_unik"], st["duplikat_id"])
     log.info("Saring dasar: retweet=%d, bukan_id=%d, di_luar_jendela=%d, lolos=%d (termasuk %d balasan, is_reply=True)",
              st["retweet"], st["bukan_id"], st["di_luar_jendela"], st["lolos"], st["balasan"])
+    df["cocok_kata_kunci"] = keyword_flags(df, cfg.paths.crawl_log)
+    n_tanpa = int((df["drop_reason"].isna() & (df["cocok_kata_kunci"] == False)).sum())  # noqa: E712
+    log.info("Tweet lolos yang TIDAK memuat kata kunci kuerinya (tanda saja, tidak dibuang): %d", n_tanpa)
     write_parquet(df, cfg.paths.crawled, CRAWLED_COLS)
     n_sample = export_sample(df, cfg.paths.crawl_log, cfg.paths.sampel_kueri, cfg.crawl.sample_per_query, cfg.seed)
     log.info("Ditulis: %s; sampel cek manual %d baris -> %s", cfg.paths.crawled, n_sample, cfg.paths.sampel_kueri)

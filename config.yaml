@@ -30,7 +30,6 @@ paths:
   bandingkan_beda: data/interim/beda_1_4.jsonl # tweet yang labelnya berbeda (untuk adjudikasi manual)
 
 crawl:
-  only_pilot: true # false = semua 29 kejadian
   max_tweets_per_query: 2000
   # Perpanjangan jendela waktu kueri di luar tanggal_mulai/tanggal_selesai di kejadian.csv
   # (kejadian.csv tetap mencatat tanggal kejadian apa adanya). 0 = tanpa perpanjangan.
@@ -45,12 +44,14 @@ crawl:
   # 28-09-2026: dengan lang:id hasil 0 / tweet 2014; tanpa lang:id normal). Bahasa disaring
   # sesudah crawl di saring dasar (lang == "in", selain itu drop_reason=bukan_id).
   lang_operator: ""
+  # 7 Okt 2026: kata "tsunami" dipakai global -> kueri tanpa filter bahasa diisi tweet asing (2026: 2,2%
+  # bahasa Indonesia, 38/40 kueri mentok). Uji scripts/cek_lang_in.py: `lang:in` = 97% Indonesia (119 tweet),
+  # `lang:id` = 0 tweet (kode X untuk Indonesia adalah "in", bukan "id"). Saring bahasa sesudah crawl tetap
+  # lang == "in", jadi lang:in hanya membuang tweet yang memang akan dibuang.
+  lang_operator_kata_kunci: {tsunami: "lang:in"}
   retweet_operator: "-filter:retweets"
   # B63: from:infoBMKG = bot laporan otomatis gempa BMKG dikecualikan sejak crawl (99% templat "Gempa Mag:")
   negative_keywords: [kecelakaan, "from:infoBMKG"]
-  # jenis yang dikueri tanpa filter daerah: hanya kata kunci + jendela waktu (alias_wilayah tetap
-  # dipakai di tahap 1.4). Kejadian berjendela sama akan berbagi kueri (event_ids digabung).
-  jenis_tanpa_wilayah: [cuaca_ekstrem, kekeringan]
   # B62: crawl nasional 1 Jan 2026 - hari ini -> jendela dipecah per 7 hari agar batas 2.000/kueri tidak memotong.
   # Kueri yang n_hasil-nya menyentuh batas di crawl_log -> perkecil (mis. 1) dan crawl ulang kueri itu.
   pecah_jendela_hari: 7
@@ -118,29 +119,25 @@ filter_llm: # tahap 1.4 — klasifikasi biner informatif/noninformatif (API Open
   # label (label_sumber = "aturan:<nama>"). Setiap aturan:
   #   semua: semua pola harus cocok | salah_satu: minimal satu pola cocok
   #   kecuali: tidak boleh ada yang cocok | wilayah_kejadian: harus menyebut alias_wilayah kejadian
-  # Prinsip: presisi tinggi. Aturan noninformatif batal bila ada petunjuk fakta (angka, korban,
-  # kerusakan, kebutuhan, pengungsian, bahaya) -> diserahkan ke LLM.
+  # Prinsip: hanya aturan POSITIF berbasis format baku (tanpa menilai makna); selebihnya ke LLM.
   aturan:
-    - nama: bmkg # salinan laporan BMKG oleh media/akun lain (bot @infoBMKG sudah dikecualikan di crawl, B63) (I6)
+    # (17 Okt 2026) Templat BMKG berkekuatan <= M4,0 -> TIDAK informatif (keputusan user: "jika prediksi atau berkekuatan
+    # di bawah M4 maka tidak informatif"; M4,0 ikut gugur, hanya M >= 4,1 yang lolos; kata "Dirasakan" bukan pengecualian).
+    # Tweet tidak dihapus: tetap ada di hasil_1_4 dengan label_sumber = aturan:bmkg_kecil. Aturan ini berbasis ANGKA pada
+    # format baku, bukan penilaian makna. Bagian "prediksi" dari keputusan itu tidak berlaku pada templat (templat selalu
+    # laporan gempa yang sudah terjadi); tweet prakiraan/peringatan dini lain ditangani pedoman LLM dan keputusan
+    # peringatan dini BMKG yang masih terbuka.
+    - nama: bmkg_kecil
+      label: noninformatif
+      semua: ['gempa\s+mag\s*:\s*(?:[0-3](?:[.,]\d+)?|4(?:[.,]0+)?)(?![.,]?\d)', '\blok\s*:']
+    - nama: bmkg # laporan gempa berformat baku BMKG (I6): salinan media DAN akun BMKG daerah -> informatif.
+      # 7 Okt 2026: akun BMKG daerah diperlakukan sama di 1.4 (dilabel oleh aturan ini), tidak dikecualikan di crawl.
       label: informatif
       semua: ['gempa\s+mag\s*:\s*\d', '\blok\s*:']
       # syarat wilayah_kejadian dihapus 6 Okt 2026: crawl nasional tanpa daerah acuan
-    - nama: topik_lain # MBG, perayaan/karnaval tanpa fakta bencana (T3)
-      label: noninformatif
-      salah_satu: ['\bmbg\b', 'makan\s+bergizi', '\bkarnaval\b', '\b17\s+agustus(an)?\b', '\bhut\s+(ri|ke)',
-                   '\bkemerdekaan\b', '\bpesta\b', '\bkonser\b']
-      kecuali: &fakta
-        - '\d'
-        - '\b(meninggal|tewas|wafat|korban\s+jiwa|luka|hilang|tertimbun)'
-        - '\b(mengungsi|pengungsi|pengungsian|posko|tenda)'
-        - '\b(rusak|roboh|ambruk|runtuh|retak|hancur|putus)'
-        - '\b(butuh|kebutuhan|kekurangan|minim|logistik|air\s+bersih|selimut|obat|sembako)'
-        - '\b(susulan|tsunami|evakuasi|dievakuasi|sar\b|basarnas|bnpb|bpbd|bmkg)'
-    - nama: doa_tanpa_fakta # hanya doa/empati (T1)
-      label: noninformatif
-      salah_satu: ['\bsemoga\b', '\bdoa\b', '\bmendoakan\b', '\bpray', 'turut\s+berduka', '\bberduka\b',
-                   'ya\s*allah', 'innalillahi', '\baa?mii?n\b', '\btuhan\b', '\bstay\s+safe\b', '\bget\s+well\b']
-      kecuali: *fakta
+    # (7 Okt 2026) Aturan "tidak informatif" (topik_lain, doa_tanpa_fakta) DIHAPUS — keputusan: aturan positif
+    # saja. Alasan: regex tidak memahami makna/sarkasme, salah buang = tweet hilang permanen, dan pada data
+    # pengembangan 2025 keduanya hanya menangkap ±1,3% wakil (penghematan waktu LLM tidak berarti).
 
 # Profil penyedia LLM alternatif untuk tahap 1.4: python -m modul1 filter --profil <nama>
 # Isinya menimpa kolom filter_llm di atas (aturan regex tetap sama). Keluaran ditulis ke

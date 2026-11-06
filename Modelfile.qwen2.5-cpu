@@ -1,0 +1,9 @@
+# Model Qwen lokal untuk filter informatif (keputusan 4 Okt 2026): full CPU, konteks 8.192, suhu 0.
+# Buat sekali:  ollama create qwen2.5-cpu -f Modelfile.qwen2.5-cpu
+FROM qwen2.5:7b
+PARAMETER temperature 0
+PARAMETER num_ctx 8192
+PARAMETER num_gpu 0
+PARAMETER num_thread 4
+PARAMETER repeat_penalty 1.1
+PARAMETER num_predict 1024

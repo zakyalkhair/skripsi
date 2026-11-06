@@ -224,3 +224,25 @@ def test_build_queries_jenis_tanpa_wilayah(cfg):
     ce = [q for q in qs if q.event_ids == ["CE06"]]
     assert ce and all("(" not in q.text and q.aliases == [] for q in ce)
     assert all("(" in q.text for q in qs if q.event_ids == ["GP07"])
+
+
+def test_tanda_cocok_kata_kunci(tmp_path):
+    import pandas as pd
+
+    from modul1.crawl import keyword_flags
+    log = tmp_path / "crawl_log.csv"
+    pd.DataFrame({"query_id": ["qa", "qb", "qc"], "query": ['banjir -filter:retweets', '"tanah longsor" -kecelakaan',
+                                                        'tsunami lang:in -filter:retweets']}).to_csv(log, index=False)
+    df = pd.DataFrame({"text": ["Banjir di Demak", "Rumah rusak berat 9 unit", "jalan putus", "x"],
+                       "hashtags": [[], [], ["TanahLongsor"], []], "query_id": [["qa"], ["qa"], ["qb"], ["qz"]]})
+    assert keyword_flags(df, log).tolist() == [True, False, False, None]
+    df2 = pd.DataFrame({"text": ["Peringatan tsunami dicabut"], "hashtags": [[]], "query_id": [["qc"]]})
+    assert keyword_flags(df2, log).tolist() == [True]
+
+
+def test_operator_bahasa_khusus_kata_kunci(cfg):
+    from modul1.crawl import build_queries, load_kejadian
+    cfg.crawl.lang_operator_kata_kunci = {"gempa": "lang:in"}
+    qs = build_queries(load_kejadian(cfg.paths.kejadian, True, ["GP07"]), cfg)
+    assert all(("lang:in" in q.text) == (q.keyword.lower() == "gempa") for q in qs)
+

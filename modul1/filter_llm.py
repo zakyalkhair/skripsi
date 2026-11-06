@@ -43,6 +43,8 @@ LABELS = ("informatif", "noninformatif")
 SUMBER_ATURAN = "aturan:"  # + nama aturan
 SUMBER_LLM = "llm"
 SUMBER_DEFAULT = "default"
+SUMBER_GAGAL = "gagal→informatif"  # dikirim ulang satu-satu, tetap gagal
+SUMBER_WARISAN = "warisan_wakil"  # anggota klaster dedup mewarisi label wakil
 STATUS_OK = "ok"
 
 
@@ -137,10 +139,15 @@ def prompt_hash(system_prompt: str, cfg: Config) -> str:
     return "p" + hashlib.sha1(blob.encode("utf-8")).hexdigest()[:12]
 
 
-def user_message(texts: list[str], event_ids: list[str], events: dict[str, dict]) -> str:
-    """Tweet diberi nomor lokal 1..n (bukan tweet_id 19 digit) agar jawaban ringkas & tidak salah salin."""
+def user_message(texts: list[str], event_ids: list[str] | None = None, events: dict[str, dict] | None = None) -> str:
+    """Tweet diberi nomor lokal 1..n (bukan tweet_id 19 digit) agar jawaban ringkas & tidak salah salin.
+
+    Sejak crawl nasional (tanpa kejadian acuan) label kueri/jenis TIDAK dikirim ke LLM (7 Okt 2026):
+    label kueri hanya menunjukkan kata kunci pencarian, bukan isi tweet, dan bisa membiaskan label.
+    Parameter event_ids/events dipertahankan hanya demi kompatibilitas pemanggil lama.
+    """
     blocks = "\n".join(f'<tweet id="{i}">\n{t}\n</tweet>' for i, t in enumerate(texts, 1))
-    return f"Kejadian acuan:\n{event_context(event_ids, events)}\n\nTweet ({len(texts)}):\n{blocks}"
+    return f"Tweet ({len(texts)}):\n{blocks}"
 
 
 def build_payload(texts: list[str], event_ids: list[str], events: dict[str, dict],
@@ -187,15 +194,17 @@ def parse_labels(content: str | None, n: int) -> dict[int, str] | None:
     return out
 
 
-def make_chunks(todo: pd.DataFrame, size: int) -> list[tuple[list[str], pd.DataFrame]]:
-    """Kelompokkan per kombinasi event_id (satu konteks kejadian per permintaan), lalu potong per `size`."""
-    todo = todo.assign(_ev=todo["event_id"].map(lambda e: tuple(sorted(e or []))))
-    todo = todo.sort_values(["_ev", "created_at", "tweet_id"], kind="mergesort")
-    chunks = []
-    for ev, g in todo.groupby("_ev", sort=True):
-        for s in range(0, len(g), size):
-            chunks.append((list(ev), g.iloc[s : s + size].drop(columns="_ev")))
-    return chunks
+def make_chunks(todo: pd.DataFrame, size: int, seed: int = 42) -> list[tuple[list[str], pd.DataFrame]]:
+    """Urutan acak berseed (deterministik), lalu potong per `size` tweet.
+
+    Tidak lagi dikelompokkan per label kueri (7 Okt 2026): tweet satu permintaan bercampur jenis, sehingga
+    komposisi batch tidak mengikuti kata kunci pencarian. Elemen pertama tuple dibiarkan kosong (kompatibel).
+    """
+    ids = sorted(todo["tweet_id"], key=lambda t: (len(t), t))
+    random.Random(seed).shuffle(ids)
+    order = {t: i for i, t in enumerate(ids)}
+    todo = todo.assign(_o=todo["tweet_id"].map(order)).sort_values("_o", kind="mergesort").drop(columns="_o")
+    return [([], todo.iloc[s : s + size]) for s in range(0, len(todo), size)]
 
 
 # --------------------------------------------------------------------------- klien HTTP
@@ -283,7 +292,7 @@ def call_with_retry(client: Any, payload: dict, cfg: Config, log,
 
 
 def run(cfg: Config, client: Any, limit: int | None = None, log=None,
-        sleep_fn: Callable[[float], Any] = time.sleep) -> pd.DataFrame:
+        sleep_fn: Callable[[float], Any] = time.sleep, ids: set[str] | None = None) -> pd.DataFrame:
     """Labeli tweet yang belum berlabel (bukan aturan BMKG), simpan per chunk, lalu tulis keluaran."""
     log = log or setup_logger("filter", cfg.paths.logs_dir)
     f = cfg.filter_llm
@@ -302,13 +311,16 @@ def run(cfg: Config, client: Any, limit: int | None = None, log=None,
     done = labeled_ids(load_labels(cfg.paths.llm_labels), phash)
     todo = df[~has_rule & ~df["tweet_id"].isin(done)]
     log.info("Sudah berlabel LLM (prompt %s): %d; akan dikirim ke LLM: %d", phash, len(done), len(todo))
+    if ids is not None:
+        todo = todo[todo["tweet_id"].isin(ids)]
+        log.info("--ids: dibatasi ke %d tweet dari daftar", len(todo))
     if limit is not None and len(todo) > limit:
         ids = sorted(todo["tweet_id"], key=lambda t: (len(t), t))
         keep = set(random.Random(cfg.seed).sample(ids, limit))
         todo = todo[todo["tweet_id"].isin(keep)]
         log.info("--limit %d: sampel acak (seed %d)", limit, cfg.seed)
 
-    chunks = make_chunks(todo, f.tweet_per_permintaan)
+    chunks = make_chunks(todo, f.tweet_per_permintaan, cfg.seed)
     log.info("Model %s @ %s; %d permintaan (%d tweet/permintaan)", f.model, f.base_url, len(chunks),
              f.tweet_per_permintaan)
     total_tokens = 0
@@ -324,6 +336,10 @@ def run(cfg: Config, client: Any, limit: int | None = None, log=None,
                         f"tunggu {e.retry_after:.0f} detik" if e.retry_after else "429", k - 1, len(chunks))
             break
         except ApiError as e:
+            if is_config_error(e):
+                log.error("Galat konfigurasi (%s) — run dihentikan TANPA mencatat label gagal. Periksa model/"
+                          "base_url (mis. `ollama list`, `ollama create ...`).", e.status[:120])
+                raise SystemExit(2)
             recs = [base | {"tweet_id": t, "label": None, "status": f"errored:{e.status}"} for t in g["tweet_id"]]
             write_jsonl(cfg.paths.llm_labels, recs, append=True)
             log.error("Permintaan %d/%d gagal: %s", k, len(chunks), e.status)
@@ -347,7 +363,73 @@ def run(cfg: Config, client: Any, limit: int | None = None, log=None,
         if k < len(chunks) and f.jeda_antar_permintaan_s:
             sleep_fn(f.jeda_antar_permintaan_s)
     log.info("Total token terpakai run ini: %d", total_tokens)
+    ulang_gagal(cfg, client, log, sleep_fn, df=df, rule_mask=has_rule)
     return finalize(cfg, log)
+
+
+def is_config_error(e: "ApiError") -> bool:
+    """HTTP 4xx selain 429 (model tidak ada, kunci salah, URL salah) = salah setelan, bukan kegagalan tweet."""
+    return e.status.startswith("http_4") and not e.status.startswith("http_429")
+
+
+def failed_ids(labels: list[dict], phash: str) -> set[str]:
+    """tweet_id yang untuk prompt ini belum punya label ok dan belum pernah dikirim ulang satu-satu."""
+    ok, gagal, sudah_ulang = set(), set(), set()
+    for r in labels:
+        if r["prompt_hash"] != phash:
+            continue
+        if r["status"] == STATUS_OK:
+            ok.add(r["tweet_id"])
+        else:
+            gagal.add(r["tweet_id"])
+        if r.get("percobaan") == "ulang_satu":
+            sudah_ulang.add(r["tweet_id"])
+    return gagal - ok - sudah_ulang
+
+
+def ulang_gagal(cfg: Config, client: Any, log=None, sleep_fn: Callable[[float], Any] = time.sleep,
+                df: pd.DataFrame | None = None, rule_mask: pd.Series | None = None) -> int:
+    """Keputusan 6 Okt 2026: tweet gagal (JSON rusak / hilang dari jawaban / galat) dikirim ulang SATU tweet
+    per permintaan. Hasil dicatat dengan prompt_hash run induk + percobaan="ulang_satu" (jumlah tweet per
+    permintaan berbeda, tetapi prompt & model sama). Yang tetap gagal -> 'gagal→informatif' di finalize."""
+    log = log or setup_logger("filter", cfg.paths.logs_dir)
+    f = cfg.filter_llm
+    system_prompt = load_system_prompt(cfg)
+    phash = prompt_hash(system_prompt, cfg)
+    if df is None:
+        df = read_parquet(cfg.paths.input_1_4)
+    todo_ids = failed_ids(load_labels(cfg.paths.llm_labels), phash)
+    todo = df[df["tweet_id"].isin(todo_ids)]
+    log.info("Kirim ulang satu per permintaan: %d tweet gagal (prompt %s)", len(todo), phash)
+    for k, (tid, text) in enumerate(zip(todo["tweet_id"], todo["text_raw"]), 1):
+        payload = build_payload([text], [], {}, system_prompt, cfg)
+        base = {"model": f.model, "provider": urlparse(f.base_url).netloc, "prompt_hash": phash,
+                "chunk": f"{phash}-ulang-{tid}", "percobaan": "ulang_satu", "collected_at": utc_now_iso()}
+        try:
+            content, usage = call_with_retry(client, payload, cfg, log, sleep_fn)
+        except RateLimited:
+            log.warning("Kuota habis saat kirim ulang; jalankan lagi nanti.")
+            break
+        except ApiError as e:
+            if is_config_error(e):
+                log.error("Galat konfigurasi (%s) — kirim ulang dihentikan.", e.status[:120])
+                raise SystemExit(2)
+            write_jsonl(cfg.paths.llm_labels, [base | {"tweet_id": tid, "label": None, "status": f"errored:{e.status}"}],
+                        append=True)
+            continue
+        parsed = parse_labels(content, 1)
+        if parsed is None:
+            status, label = "invalid_output", None
+        elif 1 in parsed:
+            status, label = STATUS_OK, parsed[1]
+        else:
+            status, label = "hilang_dari_jawaban", None
+        write_jsonl(cfg.paths.llm_labels, [base | {"tweet_id": tid, "label": label, "status": status,
+                                                   "finish_reason": usage.get("finish_reason")}], append=True)
+        log.info("Ulang %d/%d: %s -> %s", k, len(todo), tid, status)
+        if k < len(todo) and f.jeda_antar_permintaan_s:
+            sleep_fn(f.jeda_antar_permintaan_s)
+    return len(todo)
 
 
 # --------------------------------------------------------------------------- keluaran
@@ -367,6 +449,8 @@ def finalize(cfg: Config, log=None) -> pd.DataFrame:
         if cur is None or r["status"] == STATUS_OK or cur["status"] != STATUS_OK:
             latest[r["tweet_id"]] = r
 
+    retried = {r["tweet_id"] for r in load_labels(cfg.paths.llm_labels)
+               if r["prompt_hash"] == phash and r.get("percobaan") == "ulang_satu"}
     f = cfg.filter_llm
     by_rule = rule_labels(df, events, cfg)
     out = df.copy()
@@ -378,17 +462,32 @@ def finalize(cfg: Config, log=None) -> pd.DataFrame:
             vals = (f.label_default, SUMBER_DEFAULT, None, None, None)
         else:
             r = latest.get(tid)
-            vals = ((r["label"], SUMBER_LLM if r["label"] else None, r["status"], r["model"], r["prompt_hash"])
-                    if r else (None, None, "belum_dikirim", None, None))
+            if r is None:
+                vals = (None, None, "belum_dikirim", None, None)
+            elif r["label"]:
+                vals = (r["label"], SUMBER_LLM, r["status"], r["model"], r["prompt_hash"])
+            elif tid in retried:
+                # sudah dikirim ulang satu-satu dan tetap gagal -> informatif (prinsip ragu -> informatif)
+                vals = ("informatif", SUMBER_GAGAL, r["status"], r["model"], r["prompt_hash"])
+            else:
+                vals = (None, None, r["status"], r["model"], r["prompt_hash"])
         for c, v in zip(cols, vals):
             cols[c].append(v)
     for c, v in cols.items():
         out[c] = v
 
+    out["is_representatif"] = True
+    inf = out[out["label"] == "informatif"]  # masukan Modul 2 = wakil saja
+    anggota = inherit_labels(cfg, out)
+    if len(anggota):
+        out = pd.concat([out, anggota], ignore_index=True)
     write_parquet(out, cfg.paths.hasil_1_4, HASIL_1_4_COLS)
-    inf = out[out["label"] == "informatif"]
     write_parquet(inf, cfg.paths.informatif, HASIL_1_4_COLS)
 
+    wakil = out[out["is_representatif"].astype(bool)]
+    n_warisan = int((~out["is_representatif"].astype(bool)).sum())
+    log.info("Pewarisan label: %d anggota klaster diberi label wakilnya (hanya di %s)", n_warisan, cfg.paths.hasil_1_4.name)
+    out_all, out = out, wakil
     n_inf, n_non = len(inf), int((out["label"] == "noninformatif").sum())
     n_none = int(out["label"].isna().sum())
     per_sumber = out.dropna(subset=["label"]).groupby(["label_sumber", "label"]).size()
@@ -404,7 +503,32 @@ def finalize(cfg: Config, log=None) -> pd.DataFrame:
     update_alur_data(cfg.paths.alur_data, "filter informatif", len(out), n_inf, n_non, alasan)
     update_alur_data(cfg.paths.alur_data, "Siap ke Modul 2", n_inf, None, None, "")
     log.info("Ditulis: %s, %s", cfg.paths.hasil_1_4, cfg.paths.informatif)
-    return out
+    return out_all
+
+
+def inherit_labels(cfg: Config, wakil: pd.DataFrame) -> pd.DataFrame:
+    """Keputusan 6 Okt 2026: anggota klaster dedup (bukan wakil) mewarisi label wakilnya.
+    Baris anggota diambil dari keluaran 1.3; label_sumber = 'warisan_wakil'."""
+    cols = HASIL_1_4_COLS
+    if not cfg.paths.final.exists():
+        return pd.DataFrame(columns=cols)
+    full = read_parquet(cfg.paths.final)
+    lab = wakil.set_index("tweet_id")
+    rows = []
+    for rep_id, members in zip(wakil["tweet_id"], wakil["member_tweet_ids"]):
+        for m in list(members if members is not None else []):
+            if m != rep_id:
+                rows.append((m, rep_id))
+    if not rows:
+        return pd.DataFrame(columns=cols)
+    mp = pd.DataFrame(rows, columns=["tweet_id", "_rep"])
+    mem = full[full["tweet_id"].isin(mp["tweet_id"])].merge(mp, on="tweet_id")
+    mem["label"] = mem["_rep"].map(lab["label"])
+    mem["label_sumber"] = mem["label"].map(lambda v: SUMBER_WARISAN if v is not None and v == v else None)
+    for c in ("llm_status", "llm_model", "prompt_hash"):
+        mem[c] = None
+    mem["is_representatif"] = False
+    return mem[[c for c in cols if c in mem.columns]].reindex(columns=cols)
 
 
 # --------------------------------------------------------------------------- perbandingan

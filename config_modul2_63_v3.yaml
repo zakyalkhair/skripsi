@@ -1,0 +1,23 @@
+# Modul 2 — prompt v3 (17 Okt 2026). Data PENGEMBANGAN 2025 saja. Uji ulang 63 tweet informatif (Qwen) untuk
+# membandingkan dengan hasil prompt v2 (extraction_raw_63.jsonl / extraction_valid_63.jsonl, TIDAK ditimpa).
+# Jalankan dari folder skripsi:  python -m modul2 ekstrak --config config_modul2_63_v3.yaml
+prompt_versi: v3
+seed: 42
+acak: false
+limit: null
+
+paths:
+  input: dev_2025/data/processed/input_modul2_63.parquet     # sama dengan uji v2: 63 tweet yang sama
+  raw: dev_2025/data/interim/extraction_raw_63_v3.jsonl
+  valid: dev_2025/data/processed/extraction_valid_63_v3.jsonl
+  validation_log: dev_2025/reports/validation_log_63_v3.csv
+  logs_dir: dev_2025/logs
+
+llm:
+  api: ollama
+  base_url: http://localhost:11434
+  model: qwen2.5-cpu
+  api_key_env: null
+  num_ctx: 14336                     # v2: 12288. Prompt v3 ±7,5 ribu token (system + 14 contoh) + jawaban hingga 4.096
+  max_tokens_tingkat: [1024, 4096]
+  timeout_s: 1800
