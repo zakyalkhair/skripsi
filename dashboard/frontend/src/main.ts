@@ -16,10 +16,11 @@ import { downloadData, saveBlob } from "./export/data";
 import { exportPng, type Crop } from "./export/png";
 import { rentang } from "./format";
 import { JENIS, LABEL_PENDEK } from "./jenis";
+import { clearPv, setPv } from "./ui/preview";
 import { buildLegend } from "./map/legend";
 import { MapView, type Pad } from "./map/map";
 import { filterKey, Store, type State } from "./store";
-import type { KabAgregat, KabKejadian, KabTitik, Wilayah } from "./types";
+import type { Jenis, KabAgregat, KabKejadian, KabTitik, Wilayah } from "./types";
 import { buildToolbar } from "./ui/filters";
 import { ico } from "./ui/icons";
 import { Panel, type EventRef, type PanelTab } from "./ui/panel";
@@ -100,7 +101,24 @@ const busy = h("span", { class: "busy", role: "status", "aria-label": "Memuat da
 const crumbs = h("nav", { class: "crumbs", "aria-label": "Posisi geografis" });
 const crumbsWrap = h("div", { class: "crumbs-wrap" }, crumbs, busy);
 const mapEmpty = h("div", { class: "map-empty float-card", hidden: true });
-const legend = buildLegend((open) => setUi({ lg: open }));
+// ------------------------------------------------------------------ pratinjau hover (hanya tampilan; ui/preview.ts)
+let pvSiap = false; // mapView dibuat setelah panel/legenda: jangan akses sebelum siap
+function pvJenis(j: Jenis | null): void {
+  if (!pvSiap) return;
+  mapView.previewJenis(j);
+  setPv("tl-jenis", j ? `.tl-bar:not([fill="var(--j-${j})"]) { opacity: 0.22; }
+    .jcomp i:not([style*="--j-${j})"]) { opacity: 0.25; }` : null);
+}
+function pvEnd(): void {
+  if (!pvSiap) return;
+  mapView.previewProv(null);
+  mapView.previewKelas(null);
+  mapView.previewJenis(null);
+  mapView.previewTitik(null);
+  panel.previewCards(null);
+  clearPv();
+}
+const legend = buildLegend((open) => setUi({ lg: open }), { kelas: (k) => { if (pvSiap) mapView.previewKelas(k); }, jenis: (j) => pvJenis(j) });
 const timeline = new Timeline((dari, sampai) => store.set({ dari, sampai }), (open) => setUi({ tl: open }));
 
 const headCtx = h("span", { class: "panel-ctx" });
@@ -122,6 +140,10 @@ const panel = new Panel({
   onAsk: (ev) => askEvent(ev),
   onJenis: (j) => store.set({ jenis: new Set([j]) }),
   onTab: (t) => onTab(t),
+  onPreviewProv: (k) => { if (pvSiap) mapView.previewProv(k); },
+  onPreviewJenis: (j) => pvJenis(j),
+  onPreviewLokasi: (ids) => { if (pvSiap) mapView.previewTitik(ids); },
+  onPreviewEnd: () => pvEnd(),
 }, panelHead);
 const chat = new ChatView((scope, ev) => chatCtx(scope, ev), () => panel.setTab("detail", true));
 panel.chatBox.append(chat.el);
@@ -144,7 +166,9 @@ const mapView = new MapView(mapEl, ws, {
   onTitik: (g) => store.set({ lokasi: g }),
   onBackground: () => { toolbar.closePopovers(); if (store.state.kab || store.state.prov) goKab(null); },
   onHome: () => { if (store.state.kab || store.state.prov) goKab(null); else void mapView.national(); },
+  onTitikHover: (g) => panel.previewCards(g),
 });
+pvSiap = true;
 
 const urlSync = new UrlSync(store, (st, invalid) => applyUrl(st, invalid));
 if (import.meta.env.DEV) (window as unknown as { __psb: unknown }).__psb = { map: mapView.map, view: mapView, store, setChatService, chat };
@@ -409,6 +433,7 @@ function refresh(): void {
 
 // ------------------------------------------------------------------ reaksi state
 store.on((s, prev) => {
+  pvEnd();
   toolbar.sync();
   timeline.setRange(s.dari, s.sampai);
   document.body.dataset.view = store.view;

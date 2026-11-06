@@ -21,7 +21,7 @@
 .tl-base { stroke: var(--line-3); }
 .tl-ytick, .tl-xtick { font-family: var(--f); font-size: 10.5px; font-weight: 500; fill: var(--ink-3); }
 .tl-tick { stroke: var(--line-3); }
-.tl-bar { transition: y var(--d-fill) var(--e-out), height var(--d-fill) var(--e-out); }
+.tl-bar { transition: y var(--d-fill) var(--e-out), height var(--d-fill) var(--e-out), opacity var(--d-sel); }
 .tl-week { transition: opacity var(--d-sel) var(--e-out); }
 .tl-week.is-out { opacity: 0.22; }
 .tl-week:hover .tl-bar { filter: brightness(1.08); }

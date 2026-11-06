@@ -336,7 +336,7 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 
 /* kartu kejadian per jenis bencana (opsi Figma) */
 .jcomp { display: flex; gap: 2px; height: 10px; margin: 2px 0 6px; border-radius: 4px; overflow: hidden; }
-.jcomp i { display: block; min-width: 3px; }
+.jcomp i { display: block; min-width: 3px; transition: opacity var(--d-sel); }
 .jrows { list-style: none; margin: 0; padding: 0; }
 .jrows li + li { border-top: 1px solid var(--line); }
 .jrow { display: grid; grid-template-columns: 32px minmax(0, 1fr) 46px 14px; align-items: center; gap: 12px; width: calc(100% + 16px); margin: 0 -8px; padding: 9px 8px;
@@ -358,3 +358,12 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 /* saat memfilter: jenis yang tidak dipilih tetap di posisinya, hanya dipudarkan */
 .jrow.is-pudar .jrow-ic, .jrow.is-pudar .jrow-bar i, .jcomp i.is-pudar { opacity: 0.25; filter: grayscale(0.6); }
 .jrow.is-pudar .jrow-top b, .jrow.is-pudar .jrow-n b { color: var(--ink-3); }
+
+/* ---------------------------------------------------------------- pratinjau hover */
+/* kartu kejadian yang memuat penanda yang sedang di-hover di peta */
+.card.is-pv { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+/* ikon jenis pada kartu per jenis: sedikit membesar & latar lebih pekat */
+.jrow-ic { transition: transform var(--d-sel) var(--e-out), background-color var(--d-sel); }
+.jrow:hover .jrow-ic, .jrow:focus-visible .jrow-ic { transform: scale(1.08); background: color-mix(in srgb, var(--jc) 24%, var(--surface)); }
+/* KPI berketerangan: isyarat bahwa ada penjelasan saat di-hover */
+.kpi[title] .kpi-l { text-decoration: underline dotted var(--line-3); text-underline-offset: 3px; cursor: help; }

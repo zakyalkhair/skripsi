@@ -5,6 +5,7 @@ import { kelasOf } from "../map/legend";
 import type { Jenis, KabAgregat, KabKejadian, KabTitik, Kejadian, Ringkasan, Wilayah } from "../types";
 import { dampakGroups, dampakQty, dampakText, factBlock, kebutuhanGroups, kronologiList, lembagaBlock, tweetFold, type TweetMap } from "./facts";
 import type { KebGrup } from "../types";
+import { onPreview } from "./preview";
 import { ico } from "./icons";
 
 /** Kejadian yang ditanyakan ke asisten (konteks percakapan; tidak masuk URL). */
@@ -22,6 +23,11 @@ export interface PanelHandlers {
   onAsk(ev: EventRef): void;
   onJenis(j: Jenis): void;
   onTab(tab: PanelTab): void;
+  /** Pratinjau hover (hanya tampilan, tanpa mengubah state/URL). */
+  onPreviewProv?(kode: string | null): void;
+  onPreviewJenis?(j: Jenis | null): void;
+  onPreviewLokasi?(ids: string[] | null): void;
+  onPreviewEnd?(): void;
 }
 
 export type PanelTab = "detail" | "chat";
@@ -117,6 +123,7 @@ export class Panel {
 
   private show(node: HTMLElement, key: string): void {
     window.clearTimeout(this.skelTimer);
+    this.hd.onPreviewEnd?.(); // elemen lama hilang tanpa pointerleave: jangan tinggalkan pratinjau
     const changed = key !== this.key;
     this.key = key;
     node.classList.add("panel-view");
@@ -197,9 +204,10 @@ export class Panel {
       (perJenisSemua ?? r.per_jenis) ? this.jenisCard((perJenisSemua ?? r.per_jenis)!, dipilih) : null,
       r.jumlah_kejadian === 0 ? this.empty(ctx) : h("div", {},
         provRows.length ? section("Provinsi",
-          h("ul", { class: "provs" }, ...provRows.map(([kode, p]) => h("li", {}, h("button", { type: "button", class: "prov-btn", onclick: () => this.hd.onProv(kode) },
+          h("ul", { class: "provs" }, ...provRows.map(([kode, p]) => h("li", {}, this.pv(h("button", { type: "button", class: "prov-btn", onclick: () => this.hd.onProv(kode) },
             h("span", { class: "prov-name" }, provNama.get(kode) ?? kode),
-            h("span", { class: "prov-n" }, `${angka(p.n)} kejadian | ${angka(p.kab)} kab/kota`), ico("chevRight", 14, "rank-go")))))) : null)), "nasional");
+            h("span", { class: "prov-n" }, `${angka(p.n)} kejadian | ${angka(p.kab)} kab/kota`), ico("chevRight", 14, "rank-go")),
+            () => this.hd.onPreviewProv?.(kode), () => this.hd.onPreviewProv?.(null)))))) : null)), "nasional");
   }
 
   /** Kartu "Kejadian per jenis bencana" (opsi desain Figma): ikon, laporan, batang, jumlah & persen; klik = filter jenis. */
@@ -214,7 +222,7 @@ export class Panel {
       h("p", { class: "psec-note" }, "Jumlah kejadian unik pada rentang tanggal aktif · klik baris untuk memfilter peta"),
       h("div", { class: "jcomp", "aria-hidden": "true" }, ...rows.filter((r) => r.kejadian).map((r) =>
         h("i", { class: pudar(r.j) ? "is-pudar" : "", style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
-      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}${pudar(r.j) ? " is-pudar" : ""}`,
+      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, this.pv(h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}${pudar(r.j) ? " is-pudar" : ""}`,
         onclick: () => this.hd.onJenis(r.j), "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan. Tampilkan jenis ini saja.` },
         h("span", { class: "jrow-ic", style: `--jc:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
         h("span", { class: "jrow-mid" },
@@ -222,7 +230,7 @@ export class Panel {
             h("small", {}, r.kejadian ? `${angka(r.laporan)} laporan` : "belum dilaporkan")),
           h("span", { class: "jrow-bar" }, r.kejadian ? h("i", { style: `width:${(r.kejadian / max) * 100}%;background:var(--j-${r.j})` }) : null)),
         h("span", { class: "jrow-n" }, h("b", {}, angka(r.kejadian)), h("small", {}, r.kejadian && total ? `${Math.round((100 * r.kejadian) / total)}%` : "—")),
-        ico("chevRight", 14, "rank-go"))))),
+        ico("chevRight", 14, "rank-go")), () => this.hd.onPreviewJenis?.(r.j), () => this.hd.onPreviewJenis?.(null))))),
       h("p", { class: "fblock-note" }, "Satu kejadian dihitung pada satu jenis. Jenis tanpa laporan tetap ditampilkan agar terlihat tidak ada data, bukan nol kejadian sesungguhnya."));
   }
 
@@ -263,7 +271,7 @@ export class Panel {
         ? h("p", { class: "note" }, `${angka(t.laporan_tanpa_titik)} laporan hanya menyebut wilayah kab/kota (tanpa lokasi rinci) sehingga tidak tampil sebagai penanda.`) : null,
       kosong ?? h("div", {},
         ringkasBox(ringkasKab(d)),
-        h("p", { class: "cards-hint" }, "*Klik kartu untuk meng-highlight lokasi pada peta!"),
+        h("p", { class: "cards-hint" }, "*Arahkan kursor ke kartu untuk melihat lokasinya di peta; klik untuk menyorotnya."),
         h("div", { class: "cards", role: "list", "aria-label": "Kejadian bencana" }, ...d.kejadian.map((k) => this.card(k, d.tweets))))), `kab:${d.kode_kab}`);
   }
 
@@ -298,6 +306,7 @@ export class Panel {
     const periodeBeda = k.jumlah_laporan_periode !== k.jumlah_laporan_total;
     const bits = [`${k.dampak.length} dampak`, `${(k.kebutuhan_grup ?? []).length} kebutuhan`, `${k.lembaga.length} lembaga`].join(" | ");
     const el = h("article", { class: `card${on ? " is-sorot" : ""}${this.sorot && !on ? " is-redup" : ""}${bisa ? "" : " is-static"}`,
+      "data-lok": k.lokasi_ids.join(" "),
       role: "listitem", "data-event": k.event_id },
       hit,
       h("dl", { class: "card-meta" },
@@ -316,7 +325,16 @@ export class Panel {
       this.toggle(k.event_id);
     });
     this.cards.set(k.event_id, el);
+    if (bisa) onPreview(el, () => this.hd.onPreviewLokasi?.(k.lokasi_ids), () => this.hd.onPreviewLokasi?.(null));
     return el;
+  }
+
+  /** Pasang pratinjau hover/fokus pada elemen dan kembalikan elemen itu (untuk dirangkai di h()). */
+  private pv<T extends HTMLElement>(el: T, on: () => void, off: () => void): T { onPreview(el, on, off); return el; }
+
+  /** Hover penanda di peta: tandai kartu kejadian yang memuat lokasi itu. */
+  previewCards(gid: string | null): void {
+    for (const el of this.cards.values()) el.classList.toggle("is-pv", !!gid && (el.dataset.lok ?? "").split(" ").includes(gid));
   }
 
   private toggle(eid: string): void { this.hd.onSorot(this.sorot === eid ? null : eid); }

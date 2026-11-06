@@ -2,7 +2,8 @@ import L from "./leaflet";
 import "leaflet.markercluster";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
-import type { Titik } from "../types";
+import type { Jenis, Titik } from "../types";
+import { q, setPv } from "../ui/preview";
 import { esc, reducedMotion } from "../dom";
 import { angka } from "../format";
 import { iconSvg } from "../ui/icons";
@@ -23,6 +24,8 @@ export interface MapHandlers {
   onTitik(gid: string): void;
   onBackground(): void;
   onHome(): void;
+  /** Hover penanda (pratinjau kartu kejadian terkait di panel); null saat keluar. */
+  onTitikHover?(gid: string | null): void;
 }
 export interface Pad { top: number; right: number; bottom: number; left: number }
 
@@ -40,6 +43,8 @@ export class MapView {
   private provLayers = new Map<string, ProvLayer>();
   private selectedProv: string | null = null;
   private hoverLayer: L.GeoJSON;
+  private provPv!: L.GeoJSON;
+  private pvProv: string | null = null;
   private selHalo: L.GeoJSON;
   private selLine: L.GeoJSON;
   private hoverKab: string | null = null;
@@ -81,6 +86,7 @@ export class MapView {
     pane("kabHover", 414, true);
     pane("kabSel", 416, true);
     this.hoverLayer = L.geoJSON(undefined, { pane: "kabHover", interactive: false, style: { className: "kab-hover", weight: 1.6, fill: false } }).addTo(this.map);
+    this.provPv = L.geoJSON(undefined, { pane: "kabHover", interactive: false, style: { className: "prov-pv", weight: 2, fill: false } }).addTo(this.map);
     this.selHalo = L.geoJSON(undefined, { pane: "kabSel", interactive: false, style: { className: "kab-sel-halo", weight: 5, fill: false } }).addTo(this.map);
     this.selLine = L.geoJSON(undefined, { pane: "kabSel", interactive: false, style: { className: "kab-sel-line", weight: 2, fill: false } }).addTo(this.map);
     this.addNav();
@@ -417,8 +423,8 @@ export class MapView {
         icon: this.icon(t, animateIn ? i : -1), keyboard: true, riseOnHover: true, title: "", gid,
       } as L.MarkerOptions & { gid: string });
       m.on("click", (e) => { L.DomEvent.stop(e); window.clearTimeout(this.bgTimer); this.tip.hide(); this.h.onTitik(gid); });
-      m.on("mouseover", () => this.markerTip(gid));
-      m.on("mouseout", () => this.tip.hide(`mk:${gid}`, 60));
+      m.on("mouseover", () => { this.markerTip(gid); this.h.onTitikHover?.(gid); });
+      m.on("mouseout", () => { this.tip.hide(`mk:${gid}`, 60); this.h.onTitikHover?.(null); });
       m.on("remove", () => this.tip.hide(`mk:${gid}`));
       m.on("add", () => this.decorate(gid));
       this.markers.set(gid, { m, key, t });
@@ -461,6 +467,7 @@ export class MapView {
     el.setAttribute("aria-label", markerAria(rec.t, this.selectedKabName()));
     el.setAttribute("aria-describedby", "maptip");
     el.setAttribute("data-gid", gid);
+    el.setAttribute("data-jenis", rec.t.jenis.join(" "));
     el.setAttribute("aria-pressed", String(gid === this.selectedTitik));
     el.classList.toggle("is-selected", gid === this.selectedTitik);
     el.classList.toggle("is-sorot", !!this.sorot && this.sorot.has(gid));
@@ -476,6 +483,32 @@ export class MapView {
     this.tip.hide();
     this.cluster.clearLayers();
     this.markers.clear();
+  }
+
+  // ------------------------------------------------------------------ pratinjau hover (tanpa mengubah state)
+  /** Garis tepi provinsi + kab/kota di luarnya dipudarkan (CSS, tanpa restyle per poligon). */
+  previewProv(kode: string | null): void {
+    if (kode === this.pvProv) return;
+    this.pvProv = kode;
+    this.provPv.clearLayers();
+    const l = kode ? this.provLayers.get(kode) : null;
+    if (l && !this.moving) this.provPv.addData(l.feature);
+    setPv("prov", l && /^\d+$/.test(kode!) ? `.leaflet-container path.kab:not([data-kode^="${kode}"]):not([data-k="na"]) { fill-opacity: calc(var(--ch-op) * 0.28); }` : null);
+  }
+
+  /** Hanya kab/kota pada kelas jumlah tertentu yang tetap pekat. */
+  previewKelas(k: number | null): void {
+    setPv("kelas", k === null ? null
+      : `.leaflet-container path.kab:not([data-k="${k}"]):not([data-k="na"]) { fill-opacity: calc(var(--ch-op) * 0.22); }
+         .leaflet-container path.kab[data-k="${k}"] { stroke: var(--ink); stroke-width: 1px; }`);
+  }
+
+  /** Penanda pada daftar gid (atau berjenis j) menonjol; lainnya diredupkan. Klaster tidak diubah. */
+  previewTitik(gids: string[] | null): void {
+    setPv("titik", gids && gids.length ? pvMarkerCss(gids.map((g) => `[data-gid=${q(g)}]`)) : null);
+  }
+  previewJenis(j: Jenis | null): void {
+    setPv("jenis", j ? pvMarkerCss([`[data-jenis~=${q(j)}]`]) : null);
   }
 
   setSorot(ids: string[] | null): void {
@@ -503,4 +536,13 @@ export class MapView {
   }
 
   invalidate(): void { this.map.invalidateSize({ pan: false }); }
+}
+
+/** Aturan CSS pratinjau penanda: yang cocok menonjol, sisanya redup (pilihan tetap tidak diredupkan). */
+function pvMarkerCss(sel: string[]): string {
+  const on = sel.map((x) => `.pm-marker${x}`).join(", ");
+  const off = `.pm-marker${sel.map((x) => `:not(${x})`).join("")}:not(.is-selected) .pm-mk`;
+  return `${off} { opacity: 0.3; filter: grayscale(0.8); }
+    ${sel.map((x) => `.pm-marker${x} .pm-mk`).join(", ")} { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 3px 6px rgba(20, 14, 8, 0.3)); }
+    ${on} { z-index: 900 !important; }`;
 }

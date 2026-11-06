@@ -2,6 +2,7 @@ import { h } from "../dom";
 import { JENIS, LABEL_PENDEK } from "../jenis";
 import { ico, type IconName } from "../ui/icons";
 import { markerHtml } from "./marker";
+import { onPreview } from "../ui/preview";
 import type { Jenis, Titik } from "../types";
 
 /** Kelas jumlah tetap (bukan kuantil): stabil saat filter berubah, cocok untuk data sangat jarang. */
@@ -31,10 +32,14 @@ function mini(jenis: Jenis[], n: number, luar = false): HTMLElement {
   return el;
 }
 
-export function buildLegend(onToggle: (open: boolean) => void): Legend {
+const withPv = <T extends HTMLElement>(el: T, on: () => void, off: () => void): T => { onPreview(el, on, off); return el; };
+
+export interface LegendPreview { kelas(k: number | null): void; jenis(j: Jenis | null): void }
+
+export function buildLegend(onToggle: (open: boolean) => void, pv?: LegendPreview): Legend {
   const ctx = h("p", { class: "lg-ctx" });
   const jenis = h("div", { class: "lg-jenis", role: "list", "aria-label": "Warna jenis bencana" },
-    ...JENIS.map((j) => h("span", { class: "lg-jn", role: "listitem" }, h("span", { class: "lg-jic", style: `--jc: var(--j-${j})`, "aria-hidden": "true" }, ico(`j_${j}` as IconName, 12)), LABEL_PENDEK[j])));
+    ...JENIS.map((j) => withPv(h("span", { class: "lg-jn", role: "listitem" }, h("span", { class: "lg-jic", style: `--jc: var(--j-${j})`, "aria-hidden": "true" }, ico(`j_${j}` as IconName, 12)), LABEL_PENDEK[j]), () => pv?.jenis(j), () => pv?.jenis(null))));
   const markers = h("div", { class: "lg-markers", hidden: true },
     h("p", { class: "lg-sub" }, "Penanda lokasi"),
     h("div", { class: "lg-mk" }, mini(["karhutla"], 12), LEGENDA_PENANDA.satu),
@@ -44,8 +49,8 @@ export function buildLegend(onToggle: (open: boolean) => void): Legend {
     h("p", { class: "lg-sub" }, "Jenis bencana"), jenis);
   const body = h("div", { class: "lg-body", id: "lg-body" },
     h("div", { class: "lg-scale", role: "list", "aria-label": "Kelas jumlah kejadian" },
-      ...KELAS.map((c) => h("div", { class: "lg-step", role: "listitem", "aria-label": `${c.label} kejadian` },
-        h("span", { class: "lg-sw", "data-k": c.k }), h("span", { class: "lg-n" }, c.label)))),
+      ...KELAS.map((c) => withPv(h("div", { class: "lg-step", role: "listitem", "aria-label": `${c.label} kejadian` },
+        h("span", { class: "lg-sw", "data-k": c.k }), h("span", { class: "lg-n" }, c.label)), () => pv?.kelas(c.k), () => pv?.kelas(null)))),
     h("div", { class: "lg-extra" },
       h("span", { class: "lg-item" }, h("span", { class: "lg-sw lg-sw--0" }), "0 sesuai filter"),
       h("span", { class: "lg-item" }, h("span", { class: "lg-sw lg-sw--na" }), "Di luar cakupan data")),

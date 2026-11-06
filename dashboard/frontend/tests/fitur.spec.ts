@@ -469,3 +469,41 @@ test("backend versi lama: peringatan, tetapi kartu & penanda tetap tampil", asyn
   await expect(page.locator(".card")).toHaveCount(3);
   await expect(page.locator(".panel .skel-wrap")).toHaveCount(0);
 });
+
+// ------------------------------------------------------------------ pratinjau hover
+test("pratinjau hover: provinsi, jenis, kelas legenda, kartu ↔ penanda; tanpa mengubah state/URL", async ({ page }) => {
+  await open(page);
+  const url0 = page.url();
+  const rules = () => page.locator("#pv-rules").evaluate((e) => e.textContent ?? "").catch(() => "");
+  // baris provinsi → garis tepi provinsi + kab lain dipudarkan
+  const prov = page.locator(".prov-btn").first();
+  await prov.hover();
+  await expect(page.locator("path.prov-pv")).toHaveCount(1);
+  await expect.poll(rules).toContain("data-kode^=");
+  await page.mouse.move(5, 300);
+  await expect(page.locator("path.prov-pv")).toHaveCount(0);
+  await expect.poll(rules).toBe("");
+  // baris jenis → linimasa & komposisi dipudarkan untuk jenis lain
+  await page.locator(".jrow").first().hover();
+  await expect.poll(rules).toContain(".tl-bar:not(");
+  await page.mouse.move(5, 300);
+  await expect.poll(rules).toBe("");
+  // kelas legenda
+  await page.locator(".lg-step").nth(1).hover();
+  await expect.poll(rules).toContain('data-k="2"');
+  await page.mouse.move(5, 300);
+  expect(page.url()).toBe(url0); // hanya tampilan
+  // kab: kartu ↔ penanda
+  await enterKab(page, "3507", "Kab. Malang");
+  const card = page.locator(".card:not(.is-static)").first();
+  const lok = (await card.getAttribute("data-lok"))!.split(" ")[0];
+  await card.hover();
+  await expect.poll(rules).toContain(lok);
+  const other = page.locator(`.pm-marker:not([data-gid="${lok}"]) .pm-mk`).first();
+  if (await other.count()) await expect.poll(() => other.evaluate((e) => Number(getComputedStyle(e).opacity))).toBeLessThan(0.5);
+  await page.mouse.move(5, 300);
+  await expect.poll(rules).toBe("");
+  await page.locator(`.pm-marker[data-gid="${lok}"]`).hover();
+  await expect(card).toHaveClass(/is-pv/);
+  await expect(page.locator(".card.is-sorot")).toHaveCount(0); // klik tetap aksi utama
+});

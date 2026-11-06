@@ -185,3 +185,7 @@ button:disabled { cursor: default; }
   .tb-reset { margin-left: 0; height: 36px; width: auto; padding: 0 10px; }
   .tb-reset > span:not(.ic-wrap) { display: inline; }
 }
+/* chip jenis: isyarat warna jenis tipis di bawah saat hover (chip tetap netral) */
+.chip[data-jenis]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1px var(--line-3); }
+.chip[data-jenis][aria-pressed="true"]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1.5px var(--ink); }
+.tb-jenis.is-all .chip[data-jenis][aria-pressed="true"]:hover { box-shadow: inset 0 -2px 0 var(--c), inset 0 0 0 1px var(--line-3); }
