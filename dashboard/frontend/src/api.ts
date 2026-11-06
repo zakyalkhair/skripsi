@@ -54,6 +54,8 @@ export const cancel = (channel: string): void => { controllers.get(channel)?.abo
 export const api = {
   wilayah: () => get<Wilayah>("wilayah", "/api/wilayah"),
   agregat: (q: Query) => get<KabAgregat>("agregat", `/api/kab-agregat${qs(q)}`),
+  /** Agregat tanpa filter jenis (kunci terpisah agar tidak membatalkan permintaan utama): kartu per jenis tetap lengkap. */
+  agregatSemua: (q: Query) => get<KabAgregat>("agregat-semua", `/api/kab-agregat${qs({ ...q, jenis: new Set(JENIS) })}`),
   agregatProv: (q: Query, prov: string) => get<KabAgregat>("agregat-prov", `/api/kab-agregat${qs(q, { prov })}`),
   kejadian: (kode: string, q: Query) => get<KabKejadian>("kejadian", `/api/kab/${kode}/kejadian${qs(q)}`).then((d) => {
     if (!d.tweets || d.kejadian.some((k) => !Array.isArray(k.laporan))) lama = true;

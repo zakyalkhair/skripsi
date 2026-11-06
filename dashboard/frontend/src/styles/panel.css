@@ -355,3 +355,6 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .jrow-n small { font-size: 11.5px; color: var(--ink-3); }
 .jrow.is-nol .jrow-ic { opacity: 0.35; }
 .jrow.is-nol b { color: var(--ink-3); }
+/* saat memfilter: jenis yang tidak dipilih tetap di posisinya, hanya dipudarkan */
+.jrow.is-pudar .jrow-ic, .jrow.is-pudar .jrow-bar i, .jcomp i.is-pudar { opacity: 0.25; filter: grayscale(0.6); }
+.jrow.is-pudar .jrow-top b, .jrow.is-pudar .jrow-n b { color: var(--ink-3); }

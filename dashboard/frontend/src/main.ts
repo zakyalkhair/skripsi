@@ -36,6 +36,7 @@ const isMobile = () => mq.matches;
 
 let wil: Wilayah;
 let agg: KabAgregat | null = null;
+let perJenisSemua: KabAgregat["ringkasan"]["per_jenis"] | null = null;
 let kejadian: KabKejadian | null = null;
 let titik: KabTitik | null = null;
 let lokasiNama: string | null = null;
@@ -271,14 +272,19 @@ function loading<T>(p: Promise<T>): Promise<T> {
 
 async function loadAgregat(): Promise<void> {
   const s = store.state;
-  try { agg = await loading(api.agregat(q(s))); } catch (e) { if (!isAbort(e)) showError(e); return; }
+  try {
+    const semua = s.jenis.size === JENIS.length;
+    [agg, perJenisSemua] = await loading(Promise.all([api.agregat(q(s)),
+      semua ? Promise.resolve(null) : api.agregatSemua(q(s)).then((a) => a.ringkasan.per_jenis ?? null)]));
+    if (semua) perJenisSemua = agg.ringkasan.per_jenis ?? null;
+  } catch (e) { if (!isAbort(e)) showError(e); return; }
   const adaData = new Set(wil.kab.filter((k) => k.ada_data).map((k) => k.kode_kab));
   mapView.setCounts(new Map(agg.kab.map((r) => [r.kode_kab, r.jumlah_kejadian])), adaData);
   legend.update(legendText(s), !!s.kab);
   const empty = agg.ringkasan.jumlah_kejadian === 0;
   mapEmpty.hidden = !empty;
   if (empty) mapEmpty.replaceChildren(panel.empty(emptyCtx(), true));
-  if (store.view === "nasional") panel.nasional(agg, wil, filterText(s), emptyCtx());
+  if (store.view === "nasional") panel.nasional(agg, wil, filterText(s), emptyCtx(), perJenisSemua, s.jenis);
   else if (store.view === "kab" && kejadian) renderKab();
   renderContext();
 }
@@ -389,7 +395,7 @@ function geoLoad(fresh: boolean): void {
   else {
     if (fresh && !booting) void mapView.national();
     legend.update(legendText(s), false);
-    if (agg) panel.nasional(agg, wil, filterText(s), emptyCtx());
+    if (agg) panel.nasional(agg, wil, filterText(s), emptyCtx(), perJenisSemua, s.jenis);
     if (fresh && !booting) announce("Peta nasional");
   }
   if (s.lokasi) void loadLokasi();

@@ -174,7 +174,8 @@ export class Panel {
   }
 
   // ------------------------------------------------------------- nasional
-  nasional(agg: KabAgregat, wil: Wilayah, scope: string, ctx: EmptyCtx): void {
+  nasional(agg: KabAgregat, wil: Wilayah, scope: string, ctx: EmptyCtx,
+    perJenisSemua: KabAgregat["ringkasan"]["per_jenis"] | null = null, dipilih: ReadonlySet<Jenis> = new Set(JENIS)): void {
     const r = agg.ringkasan;
     // Provinsi dengan kejadian: setiap kejadian tercatat di tepat satu kab/kota, sehingga hitungan kejadian
     // per provinsi = jumlah kejadian kab/kota di dalamnya (tweet tidak dijumlahkan: satu tweet bisa lintas wilayah).
@@ -193,8 +194,8 @@ export class Panel {
         kpi("Kejadian", r.jumlah_kejadian, "Kejadian (DisasterEvent) unik yang periodenya beririsan dengan rentang tanggal"),
         kpi("Tweet sumber unik", r.jumlah_tweet, "Tweet unik yang melaporkan laporan kejadian pada rentang tanggal"),
         kpi("Kab/kota", r.jumlah_kab, "Kab/kota dengan minimal satu kejadian yang sesuai filter")),
+      (perJenisSemua ?? r.per_jenis) ? this.jenisCard((perJenisSemua ?? r.per_jenis)!, dipilih) : null,
       r.jumlah_kejadian === 0 ? this.empty(ctx) : h("div", {},
-        r.per_jenis ? this.jenisCard(r.per_jenis, r.jumlah_kejadian) : null,
         provRows.length ? section("Provinsi",
           h("ul", { class: "provs" }, ...provRows.map(([kode, p]) => h("li", {}, h("button", { type: "button", class: "prov-btn", onclick: () => this.hd.onProv(kode) },
             h("span", { class: "prov-name" }, provNama.get(kode) ?? kode),
@@ -202,15 +203,18 @@ export class Panel {
   }
 
   /** Kartu "Kejadian per jenis bencana" (opsi desain Figma): ikon, laporan, batang, jumlah & persen; klik = filter jenis. */
-  private jenisCard(pj: NonNullable<KabAgregat["ringkasan"]["per_jenis"]>, total: number): HTMLElement {
+  private jenisCard(pj: NonNullable<KabAgregat["ringkasan"]["per_jenis"]>, dipilih: ReadonlySet<Jenis>): HTMLElement {
+    // Urutan & angka selalu dari data SEMUA jenis (posisi tetap); saat memfilter, jenis yang tidak dipilih dipudarkan.
     const rows = JENIS.map((j) => ({ j, ...(pj[j] ?? { kejadian: 0, laporan: 0 }) })).sort((a, b) => b.kejadian - a.kejadian);
+    const total = rows.reduce((a, r) => a + r.kejadian, 0);
     const max = Math.max(1, ...rows.map((r) => r.kejadian));
+    const pudar = (j: Jenis) => dipilih.size < JENIS.length && !dipilih.has(j);
     return h("section", { class: "psec jcard" },
       h("h3", { class: "psec-t" }, "Kejadian per jenis bencana"),
-      h("p", { class: "psec-note" }, "Jumlah kejadian unik pada filter aktif · klik baris untuk memfilter peta"),
+      h("p", { class: "psec-note" }, "Jumlah kejadian unik pada rentang tanggal aktif · klik baris untuk memfilter peta"),
       h("div", { class: "jcomp", "aria-hidden": "true" }, ...rows.filter((r) => r.kejadian).map((r) =>
-        h("i", { style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
-      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}`,
+        h("i", { class: pudar(r.j) ? "is-pudar" : "", style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
+      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}${pudar(r.j) ? " is-pudar" : ""}`,
         onclick: () => this.hd.onJenis(r.j), "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan. Tampilkan jenis ini saja.` },
         h("span", { class: "jrow-ic", style: `--jc:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
         h("span", { class: "jrow-mid" },
