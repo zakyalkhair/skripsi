@@ -19,7 +19,9 @@ def kab_row(j, kode):
 
 def test_agregat_menghitung_kejadian_unik():
     j = get("/api/kab-agregat")
+    pj = j["ringkasan"].pop("per_jenis")
     assert j["ringkasan"] == {"jumlah_kejadian": 15, "jumlah_laporan": 33, "jumlah_tweet": 31, "jumlah_kab": 7}
+    assert sum(v["kejadian"] for v in pj.values()) == 15 and pj["banjir"] == {"kejadian": 6, "laporan": 13}
     assert kab_row(j, "3514")["jumlah_kejadian"] == 3  # dua banjir Bangil terpisah + karhutla
     assert sum(r["jumlah_kejadian"] for r in j["kab"]) == 15
 

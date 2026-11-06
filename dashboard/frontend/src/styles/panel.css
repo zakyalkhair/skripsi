@@ -333,3 +333,24 @@ details[open] > summary .fsrc-chev { transform: rotate(180deg); }
 .kpis--lok { grid-template-columns: max-content max-content minmax(0, 1fr); }
 .kpis--lok .kpi { padding-right: 16px; }
 .kpis--lok .kpi-v, .kpis--lok .kpi:last-child .kpi-v { font-size: 22px; font-weight: 750; line-height: 1.05; letter-spacing: -0.025em; white-space: nowrap; overflow: visible; }
+
+/* kartu kejadian per jenis bencana (opsi Figma) */
+.jcomp { display: flex; gap: 2px; height: 10px; margin: 2px 0 6px; border-radius: 4px; overflow: hidden; }
+.jcomp i { display: block; min-width: 3px; }
+.jrows { list-style: none; margin: 0; padding: 0; }
+.jrows li + li { border-top: 1px solid var(--line); }
+.jrow { display: grid; grid-template-columns: 32px minmax(0, 1fr) 46px 14px; align-items: center; gap: 12px; width: calc(100% + 16px); margin: 0 -8px; padding: 9px 8px;
+  border: 0; border-radius: var(--r-m); background: transparent; text-align: left; cursor: pointer; transition: background var(--d-hover); }
+.jrow:hover { background: var(--surface-2); }
+.jrow-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: #fff; }
+.jrow-mid { display: grid; gap: 6px; min-width: 0; }
+.jrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.jrow-top b { font-size: 14px; font-weight: 650; }
+.jrow-top small { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.jrow-bar { display: block; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.jrow-bar i { display: block; height: 100%; border-radius: 3px; }
+.jrow-n { display: flex; flex-direction: column; align-items: flex-end; }
+.jrow-n b { font-size: 18px; font-weight: 750; line-height: 1.1; }
+.jrow-n small { font-size: 11.5px; color: var(--ink-3); }
+.jrow.is-nol .jrow-ic { opacity: 0.35; }
+.jrow.is-nol b { color: var(--ink-3); }

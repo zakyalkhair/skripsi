@@ -1,6 +1,6 @@
 import { h, reducedMotion } from "../dom";
 import { angka, rentang, tgl, waktu } from "../format";
-import { LABEL_PENDEK, STATUS_LABEL, TINGKAT_LABEL } from "../jenis";
+import { JENIS, LABEL, LABEL_PENDEK, STATUS_LABEL, TINGKAT_LABEL } from "../jenis";
 import { kelasOf } from "../map/legend";
 import type { Jenis, KabAgregat, KabKejadian, KabTitik, Kejadian, Ringkasan, Wilayah } from "../types";
 import { dampakGroups, dampakQty, dampakText, factBlock, kebutuhanGroups, kronologiList, lembagaBlock, tweetFold, type TweetMap } from "./facts";
@@ -20,6 +20,7 @@ export interface PanelHandlers {
   onAllDates(): void;
   onAllJenis(): void;
   onAsk(ev: EventRef): void;
+  onJenis(j: Jenis): void;
   onTab(tab: PanelTab): void;
 }
 
@@ -197,7 +198,28 @@ export class Panel {
           h("ul", { class: "provs" }, ...provRows.map(([kode, p]) => h("li", {}, h("button", { type: "button", class: "prov-btn", onclick: () => this.hd.onProv(kode) },
             h("span", { class: "prov-name" }, provNama.get(kode) ?? kode),
             h("span", { class: "prov-n" }, `${angka(p.n)} kejadian | ${angka(p.kab)} kab/kota`), ico("chevRight", 14, "rank-go")))))) : null,
-        section("Kab/kota dengan kejadian", this.rankList(agg, wil)))), "nasional");
+        r.per_jenis ? this.jenisCard(r.per_jenis, r.jumlah_kejadian) : null)), "nasional");
+  }
+
+  /** Kartu "Kejadian per jenis bencana" (opsi desain Figma): ikon, laporan, batang, jumlah & persen; klik = filter jenis. */
+  private jenisCard(pj: NonNullable<KabAgregat["ringkasan"]["per_jenis"]>, total: number): HTMLElement {
+    const rows = JENIS.map((j) => ({ j, ...(pj[j] ?? { kejadian: 0, laporan: 0 }) })).sort((a, b) => b.kejadian - a.kejadian);
+    const max = Math.max(1, ...rows.map((r) => r.kejadian));
+    return h("section", { class: "psec jcard" },
+      h("h3", { class: "psec-t" }, "Kejadian per jenis bencana"),
+      h("p", { class: "psec-note" }, "Jumlah kejadian unik pada filter aktif · klik baris untuk memfilter peta"),
+      h("div", { class: "jcomp", "aria-hidden": "true" }, ...rows.filter((r) => r.kejadian).map((r) =>
+        h("i", { style: `flex:${r.kejadian};background:var(--j-${r.j})`, title: `${LABEL_PENDEK[r.j]}: ${r.kejadian}` }))),
+      h("ul", { class: "jrows" }, ...rows.map((r) => h("li", {}, h("button", { type: "button", class: `jrow${r.kejadian ? "" : " is-nol"}`,
+        onclick: () => this.hd.onJenis(r.j), "aria-label": `${LABEL[r.j]}: ${r.kejadian} kejadian, ${r.laporan} laporan. Tampilkan jenis ini saja.` },
+        h("span", { class: "jrow-ic", style: `background:var(--j-${r.j})` }, ico(`j_${r.j}` as never, 18)),
+        h("span", { class: "jrow-mid" },
+          h("span", { class: "jrow-top" }, h("b", {}, LABEL[r.j] === "Kebakaran Hutan dan Lahan" ? "Karhutla" : LABEL[r.j]),
+            h("small", {}, r.kejadian ? `${angka(r.laporan)} laporan` : "belum dilaporkan")),
+          h("span", { class: "jrow-bar" }, r.kejadian ? h("i", { style: `width:${(r.kejadian / max) * 100}%;background:var(--j-${r.j})` }) : null)),
+        h("span", { class: "jrow-n" }, h("b", {}, angka(r.kejadian)), h("small", {}, r.kejadian && total ? `${Math.round((100 * r.kejadian) / total)}%` : "—")),
+        ico("chevRight", 14, "rank-go"))))),
+      h("p", { class: "fblock-note" }, "Satu kejadian dihitung pada satu jenis. Jenis tanpa laporan tetap ditampilkan agar terlihat tidak ada data, bukan nol kejadian sesungguhnya."));
   }
 
   // ------------------------------------------------------------- provinsi

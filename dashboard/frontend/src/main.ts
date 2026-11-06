@@ -119,6 +119,7 @@ const panel = new Panel({
   onAllDates: () => store.set({ dari: null, sampai: null }),
   onAllJenis: () => store.set({ jenis: new Set(JENIS) }),
   onAsk: (ev) => askEvent(ev),
+  onJenis: (j) => store.set({ jenis: new Set([j]) }),
   onTab: (t) => onTab(t),
 }, panelHead);
 const chat = new ChatView((scope, ev) => chatCtx(scope, ev), () => panel.setTab("detail", true));

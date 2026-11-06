@@ -27,11 +27,22 @@ function unzip(buf: Buffer): Record<string, string> {
 }
 
 // ------------------------------------------------------------------ A2 kursor
+test("ringkasan nasional: kartu per jenis menggantikan daftar kab/kota; klik baris = filter jenis", async ({ page }) => {
+  await open(page);
+  await expect(page.locator(".panel .rank-btn")).toHaveCount(0);
+  await expect(page.locator(".jrow")).toHaveCount(6);
+  await expect(page.locator(".jrow").first()).toContainText("Banjir");
+  await expect(page.locator(".jrow").first()).toContainText("6");
+  await page.locator(".jrow").first().click();
+  await expect(page.locator('.chip[aria-pressed="true"]:not(.chip--all)')).toHaveCount(1);
+  await expect(page.locator('.chip[data-jenis="banjir"]')).toHaveAttribute("aria-pressed", "true");
+});
+
 test("kursor: elemen laporan yang dapat diklik memakai penunjuk tangan (bukan plus/crosshair)", async ({ page }) => {
   await open(page);
   const cur = (sel: string) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).cursor);
   expect(await cur("path.kab")).toBe("pointer");
-  expect(await cur(".rank-btn")).toBe("pointer");
+  expect(await cur(".jrow")).toBe("pointer");
   expect(await cur(".tl-hit")).toBe("pointer");
   expect(await cur(".tl-handle")).toBe("ew-resize");
   await enterKab(page, "3508", "Kab. Lumajang");

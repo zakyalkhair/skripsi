@@ -12,7 +12,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from . import adapter as A
-from .domain import Filter, Graph
+from .domain import JENIS, Filter, Graph
 
 
 # --------------------------------------------------------------------------- dasar
@@ -251,7 +251,10 @@ def kab_agregat(g: Graph, f: Filter, prov: str | None = None) -> dict:
     return {"filter": {**f.as_dict(), "prov": prov}, "kab": rows,
             "ringkasan": {"jumlah_kejadian": sum(r["jumlah_kejadian"] for r in rows),
                           "jumlah_laporan": len(set(mids)), "jumlah_tweet": len(_tweets_of(g, mids)),
-                          "jumlah_kab": len(rows)}}
+                          "jumlah_kab": len(rows),
+                          # per jenis: kejadian unik (satu kejadian = satu jenis) & laporan unik
+                          "per_jenis": {j: {"kejadian": sum(1 for e in evset if g.events[e]["jenis"] == j),
+                                            "laporan": sum(1 for m in mids if g.mentions[m]["jenis"] == j)} for j in JENIS}}}
 
 
 def _kartu(g: Graph, eid: str, f: Filter) -> dict:

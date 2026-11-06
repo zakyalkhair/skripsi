@@ -12,7 +12,7 @@ export interface Wilayah {
 
 export interface KabAgregat {
   kab: { kode_kab: string; jumlah_kejadian: number; jumlah_laporan: number; jumlah_tweet: number }[];
-  ringkasan: { jumlah_kejadian: number; jumlah_laporan: number; jumlah_tweet: number; jumlah_kab: number };
+  ringkasan: { jumlah_kejadian: number; jumlah_laporan: number; jumlah_tweet: number; jumlah_kab: number; per_jenis?: Partial<Record<Jenis, { kejadian: number; laporan: number }>> };
 }
 
 /** Rujukan sumber satu fakta: laporan (EventMention) beserta tanggal dan tweet-nya. */
