@@ -511,3 +511,14 @@ test("pratinjau hover: provinsi, jenis, kelas legenda, kartu ↔ penanda; tanpa 
   await expect(card).toHaveClass(/is-pv/);
   await expect(page.locator(".card.is-sorot")).toHaveCount(0); // klik tetap aksi utama
 });
+
+test("detail titik: dampak, kebutuhan, penanganan hanya untuk titik itu (tanpa chip lokasi lain)", async ({ page }) => {
+  await open(page);
+  await enterKab(page, "3507", "Kab. Malang");
+  const mk = page.locator(".pm-marker").first();
+  await mk.click();
+  await expect(page.locator(".panel .back")).toBeVisible();
+  for (const d of await page.locator(".panel details.card-more").all()) await d.evaluate((e) => { (e as HTMLDetailsElement).open = true; });
+  await expect(page.locator(".panel .card-more .ftag--loc")).toHaveCount(0);
+  await expect(page.locator(".panel .card-more .fblock-t", { hasText: /^Penanganan/ }).first()).toContainText("di lokasi ini");
+});

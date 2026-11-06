@@ -115,14 +115,15 @@ const locChip = (l: LokRef | null, ev = false) => l ? h("span", { class: "ftag f
 const srcChip = (s: Sumber, tw: TweetMap) => sumberToggle(s, tw);
 
 /** Dampak (desain Figma): label + jumlah, ikon kelas di kanan, chip lokasi & chip tanggal·tweet. Diurutkan per kelas. */
-export function dampakGroups(ds: Dampak[], tw: TweetMap, _opts: { scope: boolean }): HTMLElement[] {
+/** opts.scope=false: tampilan satu titik — chip lokasi disembunyikan (semua fakta memang di titik itu). */
+export function dampakGroups(ds: Dampak[], tw: TweetMap, opts: { scope: boolean }): HTMLElement[] {
   if (!ds.length) return [];
   const ord = Object.keys(KELAS_UI);
   const sorted = [...ds].sort((a, b) => ord.indexOf(a.kelas && a.kelas in KELAS_UI ? a.kelas : "lainnya") - ord.indexOf(b.kelas && b.kelas in KELAS_UI ? b.kelas : "lainnya"));
   return [h("ul", { class: "facts" }, ...sorted.map((d) => h("li", { class: "fact", "data-id": d.id, "data-kelas": d.kelas ?? "lainnya" },
     h("span", { class: "fact-main" }, h("span", { class: "fact-what" }, dampakText(d)), h("b", { class: `fact-qty${d.jumlah == null ? " is-na" : ""}` }, dampakQty(d)),
       h("span", { class: "fact-ic", title: KELAS_UI[d.kelas ?? ""] ?? "Lainnya" }, ico(kelasIc(d.kelas), 16))),
-    h("span", { class: "fact-meta" }, ...(d.lokasi.length ? d.lokasi.map((l) => locChip(l)) : []),
+    h("span", { class: "fact-meta" }, ...(opts.scope && d.lokasi.length ? d.lokasi.map((l) => locChip(l)) : []),
       ...(d.sumber ?? []).map((x) => srcChip(x, tw))))))];
 }
 
@@ -131,7 +132,8 @@ const statusChip = (b: KebBaris) => b.status === "supplied"
   : h("span", { class: "need need--demanded" }, "Diminta");
 
 /** Kebutuhan (desain Figma): item + status penyaluran; bila beberapa lokasi: ringkasan "x dari n" + baris per lokasi. */
-export function kebutuhanGroups(gs: KebGrup[], tw: TweetMap): HTMLElement[] {
+export function kebutuhanGroups(gs: KebGrup[], tw: TweetMap, opts: { scope: boolean } = { scope: true }): HTMLElement[] {
+  const lc = (l: LokRef | null) => (opts.scope ? locChip(l) : null);
   if (!gs.length) return [];
   const ord = Object.keys(KATEGORI_UI);
   const sorted = [...gs].sort((a, b) => ord.indexOf(a.kategori ?? "lainnya") - ord.indexOf(b.kategori ?? "lainnya"));
@@ -141,19 +143,19 @@ export function kebutuhanGroups(gs: KebGrup[], tw: TweetMap): HTMLElement[] {
       h("span", { class: "fact-main" }, h("span", { class: "fact-what" }, g.item ?? "item tidak disebutkan"),
         h("span", { class: "fact-right" }, one ? statusChip(one) : g.ringkas ? h("span", { class: "ftag ftag--count" }, g.ringkas) : null,
           h("span", { class: "fact-ic", title: KATEGORI_UI[g.kategori ?? ""] ?? "Lainnya" }, ico(katIc(g.kategori), 16)))),
-      ...(one ? [h("span", { class: "fact-meta" }, locChip(one.lokasi), ...one.sumber.map((x) => srcChip(x, tw)))]
+      ...(one ? [h("span", { class: "fact-meta" }, lc(one.lokasi), ...one.sumber.map((x) => srcChip(x, tw)))]
         : g.baris.map((b) => h("div", { class: "need-row" }, statusChip(b),
-          h("span", { class: "fact-meta" }, locChip(b.lokasi), ...b.sumber.map((x) => srcChip(x, tw)))))));
+          h("span", { class: "fact-meta" }, lc(b.lokasi), ...b.sumber.map((x) => srcChip(x, tw)))))));
   }))];
 }
 
 /** Penanganan (desain Figma): nama + tingkat; tiap aksi = pil aksi, lalu chip lokasi & chip tanggal·tweet. */
-export function lembagaBlock(l: Lembaga, tw: TweetMap): HTMLElement {
+export function lembagaBlock(l: Lembaga, tw: TweetMap, opts: { scope: boolean } = { scope: true }): HTMLElement {
   const aksi = l.aksi ?? [];
   return h("li", { class: "fact fact--org", "data-id": l.id },
     h("span", { class: "fact-main" }, h("span", { class: "fact-what org-n" }, l.nama_kanonik ?? "Nama tidak tersedia"), l.tingkat ? h("span", { class: "lvl" }, l.tingkat) : null),
     ...(aksi.length ? aksi.map((a) => h("span", { class: "aksi-row" }, h("span", { class: "aksi-pill" }, a.aksi),
-      h("span", { class: "fact-meta" }, locChip(a.lokasi),
+      h("span", { class: "fact-meta" }, opts.scope ? locChip(a.lokasi) : null,
         a.tanggal || a.tweet_id ? h("span", { class: "dchip" }, a.tanggal ? h("b", {}, tgl(a.tanggal)) : null, a.tweet_id ? h("span", {}, a.tweet_id) : null) : null)))
       : [h("span", { class: "fact-scope" }, ...l.peran.map((p) => h("span", { class: "aksi-pill" }, p)))]),
     l.induk ? h("span", { class: "fblock-note" }, `Bagian dari ${l.induk}`) : null,

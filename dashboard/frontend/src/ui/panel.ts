@@ -381,6 +381,9 @@ export class Panel {
           const rel = [menyebut ? `Disebut dalam ${angka(menyebut)} dari ${angka(k.jumlah_laporan_kejadian)} laporan kejadian ini` : null,
             evak ? `tujuan evakuasi dalam ${angka(evak)} laporan` : null].filter(Boolean).join("; ");
           const nKeb = grupAtr(k.kebutuhan_grup, "lokasi_ini").length;
+          // khusus titik: hanya aksi penanganan yang dicatat di titik ini (bukan seluruh kejadian)
+          const pen = k.penanganan.map((l) => ({ ...l, aksi: (l.aksi ?? []).filter((a) => a.lokasi?.gazetteer_id === L.gazetteer_id) }))
+            .filter((l) => l.aksi.length);
           return h("article", { class: "card evgroup is-static", "data-event": k.event_id },
             h("div", { class: "card-top" }, jenisTag(k.jenis), h("span", { class: "card-badge" }, `${angka(k.laporan.length)} dari ${angka(k.jumlah_laporan_kejadian)} laporan`)),
             h("p", { class: "card-t" }, k.nama),
@@ -389,12 +392,12 @@ export class Panel {
               h("div", {}, h("dt", {}, "Laporan terakhir"), h("dd", {}, tgl(k.end_time)))),
             h("div", { class: "evgroup-m" }, h("span", {}, k.nama_kab ?? "Kab/kota tidak tersedia")),
             rel ? h("p", { class: "evgroup-rel" }, `${rel}.`) : null,
-            h("p", { class: "card-sum" }, `${ini.length} dampak | ${nKeb} kebutuhan | ${k.penanganan.length} lembaga di lokasi ini`),
+            h("p", { class: "card-sum" }, `${ini.length} dampak | ${nKeb} kebutuhan | ${pen.length} lembaga di lokasi ini`),
             h("details", { class: "card-more" },
               h("summary", {}, h("span", {}, "Detail kejadian"), ico("chevDown", 15, "more-chev")),
               factBlock("Dampak di lokasi ini", dampakGroups(ini, tw, { scope: false }), "Belum ada dampak yang dilaporkan di lokasi ini", undefined, ini.length, true),
-              factBlock("Kebutuhan di lokasi ini", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_ini"), tw), "Belum ada kebutuhan yang dilaporkan di lokasi ini", undefined, nKeb, true),
-              factBlock("Penanganan", k.penanganan.map((l) => lembagaBlock(l, tw)), "Belum ada penanganan yang dilaporkan"),
+              factBlock("Kebutuhan di lokasi ini", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_ini"), tw, { scope: false }), "Belum ada kebutuhan yang dilaporkan di lokasi ini", undefined, nKeb, true),
+              factBlock("Penanganan di lokasi ini", pen.map((l) => lembagaBlock(l, tw, { scope: false })), "Belum ada penanganan yang dilaporkan di lokasi ini", undefined, pen.length),
               k.evakuasi.length ? factBlock("Evakuasi", k.evakuasi.map((e) => h("li", { class: "fact" },
                 h("span", { class: "fact-main" }, h("span", { class: "fact-what" },
                   e.tujuan.some((t) => t.gazetteer_id === L.gazetteer_id) ? "Lokasi ini menjadi tujuan evakuasi" : `Evakuasi ke ${e.tujuan.map((t) => t.nama).join(", ") || "tujuan tidak disebutkan"}`)),
