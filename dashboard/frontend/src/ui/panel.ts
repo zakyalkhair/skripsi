@@ -2,7 +2,6 @@ import { h, reducedMotion } from "../dom";
 import { angka, rentang, tgl, waktu } from "../format";
 import { LABEL_PENDEK, STATUS_LABEL, TINGKAT_LABEL } from "../jenis";
 import { kelasOf } from "../map/legend";
-import { kalimatRujukan } from "../map/marker";
 import type { Jenis, KabAgregat, KabKejadian, KabTitik, Kejadian, Ringkasan, Wilayah } from "../types";
 import { dampakGroups, dampakQty, dampakText, factBlock, kebutuhanGroups, kronologiList, lembagaBlock, tweetFold, type TweetMap } from "./facts";
 import type { KebGrup } from "../types";
@@ -226,7 +225,6 @@ export class Panel {
       ? (adaData ? this.empty(ctx) : h("div", { class: "pstate" }, h("p", { class: "pstate-t" }, "Belum ada data untuk wilayah ini."),
         h("p", {}, "Kab/kota ini berada di luar cakupan data yang tersedia.")))
       : null;
-    const luar = t ? t.titik.filter((x) => x.di_luar_kab).length : 0;
     this.show(h("div", {},
       h("header", { class: "phead" }, h("h2", { class: "ptitle" }, d.nama), h("p", { class: "psub" }, prov)),
       h("div", { class: "kpis kpis--4" },
@@ -236,7 +234,6 @@ export class Panel {
         kpi("Lokasi", t ? t.titik.length : "–", "Lokasi unik (gazetteer_id) yang dapat dipetakan")),
       t && t.laporan_tanpa_titik > 0
         ? h("p", { class: "note" }, `${angka(t.laporan_tanpa_titik)} laporan hanya menyebut wilayah kab/kota (tanpa lokasi rinci) sehingga tidak tampil sebagai penanda.`) : null,
-      luar ? h("p", { class: "note note--ref" }, ico("info", 14), `${angka(luar)} lokasi bercincin putus-putus berada di kab/kota lain; lokasi itu dirujuk oleh laporan kejadian di ${d.nama}, bukan lokasi kejadian.`) : null,
       kosong ?? h("div", {},
         ringkasBox(ringkasKab(d)),
         h("p", { class: "cards-hint" }, "*Klik kartu untuk meng-highlight lokasi pada peta!"),
@@ -309,9 +306,8 @@ export class Panel {
   }
 
   // ------------------------------------------------------------- lokasi
-  lokasi(r: Ringkasan, kabNama: string | null, kabSaatIni: string | null, kabLokasi: string | null): void {
+  lokasi(r: Ringkasan, kabNama: string | null, _kabSaatIni: string | null, _kabLokasi: string | null): void {
     const L = r.lokasi;
-    const luar = !!(kabSaatIni && L.kode_kab_lokasi && L.kode_kab_lokasi !== kabSaatIni);
     const tw = r.tweet_map ?? {};
     const tweets = h("details", { class: "psec psec--fold tfold tfold--card" },
       h("summary", { class: "psec-t" }, h("span", { class: "tfold-t" }, "Tweet yang menyebut lokasi ini"), h("span", { class: "ftag ftag--count" }, `${r.tweets.length} tweet`), ico("chevDown", 14, "fsrc-chev")),
@@ -323,13 +319,10 @@ export class Panel {
     this.show(h("div", {},
       h("button", { type: "button", class: "back", onclick: () => this.hd.onBack() }, ico("arrowLeft", 15), kabNama ?? "Kembali"),
       h("header", { class: "phead" },
-        luar ? h("p", { class: "peyebrow peyebrow--ref" }, "Lokasi rujukan") : null,
         h("h2", { class: "ptitle" }, L.nama),
         h("p", { class: "psub" }, `${TINGKAT_LABEL[L.tingkat] ?? L.tingkat} · ${(L.admin_path ?? "Jalur administratif tidak tersedia").split(" > ").join(" › ")}`),
         L.latitude !== null ? h("p", { class: "coord", title: "Koordinat entri gazetteer; bukan titik pusat atau batas bencana" },
           `${L.latitude!.toFixed(4)}, ${L.longitude!.toFixed(4)}`) : null),
-      luar ? h("p", { class: "note note--ref" }, ico("info", 14),
-        `${kalimatRujukan(kabLokasi, kabNama)} Lokasi ini bukan lokasi kejadian di ${kabNama ?? "wilayah terpilih"}; penanda tetap di posisi aslinya.`) : null,
       h("div", { class: "kpis kpis--lok" },
         kpi("Kejadian", r.kejadian.length, "Kejadian yang laporannya menyebut lokasi ini"),
         kpi("Laporan", r.jumlah_laporan, `Laporan kejadian unik yang menyebut lokasi ini (${r.jumlah_tweet} tweet unik)`),
@@ -338,18 +331,11 @@ export class Panel {
       r.kejadian.length ? ringkasBox(ringkasLokasi(r)) : null,
       r.kejadian.length ? h("div", { class: "cards" },
         ...r.kejadian.map((k) => {
-          const ini = k.dampak.filter((d) => d.atribusi === "lokasi_ini"), ev = k.dampak.filter((d) => d.atribusi === "kejadian");
-          const lain = k.dampak.filter((d) => d.atribusi === "lokasi_lain");
-          const kEv = k.kebutuhan.filter((x) => x.atribusi === "kejadian");
-          const kLain = k.kebutuhan.filter((x) => x.atribusi === "lokasi_lain");
+          const ini = k.dampak.filter((d) => d.atribusi === "lokasi_ini");
           const menyebut = k.laporan.filter((m) => m.relasi !== "evakuasi").length;
           const evak = k.laporan.length - menyebut;
           const rel = [menyebut ? `Disebut dalam ${angka(menyebut)} dari ${angka(k.jumlah_laporan_kejadian)} laporan kejadian ini` : null,
             evak ? `tujuan evakuasi dalam ${angka(evak)} laporan` : null].filter(Boolean).join("; ");
-          const lainBox = lain.length || kLain.length ? h("details", { class: "fother" },
-            h("summary", {}, ico("chevRight", 12, "sum-chev"), `Di lokasi lain dalam kejadian ini (${lain.length + kLain.length})`),
-            factBlock("Dampak di lokasi lain", dampakGroups(lain, tw, { scope: false }), null, undefined, lain.length, true),
-            factBlock("Kebutuhan di lokasi lain", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_lain"), tw), null, undefined, kLain.length, true)) : null;
           const nKeb = grupAtr(k.kebutuhan_grup, "lokasi_ini").length;
           return h("article", { class: "card evgroup is-static", "data-event": k.event_id },
             h("div", { class: "card-top" }, jenisTag(k.jenis), h("span", { class: "card-badge" }, `${angka(k.laporan.length)} dari ${angka(k.jumlah_laporan_kejadian)} laporan`)),
@@ -362,11 +348,8 @@ export class Panel {
             h("p", { class: "card-sum" }, `${ini.length} dampak | ${nKeb} kebutuhan | ${k.penanganan.length} lembaga di lokasi ini`),
             h("details", { class: "card-more" },
               h("summary", {}, h("span", {}, "Detail kejadian"), ico("chevDown", 15, "more-chev")),
-              factBlock("Dampak di lokasi ini", dampakGroups(ini, tw, { scope: false }), ev.length ? `Tidak ada dampak yang dilaporkan khusus untuk ${L.nama} — lihat dampak tingkat kejadian di bawah.` : "Belum ada dampak yang dilaporkan di lokasi ini", undefined, ini.length, true),
-              factBlock("Dampak tingkat kejadian", dampakGroups(ev, tw, { scope: false }), null, "Disebut dalam laporan kejadian ini tanpa lokasi tertentu.", ev.length, true),
-              factBlock("Kebutuhan di lokasi ini", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_ini"), tw), kEv.length ? `Tidak ada kebutuhan yang dilaporkan khusus untuk ${L.nama} — lihat kebutuhan tingkat kejadian di bawah.` : "Belum ada kebutuhan yang dilaporkan di lokasi ini", undefined, nKeb, true),
-              factBlock("Kebutuhan tingkat kejadian", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "kejadian"), tw), null, "Tidak dapat ditautkan ke lokasi tertentu.", grupAtr(k.kebutuhan_grup, "kejadian").length, true),
-              lainBox,
+              factBlock("Dampak di lokasi ini", dampakGroups(ini, tw, { scope: false }), "Belum ada dampak yang dilaporkan di lokasi ini", undefined, ini.length, true),
+              factBlock("Kebutuhan di lokasi ini", kebutuhanGroups(grupAtr(k.kebutuhan_grup, "lokasi_ini"), tw), "Belum ada kebutuhan yang dilaporkan di lokasi ini", undefined, nKeb, true),
               factBlock("Penanganan", k.penanganan.map((l) => lembagaBlock(l, tw)), "Belum ada penanganan yang dilaporkan"),
               k.evakuasi.length ? factBlock("Evakuasi", k.evakuasi.map((e) => h("li", { class: "fact" },
                 h("span", { class: "fact-main" }, h("span", { class: "fact-what" },
