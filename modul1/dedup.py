@@ -172,20 +172,23 @@ def cluster(df: pd.DataFrame, cfg: DedupCfg, seed: int) -> tuple[pd.DataFrame, D
     root = [uf.find(u) for u in row_u]
     df["_root"] = root
 
-    # 5. wakil: created_at paling awal, seri -> tweet_id terkecil (numerik)
+    # 5. wakil: text_clean paling panjang (keputusan 8 Nov 2026); seri -> created_at paling awal,
+    #    seri lagi -> tweet_id terkecil (numerik). Urutan anggota tetap menurut waktu.
     df["_idkey"] = df["tweet_id"].map(tweet_id_key)
+    df["_len"] = df["text_clean"].str.len()
     order = df.sort_values(["created_at", "_idkey"], kind="mergesort").index
+    best = df.sort_values(["_len", "created_at", "_idkey"], ascending=[False, True, True], kind="mergesort").index
     rep_of_root: dict[int, str] = {}
     members: dict[int, list[str]] = {}
+    for r in best:
+        rep_of_root.setdefault(df.at[r, "_root"], df.at[r, "tweet_id"])
     for r in order:
-        rt = df.at[r, "_root"]
-        rep_of_root.setdefault(rt, df.at[r, "tweet_id"])
-        members.setdefault(rt, []).append(df.at[r, "tweet_id"])
+        members.setdefault(df.at[r, "_root"], []).append(df.at[r, "tweet_id"])
     df["cluster_id"] = df["_root"].map(lambda rt: f"c{rep_of_root[rt]}")
     df["is_representatif"] = df["tweet_id"] == df["_root"].map(rep_of_root)
     df["member_tweet_ids"] = df["_root"].map(lambda rt: list(members[rt])).astype(object)
     df["cluster_size"] = df["_root"].map(lambda rt: len(members[rt])).astype("int64")
-    df = df.drop(columns=["_root", "_idkey"])
+    df = df.drop(columns=["_root", "_idkey", "_len"])
 
     sizes = pd.Series({rt: len(m) for rt, m in members.items()})
     stats.cluster_gt1 = int((sizes > 1).sum())

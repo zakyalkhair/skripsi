@@ -49,7 +49,6 @@ SINONIM_JENIS: dict[str, tuple[str, str | None, str | None]] = {
 }
 
 ASPEK = {"api", "asap"}
-FAKTUALITAS = {"terjadi", "prediksi"}
 TIPE_LAPORAN = {"kejadian", "penanganan", "campuran"}
 
 # --- dampak: kelompok Juklak BNPB 7/2023 (ONTOLOGI-SKEMA-V1 §2.3, §3.4)

@@ -1,0 +1,122 @@
+{
+ "kemendagri:11": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:11.04": {
+  "tingkat": "kabupaten",
+  "kode_kab": "1104"
+ },
+ "kemendagri:11.16": {
+  "tingkat": "kabupaten",
+  "kode_kab": "1116"
+ },
+ "kemendagri:11.17": {
+  "tingkat": "kabupaten",
+  "kode_kab": "1117"
+ },
+ "kemendagri:12": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:12.17": {
+  "tingkat": "kabupaten",
+  "kode_kab": "1217"
+ },
+ "kemendagri:13": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:13.06": {
+  "tingkat": "kabupaten",
+  "kode_kab": "1306"
+ },
+ "kemendagri:32": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:32.01": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3201"
+ },
+ "kemendagri:32.17": {
+  "tingkat": "kabupaten",
+  "kode_kab": "3217"
+ },
+ "kemendagri:35": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:35.08": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "kemendagri:35.08.03": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "kemendagri:35.08.03.2001": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "kemendagri:35.08.18": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "kemendagri:35.08.18.2005": {
+  "tingkat": "desa",
+  "kode_kab": "3508"
+ },
+ "kemendagri:35.25": {
+  "tingkat": "desa",
+  "kode_kab": "3525"
+ },
+ "kemendagri:35.25.15": {
+  "tingkat": "kecamatan",
+  "kode_kab": "3525"
+ },
+ "kemendagri:35.25.15.2001": {
+  "tingkat": "desa",
+  "kode_kab": "3525"
+ },
+ "kemendagri:51": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:51.02": {
+  "tingkat": "kabupaten",
+  "kode_kab": "5102"
+ },
+ "kemendagri:52": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:52.71": {
+  "tingkat": "desa",
+  "kode_kab": "5271"
+ },
+ "kemendagri:52.71.06": {
+  "tingkat": "desa",
+  "kode_kab": "5271"
+ },
+ "kemendagri:52.71.06.1004": {
+  "tingkat": "desa",
+  "kode_kab": "5271"
+ },
+ "kemendagri:53": {
+  "tingkat": "desa",
+  "kode_kab": null
+ },
+ "kemendagri:53.06": {
+  "tingkat": "desa",
+  "kode_kab": "5306"
+ },
+ "kemendagri:53.06.16": {
+  "tingkat": "desa",
+  "kode_kab": "5306"
+ },
+ "kemendagri:53.06.16.2002": {
+  "tingkat": "desa",
+  "kode_kab": "5306"
+ }
+}

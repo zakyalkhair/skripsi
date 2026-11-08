@@ -11,6 +11,7 @@ import { api, API_VERSI, ApiError, isAbort, PESAN_VERSI, type Cakupan, type Quer
 import { ChatView, type ChatCtxInfo } from "./chat/chat";
 import { setChatService, type ChatScope } from "./chat/service";
 import { demoChatService } from "./chat/demo";
+import { graphragChatService, graphragTersedia } from "./chat/graphrag";
 import { h } from "./dom";
 import { downloadData, saveBlob } from "./export/data";
 import { exportPng, type Crop } from "./export/png";
@@ -652,6 +653,7 @@ async function boot(): Promise<void> {
     wil = w;
     if (w.api_versi !== API_VERSI) toasts.show("Versi backend tidak cocok dengan frontend.", { kind: "info", ms: 9000, detail: PESAN_VERSI });
     setChatService(demoChatService()); // ringkasan dummy sampai endpoint GraphRAG tersedia
+    void graphragTersedia().then((g) => { if (g.ok) setChatService(graphragChatService(g.model)); });
     kabNames = new Map(w.kab.map((k) => [k.kode_kab, k]));
     provNames = new Map(w.provinsi.map((p) => [p.kode_prov, p.nama]));
     toolbar.setWilayah(w);

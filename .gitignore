@@ -26,3 +26,9 @@ data_arsip_sebelum_B62/
 *.osm.pbf
 *.zip
 DRAFT TA.docx
+
+# Data besar (> 100 MB, ditolak GitHub) - 8 Nov 2026
+data/raw/raw.jsonl
+data/interim/dedup.parquet
+data/interim/preprocessed.parquet
+data/processed/modul1_until_1_3.parquet

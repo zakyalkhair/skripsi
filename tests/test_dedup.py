@@ -34,11 +34,11 @@ def test_parafrasa_angka_sama_digabung(cfg):
     ])
     out, st, _, _ = cluster(df, cfg.dedup, cfg.seed)
     assert out["cluster_size"].tolist() == [2, 2]
-    assert out.set_index("tweet_id")["is_representatif"].to_dict() == {"200": False, "201": True}
+    assert out.set_index("tweet_id")["is_representatif"].to_dict() == {"200": True, "201": False}  # 200 lebih panjang -> wakil (8 Nov)
     assert st.lolos_verifikasi == 1
 
 
-def test_rantai_a_b_c_satu_cluster_wakil_paling_awal(cfg):
+def test_rantai_a_b_c_satu_cluster_wakil_terpanjang_seri_paling_awal(cfg):
     base = "pengungsi gempa di ende kekurangan air bersih dan selimut mohon bantuan segera dari pemerintah daerah"
     a = base
     b = base.replace("segera", "secepatnya")

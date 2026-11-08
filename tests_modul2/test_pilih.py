@@ -107,3 +107,96 @@ def test_lanjut_dari_checkpoint(tmp_path):
     c2 = Palsu("jangan dipanggil")
     pilih.jalankan(p, out, raw, lg, gaz, c2)
     assert c2.n == 0
+
+
+# --- petunjuk wilayah dari nama lembaga (8 Nov 2026) ---------------------------------------------------------------
+SQL_ORG = """INSERT INTO wilayah (kode, nama)
+VALUES
+('32','Jawa Barat'),
+('32.01','Kabupaten Bogor'),
+('32.01.05','Cibinong'),
+('32.03','Kabupaten Cianjur'),
+('32.03.20','Cibinong'),
+('32.71','Kota Bogor'),
+('33','Jawa Tengah'),
+('33.21','Kabupaten Demak'),
+('33.76','Kota Pekalongan'),
+('33.26','Kabupaten Pekalongan');
+"""
+
+
+def _gaz_org(tmp_path):
+    f = tmp_path / "o.sql"; f.write_text(SQL_ORG, encoding="utf-8")
+    a = tmp_path / "ab.csv"; a.write_text("singkatan,nama_resmi\nJabar,Jawa Barat\n", encoding="utf-8")
+    return Gazetir(f, a)
+
+
+def _rec_org(*nama):
+    return {"tweet_id": "9", "text_raw": "x", "organization": [{"id": f"O{i}", "nama": n} for i, n in enumerate(nama)]}
+
+
+def test_petunjuk_lembaga_dengan_penanda(tmp_path):
+    gaz = _gaz_org(tmp_path)
+    assert pilih.petunjuk_lembaga(_rec_org("BPBD Kab. Bogor"), gaz) == ["BPBD Kab. Bogor = Kabupaten Bogor (Jawa Barat)"]
+    assert pilih.petunjuk_lembaga(_rec_org("Damkar Kota Bogor"), gaz) == ["Damkar Kota Bogor = Kota Bogor (Jawa Barat)"]
+
+
+def test_petunjuk_lembaga_tanpa_penanda_dan_singkatan(tmp_path):
+    gaz = _gaz_org(tmp_path)
+    assert pilih.petunjuk_lembaga(_rec_org("BPBD Demak"), gaz) == ["BPBD Demak = Kabupaten Demak (Jawa Tengah)"]
+    assert pilih.petunjuk_lembaga(_rec_org("Pemprov Jabar"), gaz) == ["Pemprov Jabar = Jawa Barat"]
+
+
+def test_petunjuk_lembaga_ambigu_atau_tidak_ada_dilewati(tmp_path):
+    gaz = _gaz_org(tmp_path)
+    # "Bogor" cocok kabupaten dan kota -> ambigu; "Pekalongan" juga; lembaga nasional tidak punya wilayah
+    assert pilih.petunjuk_lembaga(_rec_org("BPBD Bogor", "Polres Pekalongan", "BNPB", "Basarnas"), gaz) == []
+    assert pilih.petunjuk_lembaga({"tweet_id": "1", "text_raw": "x"}, gaz) == []
+
+
+def test_petunjuk_lembaga_tidak_menebak_bila_penanda_tidak_cocok(tmp_path):
+    gaz = _gaz_org(tmp_path)
+    assert pilih.petunjuk_lembaga(_rec_org("BPBD Kab. Atlantis"), gaz) == []
+    assert pilih.petunjuk_lembaga(_rec_org("BPBD Kab. Pekalongan"), gaz) == ["BPBD Kab. Pekalongan = Kabupaten Pekalongan (Jawa Tengah)"]
+
+
+def test_pesan_memuat_petunjuk_lembaga_sebagai_petunjuk_lemah(tmp_path):
+    gaz = _gaz_org(tmp_path)
+    rec = {"tweet_id": "9", "text_raw": "Banjir Cibinong, BPBD Kab. Bogor kerahkan perahu",
+           "location": [{"id": "L1", "teks": "Cibinong", "luar_negeri": False}],
+           "relations": [{"type": "LOCATED_IN", "from": "E1", "to": "L1"}],
+           "organization": [{"id": "O1", "nama": "BPBD Kab. Bogor"}]}
+    rec, _ = resolusi_record(rec, gaz)
+    rec["organization"] = [{"id": "O1", "nama": "BPBD Kab. Bogor"}]
+    msgs, kand = pilih.susun_pesan(rec, rec["location"][0], gaz)
+    u = msgs[1]["content"]
+    assert "Wilayah lembaga yang bertindak (petunjuk lemah, bukan lokasi kejadian): BPBD Kab. Bogor = Kabupaten Bogor (Jawa Barat)" in u
+    assert "Lokasi lain di unggahan yang sudah pasti" not in u          # lembaga bukan lokasi pasti
+    assert "petunjuk LEMAH" in msgs[0]["content"]
+    # kandidat tetap sama dan nama lembaga tidak menambah/mengurangi kandidat
+    assert {pilih.kunci(c) for c in kand} == {"32.01.05", "32.03.20"}
+
+
+def test_pesan_tanpa_lembaga_tidak_berubah(tmp_path):
+    gaz, rec, _ = _siapkan(tmp_path)
+    u = pilih.susun_pesan(rec, rec["location"][0], gaz)[0][1]["content"]
+    assert "Wilayah lembaga" not in u
+
+
+def test_checkpoint_dari_prompt_lain_tidak_dilanjutkan(tmp_path):
+    gaz, rec, p = _siapkan(tmp_path)
+    out, raw, lg = tmp_path / "o.jsonl", tmp_path / "raw.jsonl", tmp_path / "l.csv"
+    # jawaban lama tanpa hash prompt (atau hash lain) harus diulang, bukan dipakai
+    raw.write_text(json.dumps({"key": "1|L1", "urutan": [], "content": '{"pilihan":"A","alasan":"lama"}',
+                               "prompt_hash": "hashlain"}) + "\n", encoding="utf-8")
+    c = Palsu('{"pilihan":"A","alasan":"baru"}')
+    pilih.jalankan(p, out, raw, lg, gaz, c)
+    assert c.n == 1
+    baris = [json.loads(l) for l in raw.read_text(encoding="utf-8").splitlines()]
+    assert baris[-1]["prompt_hash"] == pilih.PROMPT_HASH
+
+
+def test_hash_prompt_pemilih_stabil_dan_berasal_dari_system():
+    import hashlib
+    assert len(pilih.PROMPT_HASH) == 12
+    assert pilih.PROMPT_HASH == hashlib.sha256((pilih.SYSTEM + "\n" + pilih.FORMAT_VERSI).encode()).hexdigest()[:12]

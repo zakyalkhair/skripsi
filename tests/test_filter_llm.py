@@ -16,7 +16,7 @@ BMKG_NTB = ("#Gempa Mag:5.1, 18-Aug-2026 01:10:06WIB, Lok:8.10LS, 117.20BT "
             "(125 km TimurLaut SARINGI-NTB), Kedlmn:10 Km #BMKG")
 
 TWEETS = {
-    "101": BMKG,                                                   # aturan bmkg -> informatif
+    "101": BMKG,                                                   # aturan laporan_otomatis_gempa -> noninformatif
     "102": "BNPB: 105 orang meninggal akibat gempa M7,7 Flores, 179.037 warga mengungsi",  # LLM
     "103": "Ngapain sih nanyain MBG di depan korban gempa NTT?!",   # aturan topik_lain
     "104": "Ada yang tahu kabar jalan ke Ruteng hari ini?",           # tidak cocok aturan -> LLM
@@ -96,25 +96,21 @@ def rule_of(cfg, text, ev=("GP07",)):
     return (r.nama, r.label) if r else None
 
 
-def test_aturan_bmkg_berlaku_di_seluruh_wilayah(cfg):
-    # crawl nasional: salinan laporan BMKG dari daerah mana pun langsung informatif
-    assert rule_of(cfg, BMKG) == ("bmkg", "informatif")
-    assert rule_of(cfg, BMKG_NTB) == ("bmkg", "informatif")
-    assert rule_of(cfg, BMKG_NTB, ev=("NAS-GP",)) == ("bmkg", "informatif")
-    # tanpa pola "Gempa Mag: ... Lok:" -> bukan aturan bmkg (ke LLM)
+def test_laporan_otomatis_gempa_noninformatif_di_seluruh_wilayah(cfg):
+    # 8 Nov: laporan otomatis berformat templat = noninformatif, dari daerah mana pun
+    assert rule_of(cfg, BMKG) == ("laporan_otomatis_gempa", "noninformatif")
+    assert rule_of(cfg, BMKG_NTB) == ("laporan_otomatis_gempa", "noninformatif")
+    assert rule_of(cfg, BMKG_NTB, ev=("NAS-GP",)) == ("laporan_otomatis_gempa", "noninformatif")
+    # tanpa pola "Gempa Mag: ... Lok:" -> bukan templat (ke LLM)
     assert rule_of(cfg, "Gempa Flores, BMKG catat 1.624 gempa susulan") is None
 
 
-@pytest.mark.parametrize("mag,harapan", [
-    ("0.8", "noninformatif"), ("2.3", "noninformatif"), ("3.9", "noninformatif"), ("4.0", "noninformatif"),
-    ("4,0", "noninformatif"), ("4.00", "noninformatif"), ("4.1", "informatif"), ("4.6", "informatif"),
-    ("5.1", "informatif"), ("7.7", "informatif"), ("10.0", "informatif")])
-def test_aturan_bmkg_kecil_batas_m4(cfg, mag, harapan):
-    # keputusan 17 Okt: templat <= M4,0 tidak informatif (M4,0 gugur); >= M4,1 informatif; "Dirasakan" bukan pengecualian
+@pytest.mark.parametrize("mag", ["0.8", "2.3", "4.0", "4,0", "4.6", "5.1", "7.7", "10.0"])
+def test_laporan_otomatis_gempa_berapa_pun_magnitudo_dan_dirasakan(cfg, mag):
+    # 8 Nov: tanpa batas magnitudo dan tanpa pengecualian "Dirasakan"/MMI
     t = BMKG.replace("Mag:4.6", f"Mag:{mag}")
-    nama, label = rule_of(cfg, t)
-    assert label == harapan and nama == ("bmkg_kecil" if harapan == "noninformatif" else "bmkg")
-    assert rule_of(cfg, t + " Dirasakan II MMI di Ruteng")[1] == harapan
+    assert rule_of(cfg, t) == ("laporan_otomatis_gempa", "noninformatif")
+    assert rule_of(cfg, t + ", Dirasakan II-III MMI di Ruteng ::BMKG") == ("laporan_otomatis_gempa", "noninformatif")
 
 
 def test_aturan_bmkg_kecil_bukan_templat_ke_llm(cfg):
@@ -203,17 +199,17 @@ def test_run_hibrida_label_keluaran_dan_alur(ready):
     out = read_parquet(cfg.paths.hasil_1_4).set_index("tweet_id")
     assert len(out) == 5  # tidak ada baris hilang
     assert out["label_sumber"].to_dict() == {
-        "101": "aturan:bmkg", "102": "llm", "103": "aturan:topik_lain", "104": "llm", "105": "aturan:doa_tanpa_fakta"}
+        "101": "aturan:laporan_otomatis_gempa", "102": "llm", "103": "aturan:topik_lain", "104": "llm", "105": "aturan:doa_tanpa_fakta"}
     assert out["label"].to_dict() == {
-        "101": "informatif", "102": "informatif", "103": "noninformatif", "104": "noninformatif",
+        "101": "noninformatif", "102": "informatif", "103": "noninformatif", "104": "noninformatif",
         "105": "noninformatif"}
     assert out.loc["102", "llm_model"] == "qwen2.5-cpu" and out.loc["103", "llm_model"] is None
-    assert sorted(read_parquet(cfg.paths.informatif)["tweet_id"]) == ["101", "102"]
+    assert sorted(read_parquet(cfg.paths.informatif)["tweet_id"]) == ["102"]
     alur = pd.read_csv(cfg.paths.alur_data).set_index("tahap")
     assert (alur.loc["filter informatif", "masuk"], alur.loc["filter informatif", "keluar"],
-            alur.loc["filter informatif", "dibuang"]) == (5, 2, 3)
+            alur.loc["filter informatif", "dibuang"]) == (5, 1, 4)
     assert "aturan:topik_lain/noninformatif=1" in alur.loc["filter informatif", "alasan"]
-    assert alur.loc["Siap ke Modul 2", "masuk"] == 2
+    assert alur.loc["Siap ke Modul 2", "masuk"] == 1
 
     client2 = FakeClient(by_text)
     fl.run(cfg, client2)
@@ -229,7 +225,7 @@ def test_tanpa_llm_memakai_label_default(ready):
     assert client.payloads == []
     out = read_parquet(cfg.paths.hasil_1_4).set_index("tweet_id")
     assert out.loc["102", "label"] == "noninformatif" and out.loc["102", "label_sumber"] == "default"
-    assert out.loc["101", "label_sumber"] == "aturan:bmkg"
+    assert out.loc["101", "label_sumber"] == "aturan:laporan_otomatis_gempa"
 
 
 def test_jawaban_hilang_dikirim_ulang_dan_label_ok_tidak_ditimpa(ready):
@@ -272,7 +268,7 @@ def test_galat_server_dicatat_lalu_lanjut(ready):
     recs = fl.load_labels(cfg.paths.llm_labels)
     assert any(r["status"] == "errored:http_500:x" for r in recs)  # galat dicatat
     # lalu dikirim ulang satu-satu dan berhasil
-    assert out["label_sumber"].isin(["llm", "aturan:bmkg", "aturan:topik_lain", "aturan:doa_tanpa_fakta"]).all()
+    assert out["label_sumber"].isin(["llm", "aturan:laporan_otomatis_gempa", "aturan:topik_lain", "aturan:doa_tanpa_fakta"]).all()
 
 
 def test_limit_sampel_deterministik(ready):
@@ -368,13 +364,13 @@ def test_anggota_klaster_mewarisi_label_wakil(ready):
     assert "902" not in set(read_parquet(cfg.paths.informatif)["tweet_id"])  # Modul 2 = wakil saja
 
 
-def test_config_produksi_aturan_bmkg_saja():
+def test_config_produksi_aturan_laporan_otomatis_saja():
     # 7 Okt: hanya aturan positif berbasis format baku. 17 Okt: SATU pengecualian yang disetujui user, berbasis angka
-    # pada format baku (bukan makna): templat BMKG <= M4,0 -> noninformatif. Tidak boleh ada aturan lain.
+    # pada format baku (bukan makna): laporan otomatis gempa berformat templat -> noninformatif (8 Nov, alasan komputasi). Tidak boleh ada aturan lain.
     from modul1.io_utils import PROJECT_ROOT, load_config
     for nama in ("config.yaml", "config_2025.yaml"):
         c = load_config(PROJECT_ROOT / nama)
-        assert [(a.nama, a.label) for a in c.filter_llm.aturan] == [("bmkg_kecil", "noninformatif"), ("bmkg", "informatif")]
+        assert [(a.nama, a.label) for a in c.filter_llm.aturan] == [("laporan_otomatis_gempa", "noninformatif")]
 
 
 def test_model_tidak_ada_menghentikan_run_tanpa_mencatat(ready):

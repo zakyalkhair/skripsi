@@ -8,6 +8,7 @@ Checkpoint: jawaban mentah per (tweet, lokasi) disimpan; menjalankan ulang melan
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 import re
@@ -26,9 +27,14 @@ Anda diberi teks unggahan, sebutan lokasi, dan beberapa kandidat bertanda huruf 
 Aturan:
 - Pilih HANYA dari kandidat yang diberikan. Jangan membuat kandidat, nama, atau koordinat baru.
 - Pakai petunjuk yang TERTULIS di unggahan: nama wilayah lain, nama tempat, jenis kejadian, nama lembaga. Jangan menebak dari popularitas, ukuran, atau urutan kandidat.
+- Bila ada baris "Wilayah lembaga yang bertindak", itu petunjuk LEMAH: lembaga sering bertugas di luar wilayahnya (bantuan lintas daerah, pusat ke daerah). Pakai hanya untuk membedakan kandidat yang sama-sama masuk akal, dan hanya bila tidak bertentangan dengan petunjuk lain di unggahan. Jangan memilih kandidat hanya karena cocok dengan wilayah lembaga bila unggahan menyebut wilayah lain.
 - Bila petunjuk tidak cukup untuk membedakan kandidat, jawab "{TIDAK}". Menjawab "{TIDAK}" lebih baik daripada menebak.
 
 Jawab hanya dengan JSON: {{"pilihan": "<huruf kandidat atau {TIDAK}>", "alasan": "<satu kalimat, kutip petunjuk dari unggahan>"}}"""
+
+# Versi format pesan pengguna (bagian dalam `susun_pesan`); naikkan bila format berubah.
+FORMAT_VERSI = "pilih-2|petunjuk-lembaga"
+PROMPT_HASH = hashlib.sha256((SYSTEM + "\n" + FORMAT_VERSI).encode("utf-8")).hexdigest()[:12]
 
 
 def _nama_kec(gaz, kode_kec: str) -> str:
@@ -64,14 +70,76 @@ def konteks_lain(rec: dict, loc_id: str, gaz) -> list[str]:
     return out
 
 
+# --- Petunjuk wilayah dari nama lembaga (8 Nov 2026) -------------------------------------------------------------
+# "BPBD Kab. Bogor" menunjukkan wilayah kerja lembaga. Ini BUKAN lokasi kejadian dan tidak pernah diekstraksi:
+# hanya dikirim ke LLM sebagai pertimbangan lemah saat kandidat lokasi lain ambigu. Dicari hanya pada tingkat
+# provinsi dan kabupaten/kota, dengan pencocokan nama PERSIS (tanpa fuzzy), dan hanya dipakai bila tepat satu wilayah.
+_PENANDA_ORG = {"kab": "kab", "kabupaten": "kab", "kota": "kota", "kt": "kota", "prov": "prov", "provinsi": "prov"}
+
+
+def _wilayah_dari_nama_lembaga(nama: str, gaz) -> str | None:
+    """'BPBD Kab. Bogor' -> kode kabupaten/kota/provinsi; None bila tidak ada atau tidak tunggal."""
+    from .resolve import norm
+    kata = [k for k in re.sub(r"[.,;:()]", " ", nama or "").split() if k]
+    if not kata:
+        return None
+
+    def cari(frasa: str, hint: str | None) -> list[str]:
+        nm = norm(frasa)
+        nm = gaz.singkatan.get(nm, nm)
+        lv = {"prov": ["prov"], "kab": ["kab"], "kota": ["kab"]}.get(hint or "", ["prov", "kab"])
+        hasil: list[str] = []
+        for t in lv:
+            hasil += gaz.idx[t].get(nm, [])
+        if hint == "kab":
+            hasil = [k for k in hasil if gaz.jenis[k] == "kabupaten"]
+        elif hint == "kota":
+            hasil = [k for k in hasil if gaz.jenis[k] == "kota"]
+        return list(dict.fromkeys(hasil))
+
+    # 1. ada penanda eksplisit ("Kab.", "Kota", "Prov."): ambil sisa kata sesudahnya
+    for i, k in enumerate(kata[:-1]):
+        hint = _PENANDA_ORG.get(k.lower())
+        if hint:
+            hasil = cari(" ".join(kata[i + 1:]), hint)
+            if len(hasil) == 1:
+                return hasil[0]
+            return None                                      # penanda ada tetapi tidak tunggal: jangan menebak
+    # 2. tanpa penanda ("BPBD Demak"): sufiks terpanjang yang cocok persis dan tunggal
+    for i in range(len(kata)):
+        hasil = cari(" ".join(kata[i:]), None)
+        if len(hasil) == 1:
+            return hasil[0]
+        if len(hasil) > 1:
+            return None                                      # nama ganda (mis. kota dan kabupaten): ambigu
+    return None
+
+
+def petunjuk_lembaga(rec: dict, gaz) -> list[str]:
+    """Baris 'BPBD Kab. Bogor = Kabupaten Bogor (Jawa Barat)' untuk lembaga yang tercatat bertindak di unggahan."""
+    out, lihat = [], set()
+    for o in rec.get("organization") or []:
+        for nama in dict.fromkeys(x for x in (o.get("nama"), o.get("nama_lembaga")) if x):
+            kode = _wilayah_dari_nama_lembaga(nama, gaz)
+            if not kode or (nama, kode) in lihat:
+                continue
+            lihat.add((nama, kode))
+            induk = ", ".join(reversed([gaz.nama[q] for q in gaz.path(kode)[:-1]]))
+            out.append(f"{nama} = {gaz.nama[kode]}" + (f" ({induk})" if induk else ""))
+            break                                            # satu baris per lembaga
+    return out
+
+
 def susun_pesan(rec: dict, loc: dict, gaz, seed: int = 42) -> tuple[list[dict], list[dict]]:
     """-> (messages, kandidat_berurutan_acak)."""
     kand = list(loc["resolution"]["kandidat"])
     random.Random(f"{seed}|{rec['tweet_id']}|{loc['id']}").shuffle(kand)
     baris = "\n".join(f"{HURUF[i]}. {deskripsi(c, gaz)}" for i, c in enumerate(kand))
     lain = konteks_lain(rec, loc["id"], gaz)
+    org = petunjuk_lembaga(rec, gaz)
     user = (f"Unggahan:\n{rec['text_raw']}\n\nSebutan lokasi yang harus ditentukan: \"{loc['teks']}\"\n"
             + (f"Lokasi lain di unggahan yang sudah pasti: {'; '.join(lain)}\n" if lain else "")
+            + (f"Wilayah lembaga yang bertindak (petunjuk lemah, bukan lokasi kejadian): {'; '.join(org)}\n" if org else "")
             + f"\nKandidat:\n{baris}\n\nPilih huruf kandidat yang dimaksud, atau {TIDAK}.")
     return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], kand
 
@@ -125,7 +193,9 @@ def jalankan(resolved: Path, out: Path, raw: Path, log_csv: Path, gaz, client, m
     selesai: dict[str, dict] = {}
     if raw.exists() and not dry_run:
         for l in open(raw, encoding="utf-8"):
-            d = json.loads(l); selesai[d["key"]] = d
+            d = json.loads(l)
+            if d.get("prompt_hash") == PROMPT_HASH:           # jawaban dari prompt lain tidak dilanjutkan
+                selesai[d["key"]] = d
     n = Counter(); baris = []; dipanggil = 0
     fo = open(out, "w", encoding="utf-8") if not dry_run else None
     fr = open(raw, "a", encoding="utf-8") if not dry_run else None
@@ -149,10 +219,11 @@ def jalankan(resolved: Path, out: Path, raw: Path, log_csv: Path, gaz, client, m
                 else:
                     try:
                         res = client.chat(msgs, max_tokens)
-                        d = {"key": key, "urutan": [kunci(c) for c in kand], "content": res["content"],
-                             "durasi_s": res.get("durasi_s"), "model": client.model}
+                        d = {"key": key, "prompt_hash": PROMPT_HASH, "urutan": [kunci(c) for c in kand],
+                             "content": res["content"], "durasi_s": res.get("durasi_s"), "model": client.model}
                     except Exception as e:                       # jaringan/Ollama mati: catat, jangan hentikan seluruh run
-                        d = {"key": key, "urutan": [kunci(c) for c in kand], "content": None, "galat": str(e)[:200]}
+                        d = {"key": key, "prompt_hash": PROMPT_HASH, "urutan": [kunci(c) for c in kand],
+                             "content": None, "galat": str(e)[:200]}
                     fr.write(json.dumps(d, ensure_ascii=False) + "\n"); fr.flush()
                     dipanggil += 1
                 status, pil = parse_jawaban(d.get("content"), len(kand))
@@ -170,7 +241,8 @@ def jalankan(resolved: Path, out: Path, raw: Path, log_csv: Path, gaz, client, m
                 baris.append({"tweet_id": rec["tweet_id"], "loc_id": loc["id"], "teks": loc["teks"], "k": len(kand),
                               "urutan": " ".join(f"{HURUF[i]}={kunci(c)}" for i, c in enumerate(kand)),
                               "pilihan": pil, "status_llm": status, "hasil": loc["resolution"].get("gazetteer_id", ""),
-                              "kode_hasil": loc["resolution"]["kode_hasil"], "alasan": alasan, "durasi_s": d.get("durasi_s", "")})
+                              "kode_hasil": loc["resolution"]["kode_hasil"], "alasan": alasan, "durasi_s": d.get("durasi_s", ""),
+                              "prompt_hash": d.get("prompt_hash", PROMPT_HASH)})
             if fo:
                 fo.write(json.dumps(rec, ensure_ascii=False) + "\n")
     finally:

@@ -115,13 +115,17 @@ def test_parse_raw_anonim_gabung_id_dan_saring(tmp_path):
 
 
 def test_tweet_di_luar_jendela_kueri_ditandai(tmp_path):
-    w = ["2026-08-14", "2026-08-30"]  # [since, until)
+    w = ["2026-08-14", "2026-08-30"]  # tanggal WIB: [since 00:00 WIB, until 24:00 WIB) = [13 Agt 17:00, 30 Agt 17:00) UTC
     rows = [
         _raw("1969307187192924301", "gempa Flores hari ini", query_window=w),
         # tweet lama yang ikut terbawa karena dikutip (twscrape mengembalikannya juga)
         _raw("1969307187192924302", "gempa Maret", date="2026-03-22T05:00:00+00:00", query_window=w),
-        # batas: until eksklusif (tepat 30 Agt 00:00 UTC -> di luar)
-        _raw("1969307187192924303", "gempa batas", date="2026-08-30T00:00:00+00:00", query_window=w),
+        # batas atas: until inklusif sampai 24:00 WIB (30 Agt 16:59 UTC masih di dalam, 17:00 UTC di luar)
+        _raw("1969307187192924303", "gempa batas", date="2026-08-30T17:00:00+00:00", query_window=w),
+        _raw("1969307187192924306", "gempa batas dalam", date="2026-08-30T16:59:00+00:00", query_window=w),
+        # batas bawah: since 00:00 WIB = 13 Agt 17:00 UTC (16:59 di luar, 17:00 di dalam)
+        _raw("1969307187192924307", "gempa sebelum", date="2026-08-13T16:59:00+00:00", query_window=w),
+        _raw("1969307187192924308", "gempa awal", date="2026-08-13T17:00:00+00:00", query_window=w),
         # di luar jendela kueri A tapi di dalam jendela kueri B -> lolos
         _raw("1969307187192924304", "gempa sept", date="2026-09-05T00:00:00+00:00", query_window=w),
         _raw("1969307187192924304", "gempa sept", date="2026-09-05T00:00:00+00:00", query_id="qB",
@@ -135,8 +139,9 @@ def test_tweet_di_luar_jendela_kueri_ditandai(tmp_path):
     by = df.set_index("tweet_id")["drop_reason"].to_dict()
     assert by == {"1969307187192924301": None, "1969307187192924302": "di_luar_jendela",
                   "1969307187192924303": "di_luar_jendela", "1969307187192924304": None,
-                  "1969307187192924305": None}
-    assert st["di_luar_jendela"] == 2 and len(df) == 5
+                  "1969307187192924305": None, "1969307187192924306": None,
+                  "1969307187192924307": "di_luar_jendela", "1969307187192924308": None}
+    assert st["di_luar_jendela"] == 3 and len(df) == 8
 
 
 class _Tw:

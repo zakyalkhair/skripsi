@@ -26,5 +26,5 @@ class FileRepository(Repository):
     def metadata(self) -> dict:
         ds = sorted(m["tanggal_lokal"] for m in self._g.mentions.values())
         return {"sumber": self.sumber, "label": self._meta.get("label", "Data Contoh"),
-                "keterangan": self._meta.get("keterangan"), "contoh": True,
+                "keterangan": self._meta.get("keterangan"), "contoh": bool(self._meta.get("contoh", True)),
                 "rentang": {"awal": ds[0] if ds else None, "akhir": ds[-1] if ds else None}}

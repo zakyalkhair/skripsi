@@ -1,28 +1,37 @@
 singkatan,nama_resmi,tingkat,sumber
-Aceh,Aceh,provinsi,nama resmi
-Sumut,Sumatera Utara,provinsi,wiki OSM Template:Id:Provinces_of_Indonesia
-Sumbar,Sumatera Barat,provinsi,wiki OSM
-Sumsel,Sumatera Selatan,provinsi,wiki OSM
-Kepri,Kepulauan Riau,provinsi,wiki OSM
-Babel,Kepulauan Bangka Belitung,provinsi,wiki OSM
-DKI,DKI Jakarta,provinsi,umum
-Jabar,Jawa Barat,provinsi,wiki OSM
-Jateng,Jawa Tengah,provinsi,wiki OSM
-DIY,Daerah Istimewa Yogyakarta,provinsi,umum
-Jatim,Jawa Timur,provinsi,wiki OSM
-Kalbar,Kalimantan Barat,provinsi,wiki OSM
-Kalteng,Kalimantan Tengah,provinsi,wiki OSM
-Kalsel,Kalimantan Selatan,provinsi,wiki OSM
-Kaltim,Kalimantan Timur,provinsi,wiki OSM
-Kaltara,Kalimantan Utara,provinsi,wiki OSM
-Sulut,Sulawesi Utara,provinsi,wiki OSM
-Sulteng,Sulawesi Tengah,provinsi,wiki OSM
-Sulsel,Sulawesi Selatan,provinsi,wiki OSM
-Sultra,Sulawesi Tenggara,provinsi,wiki OSM
-Sulbar,Sulawesi Barat,provinsi,wiki OSM
-NTB,Nusa Tenggara Barat,provinsi,umum
-NTT,Nusa Tenggara Timur,provinsi,umum
-Malut,Maluku Utara,provinsi,wiki OSM
-Jkt,Jakarta,kota,kamus alay (Salsabila dkk. 2018)
-Jogja,Yogyakarta,kota,umum
-Sby,Surabaya,kota,kamus alay (Salsabila dkk. 2018)
+Aceh,Aceh,provinsi,nama resmi (UK PCGN menulis Aceh/NAD)
+Sumut,Sumatera Utara,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sumbar,Sumatera Barat,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sumsel,Sumatera Selatan,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kepri,Kepulauan Riau,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Babel,Kepulauan Bangka Belitung,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+DKI,DKI Jakarta,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Jabar,Jawa Barat,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Jateng,Jawa Tengah,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+DIY,Daerah Istimewa Yogyakarta,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Jatim,Jawa Timur,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kalbar,Kalimantan Barat,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kalteng,Kalimantan Tengah,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kalsel,Kalimantan Selatan,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kaltim,Kalimantan Timur,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Kaltara,Kalimantan Utara,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sulut,Sulawesi Utara,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sulteng,Sulawesi Tengah,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sulsel,Sulawesi Selatan,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sultra,Sulawesi Tenggara,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Sulbar,Sulawesi Barat,provinsi,"OSM wiki Template:Id:Provinces_of_Indonesia (rev. 18 Okt 2025); UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+NTB,Nusa Tenggara Barat,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+NTT,Nusa Tenggara Timur,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Malut,Maluku Utara,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Jkt,Jakarta,kota,"belum terverifikasi (tidak ditemukan di colloquial-indonesian-lexicon.csv, Salsabila dkk. 2018, dicek 8 Nov 2026); muncul di data 2025"
+Jogja,Yogyakarta,kota,"belum terverifikasi; pemakaian umum, muncul di data 2025"
+Sby,Surabaya,kota,"belum terverifikasi (tidak ditemukan di colloquial-indonesian-lexicon.csv, Salsabila dkk. 2018, dicek 8 Nov 2026); muncul di data 2025"
+Jaksel,Jakarta Selatan,kota,pemakaian umum; judul berita sumaterapost.co 10 Nov 2022 (bukan sumber baku); muncul di wakil 2025
+Jaktim,Jakarta Timur,kota,"pemakaian umum; label di situs resmi timur.jakarta.go.id (""Jaktim Hijau""), cek 8 Nov 2026; muncul di wakil 2025"
+Jakut,Jakarta Utara,kota,umum; muncul di 25 wakil 2025
+Jakpus,Jakarta Pusat,kota,umum; muncul di 3 wakil 2025
+Jakbar,Jakarta Barat,kota,umum; muncul di 2 wakil 2025
+Tangsel,Tangerang Selatan,kota,umum; muncul di 29 wakil 2025
+Yogya,Yogyakarta,kota,umum; muncul di 3 wakil 2025
+NAD,Aceh,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"
+Pabar,Papua Barat,provinsi,"UK PCGN Indonesia Toponymic Factfile v4 (Jan 2025), kolom Indonesian Abbreviation"

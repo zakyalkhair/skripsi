@@ -20,6 +20,8 @@ from .repository.base import NotFound, Repository
 
 app = FastAPI(title="Peta Situasi Bencana API", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 _settings = Settings()
+from .tanya import router as tanya_router
+app.include_router(tanya_router)
 app.add_middleware(CORSMiddleware, allow_origins=list(_settings.cors_origins), allow_methods=["GET"], allow_headers=["*"])
 
 

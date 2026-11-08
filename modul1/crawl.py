@@ -350,13 +350,22 @@ def parse_raw_record(d: dict, lang_id: str) -> dict:
     }
 
 
+WIB = pd.Timedelta(hours=7)
+
+
 def in_any_window(created_at: str | None, windows: list[tuple[str, str]]) -> bool:
-    """True bila created_at (UTC) jatuh di salah satu jendela [since, until) kueri asal."""
+    """True bila created_at (UTC) jatuh di salah satu jendela kueri asal, dalam zona WIB (UTC+7).
+
+    Pengamatan 8 Nov 2026 pada crawl 2026: X membaca since/until sebagai tanggal WIB dan until INKLUSIF
+    (tweet sampai 24:00 WIB tanggal until ikut). Jadi jendela = [since 00:00 WIB, until+1 hari 00:00 WIB)
+    = [since - 7 jam, until + 17 jam) dalam UTC. Hanya 174 dari 145.919 tweet berbahasa Indonesia yang
+    tetap di luar aturan ini (0,1%); dengan pembanding UTC 7.539 tweet salah ditandai."""
     if not windows or not created_at:
         return True  # raw lama tanpa info jendela: tidak ditandai
     ts = pd.Timestamp(created_at)
     ts = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
-    return any(pd.Timestamp(s, tz="UTC") <= ts < pd.Timestamp(u, tz="UTC") for s, u in windows)
+    return any(pd.Timestamp(s, tz="UTC") - WIB <= ts < pd.Timestamp(u, tz="UTC") + pd.Timedelta(days=1) - WIB
+               for s, u in windows)
 
 
 def parse_raw(raw_path: str | Path, lang_id: str) -> tuple[pd.DataFrame, dict]:
